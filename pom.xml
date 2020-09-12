@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>data-example</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0</version>
+    <modules>
+        <module>hive-example</module>
+        <module>presto-example</module>
+        <module>storm-example</module>
+        <module>spark-example</module>
+        <module>flink-example</module>
+        <module>common-example</module>
+        <module>hbase-example</module>
+        <module>zookeeper-example</module>
+    </modules>
+
+    <properties>
+        <common.example.version>1.0</common.example.version>
+        <storm.version>1.1.2</storm.version>
+        <common.version>3.4</common.version>
+        <jcommander.version>1.78</jcommander.version>
+        <presto.version>0.86</presto.version>
+        <hive.version>2.3.7</hive.version>
+        <zookeeper.version>3.4.12</zookeeper.version>
+        <hbase.version>2.1.6</hbase.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- 公共库 -->
+            <dependency>
+                <groupId>com.example</groupId>
+                <artifactId>common-example</artifactId>
+                <version>${common.example.version}</version>
+            </dependency>
+
+            <!-- storm -->
+            <dependency>
+                <groupId>org.apache.storm</groupId>
+                <artifactId>storm-core</artifactId>
+                <version>${storm.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.storm</groupId>
+                <artifactId>storm-redis</artifactId>
+                <version>${storm.version}</version>
+            </dependency>
+
+            <!-- presto -->
+            <dependency>
+                <groupId>com.facebook.presto</groupId>
+                <artifactId>presto-jdbc</artifactId>
+                <version>${presto.version}</version>
+            </dependency>
+
+            <!-- hive -->
+            <dependency>
+                <groupId>org.apache.hive</groupId>
+                <artifactId>hive-jdbc</artifactId>
+                <version>${hive.version}</version>
+            </dependency>
+
+            <!-- zookeeper -->
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+            </dependency>
+
+            <!-- hbase -->
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-shaded-client</artifactId>
+                <version>${hbase.version}</version>
+            </dependency>
+
+            <!-- apache common -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${common.version}</version>
+            </dependency>
+
+            <!-- jcommander -->
+            <dependency>
+                <groupId>com.beust</groupId>
+                <artifactId>jcommander</artifactId>
+                <version>${jcommander.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+</project>
