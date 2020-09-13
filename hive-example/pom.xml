@@ -13,6 +13,12 @@
 
     <dependencies>
 
+        <!-- 公共库 -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>common-example</artifactId>
+        </dependency>
+
         <!-- hive -->
         <dependency>
             <groupId>org.apache.hive</groupId>
