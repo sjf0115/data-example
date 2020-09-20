@@ -11,15 +11,15 @@ import java.sql.ResultSet;
 public class JdbcExample {
 
     private static String driverName ="org.apache.hive.jdbc.HiveDriver";
-    private static String Url="jdbc:hive2://127.0.0.1:10000/";
+    private static String url="jdbc:hive2://127.0.0.1:10000/default";
 
     public static void main(String[] args) {
         try {
             Class.forName(driverName);
-            Connection conn = DriverManager.getConnection(Url,"","");
+            Connection conn = DriverManager.getConnection(url,"","");
             String sql = "show tables";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet resultSet = ps.executeQuery();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet resultSet = stmt.executeQuery();
             int columns= resultSet.getMetaData().getColumnCount();
             int rowIndex = 1;
             while (resultSet.next()) {
