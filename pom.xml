@@ -28,6 +28,9 @@
         <hive.version>2.3.7</hive.version>
         <zookeeper.version>3.4.12</zookeeper.version>
         <hbase.version>2.1.6</hbase.version>
+        <scala.binary.version>2.12</scala.binary.version>
+        <flink.version>1.11.2</flink.version>
+        <log4j.version>2.12.1</log4j.version>
     </properties>
 
     <dependencyManagement>
@@ -81,6 +84,14 @@
                 <version>${hbase.version}</version>
             </dependency>
 
+            <!-- flink -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+                <version>${flink.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
             <!-- apache common -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -93,6 +104,28 @@
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>
                 <version>${jcommander.version}</version>
+            </dependency>
+
+            <!-- log4j -->
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
+                <scope>runtime</scope>
             </dependency>
 
         </dependencies>
