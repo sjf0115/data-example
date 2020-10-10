@@ -17,6 +17,7 @@
         <module>common-example</module>
         <module>hbase-example</module>
         <module>zookeeper-example</module>
+        <module>kafka-example</module>
     </modules>
 
     <properties>
@@ -31,6 +32,8 @@
         <scala.binary.version>2.12</scala.binary.version>
         <flink.version>1.11.2</flink.version>
         <log4j.version>2.12.1</log4j.version>
+        <kafka.version>2.5.0</kafka.version>
+        <junit.version>4.13</junit.version>
     </properties>
 
     <dependencyManagement>
@@ -92,6 +95,13 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- kafka -->
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka.version}</version>
+            </dependency>
+
             <!-- apache common -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -126,6 +136,13 @@
                 <artifactId>log4j-core</artifactId>
                 <version>${log4j.version}</version>
                 <scope>runtime</scope>
+            </dependency>
+
+            <!-- junit -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
             </dependency>
 
         </dependencies>
