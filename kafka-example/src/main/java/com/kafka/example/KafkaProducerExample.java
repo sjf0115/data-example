@@ -21,7 +21,7 @@ public class KafkaProducerExample {
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
         Producer<String, String> producer = new KafkaProducer<>(props);
-        String topic = "my-topic";
+        String topic = "test";
         String key = "key-1";
         String value = "value-1";
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
@@ -46,7 +46,7 @@ public class KafkaProducerExample {
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
         Producer<String, String> producer = new KafkaProducer<>(props);
-        String topic = "my-topic";
+        String topic = "test";
         String key = "key-2";
         String value = "value-2";
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
@@ -73,7 +73,7 @@ public class KafkaProducerExample {
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
         Producer<String, String> producer = new KafkaProducer<>(props);
-        String topic = "my-topic";
+        String topic = "test";
         String key = "key-3";
         String value = "value-3";
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
