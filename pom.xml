@@ -29,11 +29,13 @@
         <hive.version>2.3.7</hive.version>
         <zookeeper.version>3.4.12</zookeeper.version>
         <hbase.version>2.1.6</hbase.version>
-        <scala.binary.version>2.12</scala.binary.version>
+        <scala.binary.version>2.11</scala.binary.version>
         <flink.version>1.11.2</flink.version>
         <log4j.version>2.12.1</log4j.version>
         <kafka.version>2.5.0</kafka.version>
-        <junit.version>4.13</junit.version>
+        <junit.version>4.12</junit.version>
+        <guava.version>23.0</guava.version>
+        <gson.version>2.8.5</gson.version>
     </properties>
 
     <dependencyManagement>
@@ -92,7 +94,35 @@
                 <groupId>org.apache.flink</groupId>
                 <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
                 <version>${flink.version}</version>
-                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
+                <version>${flink.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-test-utils_${scala.binary.version}</artifactId>
+                <version>${flink.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-runtime_${scala.binary.version}</artifactId>
+                <version>${flink.version}</version>
+                <scope>test</scope>
+                <classifier>tests</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+                <version>${flink.version}</version>
+                <scope>test</scope>
+                <classifier>tests</classifier>
             </dependency>
 
             <!-- kafka -->
@@ -114,6 +144,20 @@
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>
                 <version>${jcommander.version}</version>
+            </dependency>
+
+            <!-- guava -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <!-- gson -->
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
             </dependency>
 
             <!-- log4j -->
@@ -143,6 +187,7 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
+                <scope>test</scope>
             </dependency>
 
         </dependencies>
