@@ -1,4 +1,4 @@
-package com.flink.example.stream;
+package com.flink.example.stream.connector;
 
 import com.flink.example.bean.WeiboBehavior;
 import com.google.gson.Gson;

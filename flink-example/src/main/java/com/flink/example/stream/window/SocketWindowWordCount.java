@@ -1,4 +1,4 @@
-package com.flink.example.stream;
+package com.flink.example.stream.window;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
