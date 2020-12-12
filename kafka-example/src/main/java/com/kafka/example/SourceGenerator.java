@@ -18,7 +18,7 @@ public class SourceGenerator {
     // 每秒1000条
     private static final long SPEED = 1;
     // 最多发送条数
-    private static final long THRESHOLD = 100;
+    private static final long THRESHOLD = 1000;
     private static final String TOPIC = "weibo_behavior";
 
     /**

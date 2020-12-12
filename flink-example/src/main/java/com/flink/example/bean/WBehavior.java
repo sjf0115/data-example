@@ -4,7 +4,7 @@ package com.flink.example.bean;
  * 微博用户行为
  * Created by wy on 2020/10/27.
  */
-public class WeiboBehavior {
+public class WBehavior {
     private String uid;
     private String wid;
     private String time;

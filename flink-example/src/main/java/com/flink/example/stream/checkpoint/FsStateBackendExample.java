@@ -1,10 +1,10 @@
-package com.flink.example.stream.state;
+package com.flink.example.stream.checkpoint;
 
 import com.flink.example.bean.WBehavior;
 import com.flink.example.stream.function.BehaviorParseMapFunction;
 import com.flink.example.stream.function.BehaviorSumMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
@@ -12,13 +12,11 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import java.util.Properties;
 
 /**
- * Keyed State Demo
- * Created by wy on 2020/11/17.
+ * FsStateBackend
+ * Created by wy on 2020/12/9.
  */
-public class KeyedStateExample {
-
-    public static void main(String[] args) throws Exception{
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+public class FsStateBackendExample {
+    public static void main(String[] args) throws Exception {
         Properties props = new Properties();
         props.put("bootstrap.servers", "localhost:9092");
         props.put("group.id", "metric-group");
@@ -29,11 +27,18 @@ public class KeyedStateExample {
         String topic = "weibo_behavior";
         FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(), props);
 
-        DataStreamSource<String> source = env.addSource(consumer).setParallelism(1);
-        DataStream<Long> stream = source.map(new BehaviorParseMapFunction()).setParallelism(1).uid("behavior-parse-map-function")
-                .keyBy(WBehavior::getUid)
-                .map(new BehaviorSumMapFunction()).setParallelism(1).uid("behavior-sum-map-function");//
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.enableCheckpointing(60000);
+        env.setStateBackend(new FsStateBackend("hdfs://localhost:9000/flink/stateBackend"));
+        env.getCheckpointConfig().setMinPauseBetweenCheckpoints(500);
+        env.getCheckpointConfig().setCheckpointTimeout(60000);
 
-        env.execute("keyed-state-stream");
+        DataStreamSource<String> source = env.addSource(consumer).setParallelism(1);
+        source.map(new BehaviorParseMapFunction()).setParallelism(1).uid("behavior-parse-map-function")
+                .keyBy(WBehavior::getUid)
+                .map(new BehaviorSumMapFunction()).setParallelism(1).uid("behavior-sum-map-function")
+                .print();
+
+        env.execute("fsStateBackend-example");
     }
 }

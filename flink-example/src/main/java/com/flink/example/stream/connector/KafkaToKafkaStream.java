@@ -1,6 +1,6 @@
 package com.flink.example.stream.connector;
 
-import com.flink.example.bean.WeiboBehavior;
+import com.flink.example.bean.WBehavior;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -39,7 +39,7 @@ public class KafkaToKafkaStream {
                     public String map(String s) throws Exception {
                         String[] params = s.split("\\s+");
                         int size = params.length;
-                        WeiboBehavior behavior = new WeiboBehavior();
+                        WBehavior behavior = new WBehavior();
                         if (size > 0) {
                             behavior.setUid(params[0]);
                         }
