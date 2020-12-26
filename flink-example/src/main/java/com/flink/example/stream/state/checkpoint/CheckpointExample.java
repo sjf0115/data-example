@@ -1,4 +1,4 @@
-package com.flink.example.stream.checkpoint;
+package com.flink.example.stream.state.checkpoint;
 
 import com.flink.example.stream.function.BehaviorParseMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
