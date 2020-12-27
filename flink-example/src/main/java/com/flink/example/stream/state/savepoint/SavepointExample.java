@@ -5,9 +5,9 @@ import com.flink.example.stream.source.SimpleCustomSource;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.runtime.state.StateBackend;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -16,24 +16,21 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  */
 public class SavepointExample {
     public static void main(String[] args) throws Exception {
-        final ParameterTool pt = ParameterTool.fromArgs(args);
-        //final String checkpointDir = pt.getRequired("checkpoint.dir");
-
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStateBackend((StateBackend) new FsStateBackend("hdfs://localhost:9000/flink/checkpoint"));
+        env.setStateBackend((StateBackend) new FsStateBackend("hdfs://localhost:9000/flink/checkpoints"));
         env.setRestartStrategy(RestartStrategies.noRestart());
         env.enableCheckpointing(1000L);
-        env.getConfig().disableGenericTypes();
+        env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
-        env.addSource(new SimpleCustomSource()).uid("simple-custom-source")
+        env.addSource(new SimpleCustomSource()).uid("simple-custom-source") // 为Source指定ID
                 .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
                         return value.getField(0);
                     }
                 })
-                .map(new MyStatefulMapFunction()).uid("my-stateful-map-function")
-                .print();
-        env.execute();
+                .map(new MyStatefulMapFunction()).uid("my-stateful-map-function") // 为Map指定ID
+                .print(); // 自动生成ID
+        env.execute("SavepointExample");
     }
 }
