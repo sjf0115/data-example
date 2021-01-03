@@ -25,6 +25,8 @@ public class SavepointExample {
 
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n")
                 .name("MySourceFunction").uid("source-uid");
+
+        // 拆分
         DataStream<Tuple2<String, Integer>> wordsCount = source.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
             @Override
             public void flatMap(String value, Collector out) {
@@ -34,6 +36,7 @@ public class SavepointExample {
             }
         }).name("MyFlatMapFunction").uid("flatMap-uid");
 
+        // 分组求和
         DataStream<Tuple2<String, Integer>> windowCount = wordsCount
                 .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
                     @Override
