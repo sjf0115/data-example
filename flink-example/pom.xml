@@ -16,6 +16,13 @@
     </properties>
 
     <dependencies>
+
+        <!-- 公共库 -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>common-example</artifactId>
+        </dependency>
+
         <!-- flink -->
         <dependency>
             <groupId>org.apache.flink</groupId>
