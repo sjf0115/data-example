@@ -17,7 +17,7 @@ import java.util.Properties;
  * Watermark Example
  * Created by wy on 2020/12/15.
  */
-public class WartermarkExample {
+public class WatermarkStrategyExample {
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // 设置基于事件时间处理

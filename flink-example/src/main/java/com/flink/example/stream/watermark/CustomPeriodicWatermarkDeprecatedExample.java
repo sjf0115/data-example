@@ -20,12 +20,12 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 /**
- * Watermark @Deprecated from 1.11
+ * PeriodicWatermark @Deprecated from 1.11
  * Created by wy on 2021/1/4.
  */
-public class WatermarkDeprecatedExample {
+public class CustomPeriodicWatermarkDeprecatedExample {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WatermarkDeprecatedExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CustomPeriodicWatermarkDeprecatedExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -43,7 +43,6 @@ public class WatermarkDeprecatedExample {
                 .map(new MapFunction<String, Tuple2<String, Long>>() {
                     @Override
                     public Tuple2<String, Long> map(String str) throws Exception {
-                        LOG.info("[INFO] element: {}", str);
                         String[] params = str.split(",");
                         String message = params[0];
                         String time = params[1];
@@ -52,7 +51,7 @@ public class WatermarkDeprecatedExample {
                     }
                 });
 
-        DataStream<Tuple2<String, Long>> result = input.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
+        DataStream<Tuple2<String, Long>> result = input.assignTimestampsAndWatermarks(new CustomPeriodicWatermarkAssigner())
                 // 转换
                 .map(new MapFunction<Tuple2<String,Long>, Tuple2<String, Long>>() {
                     @Override
@@ -73,15 +72,15 @@ public class WatermarkDeprecatedExample {
                 .sum(1);
 
         result.print();
-        env.execute("WatermarkDeprecatedExample");
+        env.execute("CustomPeriodicWatermarkDeprecatedExample");
     }
 
-    public static class BoundedOutOfOrdernessGenerator implements AssignerWithPeriodicWatermarks<Tuple2<String, Long>> {
+    public static class CustomPeriodicWatermarkAssigner implements AssignerWithPeriodicWatermarks<Tuple2<String, Long>> {
 
         private final Long outOfOrdernessMillis = 600000L;
         private Long currentMaxTimeStamp = Long.MIN_VALUE + outOfOrdernessMillis + 1;
 
-        // 默认100ms被调用一次
+        // 默认200ms被调用一次
         @Nullable
         @Override
         public Watermark getCurrentWatermark() {
