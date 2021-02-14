@@ -1,7 +1,6 @@
 package com.flink.example.stream.window;
 
 import com.common.example.utils.DateUtil;
-import com.flink.example.stream.watermark.CustomPeriodicWatermarkDeprecatedExample;
 import com.google.common.collect.Lists;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -30,7 +29,7 @@ import java.util.List;
  */
 public class ProcessWindowFunctionExample {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CustomPeriodicWatermarkDeprecatedExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessWindowFunctionExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -52,6 +51,7 @@ public class ProcessWindowFunctionExample {
                 String key = params[0];
                 String time = params[1];
                 Long timeStamp = DateUtil.date2TimeStamp(time, "yyyy-MM-dd HH:mm:ss");
+                LOG.info("Key: " + key + ", timeStamp: [" + timeStamp + "|" + time + "]");
                 return new Tuple3(key, timeStamp, 1);
             }
         });
@@ -110,6 +110,7 @@ public class ProcessWindowFunctionExample {
             sb.append(", Count: " + count);
             sb.append(", CurrentWatermarkTime: " + currentWatermarkTime);
             sb.append(", CurrentProcessingTime: " + currentProcessingTime);
+            LOG.info(sb.toString());
             out.collect(sb.toString());
         }
     }
