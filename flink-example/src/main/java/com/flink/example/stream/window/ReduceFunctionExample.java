@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 窗口函数Example
+ * ReduceFunction Example
  * Created by wy on 2021/2/3.
  */
 public class ReduceFunctionExample {
@@ -61,6 +61,6 @@ public class ReduceFunctionExample {
 
 
         result.print();
-        env.execute("WindowFunctionExample");
+        env.execute("ReduceFunctionExample");
     }
 }
