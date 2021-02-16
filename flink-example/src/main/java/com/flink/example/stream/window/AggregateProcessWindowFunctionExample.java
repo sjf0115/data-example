@@ -2,8 +2,8 @@ package com.flink.example.stream.window;
 
 import com.common.example.utils.DateUtil;
 import com.flink.example.bean.ContextInfo;
+import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -23,11 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * ReduceFunction增量函数与ProcessWindowFunction组合使用
+ * AggregateFunction增量函数与ProcessWindowFunction组合使用
  * Created by wy on 2021/2/15.
  */
-public class ReduceProcessWindowFunctionExample {
-    private static final Logger LOG = LoggerFactory.getLogger(ReduceProcessWindowFunctionExample.class);
+public class AggregateProcessWindowFunctionExample {
+    private static final Logger LOG = LoggerFactory.getLogger(AggregateProcessWindowFunctionExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -41,7 +41,7 @@ public class ReduceProcessWindowFunctionExample {
 
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
-        // Stream of (key, timestamp, 1)
+        // Stream of (key, timestamp, count)
         DataStream<Tuple3<String, Long, Integer>> stream = source.map(new MapFunction<String, Tuple3<String, Long, Integer>>() {
             @Override
             public Tuple3<String, Long, Integer> map(String str) throws Exception {
@@ -49,13 +49,14 @@ public class ReduceProcessWindowFunctionExample {
                 String key = params[0];
                 String time = params[1];
                 Long timeStamp = DateUtil.date2TimeStamp(time, "yyyy-MM-dd HH:mm:ss");
-                LOG.info("[ELEMENT] Key: " + key + ", timeStamp: [" + timeStamp + "|" + time + "]");
-                return new Tuple3(key, timeStamp, 1);
+                Integer count = Integer.parseInt(params[2]);
+                LOG.info("[ELEMENT] Key: " + key + ", timeStamp: [" + timeStamp + "|" + time + "], Count: " + count);
+                return new Tuple3(key, timeStamp, count);
             }
         });
 
         // 滚动窗口
-        DataStream<Tuple2<ContextInfo, Tuple2<String, Integer>>> result = stream
+        DataStream<Tuple2<ContextInfo, Tuple3<Long, Long, Double>>> result = stream
                 // 提取时间戳与设置Watermark
                 .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Tuple3<String, Long, Integer>>(Time.minutes(10)) {
                     @Override
@@ -79,29 +80,50 @@ public class ReduceProcessWindowFunctionExample {
                 })
                 // 窗口大小为10分钟、滑动步长为5分钟的滑动窗口
                 .timeWindow(Time.minutes(10), Time.minutes(5))
-                // ReduceFunction 相同单词将第二个字段求和
-                .reduce(new MyReduceFunction(), new MyProcessWindowFunction());
+                // 分组求平均值
+                .aggregate(new MyAggregateFunction(), new MyProcessWindowFunction());
 
         result.print();
-        env.execute("ReduceProcessWindowFunctionExample");
+        env.execute("AggregateProcessWindowFunctionExample");
     }
 
     /**
-     * 自定义ReduceFunction：根据Key实现SUM
+     * 自定义ReduceFunction：根据Key实现求平均数
      */
-    private static class MyReduceFunction implements ReduceFunction<Tuple2<String, Integer>> {
-        public Tuple2<String, Integer> reduce(Tuple2<String, Integer> value1, Tuple2<String, Integer> value2) {
-            return new Tuple2(value1.f0, value1.f1 + value2.f1);
+    private static class MyAggregateFunction implements AggregateFunction<Tuple2<String, Integer>, Tuple2<Long, Long>, Tuple3<Long, Long, Double>> {
+
+        // IN：Tuple2<String, Integer>
+        // ACC：Tuple2<Long, Long> -> <Sum, Count>
+        // OUT：Tuple3<Long, Long, Double>
+
+        @Override
+        public Tuple2<Long, Long> createAccumulator() {
+            return new Tuple2<Long, Long>(0L, 0L);
+        }
+
+        @Override
+        public Tuple2<Long, Long> add(Tuple2<String, Integer> value, Tuple2<Long, Long> accumulator) {
+            return new Tuple2<Long, Long>(accumulator.f0 + value.f1, accumulator.f1 + 1L);
+        }
+
+        @Override
+        public Tuple3<Long, Long, Double> getResult(Tuple2<Long, Long> accumulator) {
+            return new Tuple3<>(accumulator.f0, accumulator.f1, ((double) accumulator.f0) / accumulator.f1);
+        }
+
+        @Override
+        public Tuple2<Long, Long> merge(Tuple2<Long, Long> a, Tuple2<Long, Long> b) {
+            return new Tuple2<Long, Long>(a.f0 + b.f0, a.f1 + b.f1);
         }
     }
 
     /**
      * 自定义ProcessWindowFunction：获取窗口元信息
      */
-    private static class MyProcessWindowFunction extends ProcessWindowFunction<Tuple2<String, Integer>, Tuple2<ContextInfo, Tuple2<String, Integer>>, String, TimeWindow> {
+    private static class MyProcessWindowFunction extends ProcessWindowFunction<Tuple3<Long, Long, Double>, Tuple2<ContextInfo, Tuple3<Long, Long, Double>>, String, TimeWindow> {
         @Override
-        public void process(String key, Context context, Iterable<Tuple2<String, Integer>> elements, Collector<Tuple2<ContextInfo, Tuple2<String, Integer>>> out) throws Exception {
-            Tuple2<String, Integer> tuple = elements.iterator().next();
+        public void process(String key, Context context, Iterable<Tuple3<Long, Long, Double>> elements, Collector<Tuple2<ContextInfo, Tuple3<Long, Long, Double>>> out) throws Exception {
+            Tuple3<Long, Long, Double> tuple = elements.iterator().next();
             // 窗口元信息
             TimeWindow window = context.window();
             long start = window.getStart();
@@ -114,15 +136,15 @@ public class ReduceProcessWindowFunctionExample {
             String currentProcessingTime = DateUtil.timeStamp2Date(currentProcessingTimeStamp, "yyyy-MM-dd HH:mm:ss");
 
             ContextInfo contextInfo = new ContextInfo();
-            contextInfo.setKey(tuple.f0);
-            contextInfo.setSum(tuple.f1);
+            contextInfo.setKey(key);
+            contextInfo.setResult("SUM: " + tuple.f0 + ", Count: " + tuple.f1 + ", Average: " + tuple.f2);
             contextInfo.setWindowStartTime(startTime);
             contextInfo.setWindowEndTime(endTime);
             contextInfo.setCurrentWatermark(currentWatermarkTime);
             contextInfo.setCurrentProcessingTime(currentProcessingTime);
             LOG.info("[WINDOW] " + contextInfo.toString());
             // 输出
-            out.collect(new Tuple2<ContextInfo, Tuple2<String, Integer>>(contextInfo, tuple));
+            out.collect(new Tuple2<ContextInfo, Tuple3<Long, Long, Double>>(contextInfo, tuple));
         }
     }
 }
