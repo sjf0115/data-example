@@ -25,10 +25,11 @@ import java.util.List;
 
 /**
  * WindowFunction Example
+ * 实现功能：分组求和
  * Created by wy on 2021/2/16.
  */
 public class WindowFunctionExample {
-    private static final Logger LOG = LoggerFactory.getLogger(AggregateProcessWindowFunctionExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(WindowFunctionExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
