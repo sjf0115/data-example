@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * ReduceFunction Example
+ * 实现功能：分组求和
  * Created by wy on 2021/2/3.
  */
 public class ReduceFunctionExample {
