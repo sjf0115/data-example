@@ -27,9 +27,10 @@ public class WindowJoinExample {
 
         // Stream of (key, value, timestamp)
         // A流
-        DataStream<String> aSource = env.socketTextStream("localhost", 9100, "\n");
-        DataStream<String> bSource = env.socketTextStream("localhost", 9101, "\n");
-        DataStream<Tuple3<String, String, Long>> aStream = aSource.map(new MapFunction<String, Tuple3<String, String, Long>>() {
+        DataStream<String> greenSource = env.socketTextStream("localhost", 9100, "\n");
+        DataStream<String> orangeSource = env.socketTextStream("localhost", 9101, "\n");
+
+        DataStream<Tuple3<String, String, Long>> greenStream = greenSource.map(new MapFunction<String, Tuple3<String, String, Long>>() {
             @Override
             public Tuple3<String, String, Long> map(String str) throws Exception {
                 String[] params = str.split(",");
@@ -37,7 +38,7 @@ public class WindowJoinExample {
                 String value = params[1];
                 String eventTime = params[2];
                 Long timeStamp = DateUtil.date2TimeStamp(eventTime, "yyyy-MM-dd HH:mm:ss");
-                LOG.info("[A流] Key: " + key + ", Value: " + value + ", TimeStamp: [" + eventTime + "|" + timeStamp + "]");
+                LOG.info("[绿色流] Key: " + key + ", Value: " + value + ", TimeStamp: [" + eventTime + "|" + timeStamp + "]");
                 return new Tuple3<>(key, value, timeStamp);
             }
         }).assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Tuple3<String, String, Long>>(Time.seconds(10)) {
@@ -48,7 +49,7 @@ public class WindowJoinExample {
         });
 
         // B流
-        DataStream<Tuple3<String, String, Long>> bStream = bSource.map(new MapFunction<String, Tuple3<String, String, Long>>() {
+        DataStream<Tuple3<String, String, Long>> orangeStream = orangeSource.map(new MapFunction<String, Tuple3<String, String, Long>>() {
             @Override
             public Tuple3<String, String, Long> map(String str) throws Exception {
                 String[] params = str.split(",");
@@ -56,7 +57,7 @@ public class WindowJoinExample {
                 String value = params[1];
                 String eventTime = params[2];
                 Long timeStamp = DateUtil.date2TimeStamp(eventTime, "yyyy-MM-dd HH:mm:ss");
-                LOG.info("[B流] Key: " + key + ", Value: " + value + ", TimeStamp: [" + eventTime + "|" + timeStamp + "]");
+                LOG.info("[橘色流] Key: " + key + ", Value: " + value + ", TimeStamp: [" + eventTime + "|" + timeStamp + "]");
                 return new Tuple3<>(key, value, timeStamp);
             }
         }).assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Tuple3<String, String, Long>>(Time.seconds(10)) {
@@ -67,14 +68,14 @@ public class WindowJoinExample {
         });
 
         // 双流合并
-        DataStream<String> result = aStream.join(bStream)
+        DataStream<String> result = greenStream.join(orangeStream)
                 .where(tuple -> tuple.f0)
                 .equalTo(tuple -> tuple.f0)
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 .apply(new JoinFunction<Tuple3<String, String, Long>, Tuple3<String, String, Long>, String>() {
                     @Override
                     public String join(Tuple3<String, String, Long> first, Tuple3<String, String, Long> second) throws Exception {
-                        String result = "[AB合并流] Key: " + first.f0 + ", Value: " + first.f1 + "," + second.f1 + ", CurrentTime: " + DateUtil.currentDate();
+                        String result = "[合并流] Key: " + first.f0 + ", Value: " + first.f1 + "," + second.f1 + ", CurrentTime: " + DateUtil.currentDate();
                         LOG.info(result);
                         return result;
                     }
