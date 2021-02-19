@@ -14,6 +14,18 @@ import java.util.Objects;
  */
 public class DateUtil {
 
+    public static String DATE_FORMAT = "yyyy-MM-dd";
+    private static String FULL_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+    /**
+     * 获取当前时间
+     * @return
+     */
+    public static String currentDate(){
+        SimpleDateFormat df = new SimpleDateFormat(FULL_DATE_FORMAT);
+        return df.format(System.currentTimeMillis());
+    }
+
     /**
      * 时间字符串转时间戳
      *
