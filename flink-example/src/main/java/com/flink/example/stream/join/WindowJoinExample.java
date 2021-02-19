@@ -26,7 +26,7 @@ public class WindowJoinExample {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         // Stream of (key, value, timestamp)
-        // A流
+        // 绿色流
         DataStream<String> greenSource = env.socketTextStream("localhost", 9100, "\n");
         DataStream<String> orangeSource = env.socketTextStream("localhost", 9101, "\n");
 
@@ -48,7 +48,7 @@ public class WindowJoinExample {
             }
         });
 
-        // B流
+        // 橘色流
         DataStream<Tuple3<String, String, Long>> orangeStream = orangeSource.map(new MapFunction<String, Tuple3<String, String, Long>>() {
             @Override
             public Tuple3<String, String, Long> map(String str) throws Exception {
