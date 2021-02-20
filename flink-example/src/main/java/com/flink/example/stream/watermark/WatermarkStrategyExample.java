@@ -10,6 +10,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.slf4j.Logger;
@@ -45,7 +46,8 @@ public class WatermarkStrategyExample {
             }
         });
 
-        DataStream<Tuple2<String, Integer>> result = stream.assignTimestampsAndWatermarks(
+        // 分配时间戳与设置Watermark
+        SingleOutputStreamOperator<Tuple3<String, Long, Integer>> watermarkStream = stream.assignTimestampsAndWatermarks(
                 WatermarkStrategy.<Tuple3<String, Long, Integer>>forBoundedOutOfOrderness(Duration.ofMinutes(10))
                         .withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, Long, Integer>>() {
                             @Override
@@ -53,7 +55,10 @@ public class WatermarkStrategyExample {
                                 return element.f1;
                             }
                         })
-                )
+        );
+
+        // 分组求和
+        DataStream<Tuple2<String, Integer>> result = watermarkStream
                 // 格式转换
                 .map(tuple -> Tuple2.of(tuple.f0, tuple.f2)).returns(Types.TUPLE(Types.STRING, Types.INT))
                 // 分组
