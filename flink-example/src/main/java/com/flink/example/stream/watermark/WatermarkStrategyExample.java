@@ -57,6 +57,17 @@ public class WatermarkStrategyExample {
                         })
         );
 
+        /* 时间戳单调递增场景
+        SingleOutputStreamOperator<Tuple3<String, Long, Integer>> watermarkStream = stream.assignTimestampsAndWatermarks(
+                WatermarkStrategy.<Tuple3<String, Long, Integer>>forMonotonousTimestamps()
+                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, Long, Integer>>() {
+                            @Override
+                            public long extractTimestamp(Tuple3<String, Long, Integer> element, long recordTimestamp) {
+                                return element.f1;
+                            }
+                        })
+        );*/
+
         // 分组求和
         DataStream<Tuple2<String, Integer>> result = watermarkStream
                 // 格式转换
