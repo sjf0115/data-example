@@ -80,12 +80,12 @@ public class PeriodicWatermarkGeneratorExample {
 
         @Override
         public void onEvent(Tuple3<String, Long, Integer> event, long eventTimestamp, WatermarkOutput output) {
-            currentMaxTimestamp = Math.max(currentMaxTimestamp, event.f1);
-            String currentTime = DateUtil.timeStamp2Date(event.f1, "yyyy-MM-dd HH:mm:ss");
+            currentMaxTimestamp = Math.max(currentMaxTimestamp, eventTimestamp);
+            String currentTime = DateUtil.timeStamp2Date(eventTimestamp, "yyyy-MM-dd HH:mm:ss");
             String currentMaxTime = DateUtil.timeStamp2Date(currentMaxTimestamp, "yyyy-MM-dd HH:mm:ss");
 
             LOG.info("[INFO] Key: {}, CurrentTimestamp: [{}|{}], CurrentMaxTimestamp: [{}|{}]",
-                    event.f0, currentTime, event.f1, currentMaxTime, currentMaxTimestamp
+                    event.f0, currentTime, eventTimestamp, currentMaxTime, currentMaxTimestamp
             );
         }
 

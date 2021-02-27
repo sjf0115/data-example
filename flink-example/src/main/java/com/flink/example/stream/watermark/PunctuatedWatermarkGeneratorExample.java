@@ -3,12 +3,8 @@ package com.flink.example.stream.watermark;
 import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.eventtime.*;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.runtime.state.StateBackend;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +18,6 @@ public class PunctuatedWatermarkGeneratorExample {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStateBackend((StateBackend) new FsStateBackend("hdfs://localhost:9000/flink/checkpoints"));
-        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3,1000));
-        env.enableCheckpointing(1000L);
-        env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
         // 设置事件时间特性
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
@@ -36,9 +28,12 @@ public class PunctuatedWatermarkGeneratorExample {
                 String[] params = str.split(",");
                 String key = params[0];
                 Boolean hasWatermarkMarker = Boolean.parseBoolean(params[1]);
-                String time = DateUtil.currentDate();
-                LOG.info("[INFO] Key: {}, HasWatermarkMarker: {}, TimeStamp: {}", key, hasWatermarkMarker, time);
-                return new MyEvent(key, hasWatermarkMarker);
+                String time = params[2];
+                Long timestamp = DateUtil.date2TimeStamp(time, "yyyy-MM-dd HH:mm:ss");
+                LOG.info("[Element] Key: {}, HashWatermark: {}, Timestamp: [{}|{}]",
+                        key, hasWatermarkMarker, time, timestamp
+                );
+                return new MyEvent(key, hasWatermarkMarker, time, timestamp);
             }
         });
 
@@ -50,39 +45,60 @@ public class PunctuatedWatermarkGeneratorExample {
                         return new MyPunctuatedWatermarkGenerator();
                     }
                 }
+                .withTimestampAssigner(new SerializableTimestampAssigner<MyEvent>() {
+                    @Override
+                    public long extractTimestamp(MyEvent element, long recordTimestamp) {
+                        return element.getTimestamp();
+                    }
+                })
         );
 
         env.execute("PunctuatedWatermarkGeneratorExample");
     }
 
     /**
-     * 自定义PunctuatedWatermarkGenerator
+     * 自定义 Punctuated WatermarkGenerator
      */
     public static class MyPunctuatedWatermarkGenerator implements WatermarkGenerator<MyEvent> {
 
         @Override
         public void onEvent(MyEvent event, long eventTimestamp, WatermarkOutput output) {
+            // 遇到特殊标记的元素就输出Watermark
             if (event.hasWatermarkMarker()) {
-                Watermark watermark = new Watermark(event.getTimeStamp());
-                LOG.info("[Window] TimeStamp: {}", watermark.getFormattedTimestamp());
+                Watermark watermark = new Watermark(eventTimestamp);
+                LOG.info("[Watermark] Key: {}, HasWatermarkMarker: {}, EventTimestamp: [{}|{}], Watermark: [{}|{}]",
+                        event.getKey(), event.hasWatermarkMarker(), event.getEventTime(), event.getTimestamp(),
+                        watermark.getFormattedTimestamp(), watermark.getTimestamp()
+                );
                 output.emitWatermark(watermark);
             }
         }
 
         @Override
         public void onPeriodicEmit(WatermarkOutput output) {
-            // don't need to do anything because we emit in reaction to events above
+            // 不使用该函数
         }
     }
 
     private static class MyEvent {
         private String key;
-        private Long timeStamp;
+        private String eventTime;
+        private Long timestamp;
         private Boolean hasWatermarkMarker;
 
-        public MyEvent(String key, Boolean hasWatermarkMarker) {
+        public MyEvent(String key, Boolean hasWatermarkMarker, String eventTime, Long timestamp) {
             this.key = key;
             this.hasWatermarkMarker = hasWatermarkMarker;
+            this.eventTime = eventTime;
+            this.timestamp = timestamp;
+        }
+
+        public String getEventTime() {
+            return eventTime;
+        }
+
+        public void setEventTime(String eventTime) {
+            this.eventTime = eventTime;
         }
 
         public String getKey() {
@@ -101,12 +117,12 @@ public class PunctuatedWatermarkGeneratorExample {
             this.hasWatermarkMarker = hasWatermarkMarker;
         }
 
-        public Long getTimeStamp() {
-            return timeStamp;
+        public Long getTimestamp() {
+            return timestamp;
         }
 
-        public void setTimeStamp(Long timeStamp) {
-            this.timeStamp = timeStamp;
+        public void setTimestamp(Long timestamp) {
+            this.timestamp = timestamp;
         }
     }
 }
