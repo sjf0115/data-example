@@ -3,15 +3,11 @@ package com.flink.example.stream.watermark;
 import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.eventtime.*;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
-import org.apache.flink.runtime.state.StateBackend;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.slf4j.Logger;
@@ -26,10 +22,6 @@ public class PeriodicWatermarkGeneratorExample {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStateBackend((StateBackend) new FsStateBackend("hdfs://localhost:9000/flink/checkpoints"));
-        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3,1000));
-        env.enableCheckpointing(1000L);
-        env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
         // 设置事件时间特性
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
@@ -41,7 +33,6 @@ public class PeriodicWatermarkGeneratorExample {
                         String key = params[0];
                         String time = params[1];
                         Long timeStamp = DateUtil.date2TimeStamp(time, "yyyy-MM-dd HH:mm:ss");
-                        LOG.info("[INFO] Key: {}, TimeStamp: [{}|{}]", key, time, timeStamp);
                         return new Tuple3<>(key, timeStamp, 1);
                     }
                 });
@@ -53,7 +44,13 @@ public class PeriodicWatermarkGeneratorExample {
                     public WatermarkGenerator<Tuple3<String, Long, Integer>> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
                         return new MyBoundedOutOfOrdernessGenerator();
                     }
-                }
+                }.withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, Long, Integer>>() {
+                    @Override
+                    public long extractTimestamp(Tuple3<String, Long, Integer> element, long recordTimestamp) {
+                        return element.f1;
+                    }
+                })
+                // 必须指定TimestampAssigner否则报错
         );
 
         // 分组求和
@@ -72,23 +69,37 @@ public class PeriodicWatermarkGeneratorExample {
     }
 
     /**
-     * 自定义 BoundedOutOfOrdernessGenerator
+     * 自定义 Periodic WatermarkGenerator
      */
     private static class MyBoundedOutOfOrdernessGenerator implements WatermarkGenerator<Tuple3<String, Long, Integer>> {
 
-        private final long maxOutOfOrderness = 3500; // 3.5 seconds
-
-        private long currentMaxTimestamp;
+        private final long maxOutOfOrderness = 600000; // 10分钟
+        private long currentMaxTimestamp = Long.MIN_VALUE + maxOutOfOrderness + 1;
+        // 前一个Watermark时间戳
+        private long preWatermarkTimestamp = Long.MIN_VALUE;
 
         @Override
         public void onEvent(Tuple3<String, Long, Integer> event, long eventTimestamp, WatermarkOutput output) {
             currentMaxTimestamp = Math.max(currentMaxTimestamp, event.f1);
+            String currentTime = DateUtil.timeStamp2Date(event.f1, "yyyy-MM-dd HH:mm:ss");
+            String currentMaxTime = DateUtil.timeStamp2Date(currentMaxTimestamp, "yyyy-MM-dd HH:mm:ss");
+
+            LOG.info("[INFO] Key: {}, CurrentTimestamp: [{}|{}], CurrentMaxTimestamp: [{}|{}]",
+                    event.f0, currentTime, event.f1, currentMaxTime, currentMaxTimestamp
+            );
         }
 
         @Override
         public void onPeriodicEmit(WatermarkOutput output) {
-            // emit the watermark as current highest timestamp minus the out-of-orderness bound
-            output.emitWatermark(new Watermark(currentMaxTimestamp - maxOutOfOrderness - 1));
+            Watermark watermark = new Watermark(currentMaxTimestamp - maxOutOfOrderness - 1);
+            Long watermarkTimestamp = watermark.getTimestamp();
+            // Watermark发生变化才输出Log
+            if(watermarkTimestamp > preWatermarkTimestamp) {
+                LOG.info("[INFO] Watermark: [{}|{}]", watermark.getFormattedTimestamp(), watermark.getTimestamp());
+            }
+            preWatermarkTimestamp = watermarkTimestamp;
+            // 输出Watermark
+            output.emitWatermark(watermark);
         }
     }
 
@@ -109,4 +120,29 @@ public class PeriodicWatermarkGeneratorExample {
             output.emitWatermark(new Watermark(System.currentTimeMillis() - maxTimeLag));
         }
     }
+    // 输入样例
+//    A,2021-02-27 12:07:01
+//    B,2021-02-27 12:08:01
+//    A,2021-02-27 12:14:01
+//    C,2021-02-27 12:09:01
+//    C,2021-02-27 12:15:01
+//    A,2021-02-27 12:08:01
+//    B,2021-02-27 12:13:01
+//    B,2021-02-27 12:21:01
+//    D,2021-02-27 12:04:01
+//    B,2021-02-27 12:26:01
+//    B,2021-02-27 12:17:01
+//    D,2021-02-27 12:09:01
+//    C,2021-02-27 12:30:01
+
+    // 结果
+//    (A,2)
+//    (B,1)
+//    (C,1)
+//    (A,3)
+//    (C,1)
+//    (B,2)
+//    (B,2)
+//    (C,1)
+//    (A,1)
 }
