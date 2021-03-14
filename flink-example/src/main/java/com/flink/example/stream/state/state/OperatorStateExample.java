@@ -1,4 +1,4 @@
-package com.flink.example.stream.state;
+package com.flink.example.stream.state.state;
 
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;

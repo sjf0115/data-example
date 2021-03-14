@@ -1,5 +1,8 @@
 package com.flink.example.stream.function;
 
+import com.common.example.utils.DateUtil;
+import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
@@ -13,6 +16,9 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.text.ParseException;
+import java.time.Duration;
 
 /**
  * KeyedProcessFunction Example
@@ -39,6 +45,22 @@ public class KeyedProcessFunctionExample {
         });
 
         DataStream<Tuple2<String, Long>> result = stream
+                // 如果使用事件时间必须设置Timestamp提取和Watermark生成 否则下游 ctx.timestamp() 为null
+                .assignTimestampsAndWatermarks(
+                        WatermarkStrategy.<Tuple2<String, String>>forBoundedOutOfOrderness(Duration.ofSeconds(10))
+                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple2<String, String>>() {
+                            @Override
+                            public long extractTimestamp(Tuple2<String, String> element, long recordTimestamp) {
+                                Long timeStamp = 0L;
+                                try {
+                                    timeStamp = DateUtil.date2TimeStamp(element.f1, "yyyy-MM-dd HH:mm:ss");
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                return timeStamp;
+                            }
+                        })
+                )
                 .keyBy(new KeySelector<Tuple2<String,String>, String>() {
                     @Override
                     public String getKey(Tuple2<String, String> tuple) throws Exception {
@@ -74,6 +96,7 @@ public class KeyedProcessFunctionExample {
             if (currentStateValue == null) {
                 currentStateValue = new MyEvent();
                 currentStateValue.key = value.f0;
+                currentStateValue.count = 0L;
             }
 
             // 更新值
@@ -93,6 +116,8 @@ public class KeyedProcessFunctionExample {
 
         @Override
         public void onTimer(long timestamp, OnTimerContext ctx, Collector<Tuple2<String, Long>> out) throws Exception {
+            // Key
+            String key = ctx.getCurrentKey();
             // 当前状态值
             MyEvent currentStateValue = state.value();
             // 检查这是一个过时的定时器还是最新的定时器
@@ -100,7 +125,7 @@ public class KeyedProcessFunctionExample {
                 out.collect(new Tuple2<>(currentStateValue.key, currentStateValue.count));
             }
             LOG.info("[OnTimer] Key: {}, Count: {}, LastModified: {}, CurTimestamp: {}",
-                    currentStateValue.key, currentStateValue.count, currentStateValue.lastModified, timestamp
+                    key, currentStateValue.count, currentStateValue.lastModified, timestamp
             );
         }
     }

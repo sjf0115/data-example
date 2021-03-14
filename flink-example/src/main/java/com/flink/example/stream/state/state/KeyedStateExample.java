@@ -1,4 +1,4 @@
-package com.flink.example.stream.state;
+package com.flink.example.stream.state.state;
 
 import com.flink.example.bean.WBehavior;
 import com.flink.example.stream.function.BehaviorParseMapFunction;
