@@ -34,7 +34,7 @@ public class ProcessFunctionExample {
                 String eventTime = params[1];
                 return new Tuple2<>(key, eventTime);
             }
-        }).process(new MyProcessFunction());
+        }).keyBy(tuple -> tuple.f0).process(new MyProcessFunction());
 
         result.print();
         env.execute("ProcessFunctionExample");
