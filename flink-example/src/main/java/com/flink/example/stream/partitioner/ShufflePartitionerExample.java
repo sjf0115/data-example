@@ -18,9 +18,9 @@ public class ShufflePartitionerExample {
 
         // ShufflePartitioner
         DataStream<String> result = env.socketTextStream("localhost", 9100, "\n")
-                .map(str -> str.toLowerCase()).name("LowerCaseMap").setParallelism(3)
+                .map(str -> str.toLowerCase()).name("LowerCaseMap").setParallelism(2)
                 .shuffle()
-                .map(str -> str.toUpperCase()).name("UpperCaseMap").setParallelism(3);
+                .map(str -> str.toUpperCase()).name("UpperCaseMap").setParallelism(2);
 
         result.print();
 

@@ -18,9 +18,9 @@ public class RebalancePartitionerExample {
 
         // RebalancePartitioner
         DataStream<String> result = env.socketTextStream("localhost", 9100, "\n")
-                .map(str -> str.toLowerCase()).name("LowerCaseMap").setParallelism(3)
+                .map(str -> str.toLowerCase()).name("LowerCaseMap").setParallelism(1)
                 .rebalance()
-                .map(str -> str.toUpperCase()).name("UpperCaseMap").setParallelism(3);
+                .map(str -> str.toUpperCase()).name("UpperCaseMap").setParallelism(2);
 
         result.print();
 

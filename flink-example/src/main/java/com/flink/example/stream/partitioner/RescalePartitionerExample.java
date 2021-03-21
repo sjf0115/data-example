@@ -16,11 +16,11 @@ public class RescalePartitionerExample {
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        // ShufflePartitioner
+        // RescalePartitioner
         DataStream<String> result = env.socketTextStream("localhost", 9100, "\n")
-                .map(str -> str.toLowerCase()).name("LowerCaseMap").setParallelism(3)
+                .map(str -> str.toLowerCase()).name("LowerCaseMap").setParallelism(1)
                 .rescale()
-                .map(str -> str.toUpperCase()).name("UpperCaseMap").setParallelism(3);
+                .map(str -> str.toUpperCase()).name("UpperCaseMap").setParallelism(2);
 
         result.print();
 
