@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * ForwardPartitioner 示例
+ * 自定义Partitioner 示例
  * Created by wy on 2021/3/21.
  */
 public class CustomPartitionerExample {
