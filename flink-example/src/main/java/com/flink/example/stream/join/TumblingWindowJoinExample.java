@@ -1,24 +1,27 @@
 package com.flink.example.stream.join;
 
 import com.common.example.utils.DateUtil;
+import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.JoinFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+
 /**
- * WindowJoin Example
+ * 滚动窗口 Join Example
  * Created by wy on 2021/2/18.
  */
-public class WindowJoinExample {
-    private static final Logger LOG = LoggerFactory.getLogger(WindowJoinExample.class);
+public class TumblingWindowJoinExample {
+    private static final Logger LOG = LoggerFactory.getLogger(TumblingWindowJoinExample.class);
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -41,12 +44,15 @@ public class WindowJoinExample {
                 LOG.info("[绿色流] Key: " + key + ", Value: " + value + ", TimeStamp: [" + eventTime + "|" + timeStamp + "]");
                 return new Tuple3<>(key, value, timeStamp);
             }
-        }).assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Tuple3<String, String, Long>>(Time.seconds(10)) {
-            @Override
-            public long extractTimestamp(Tuple3<String, String, Long> element) {
-                return element.f2;
-            }
-        });
+        }).assignTimestampsAndWatermarks(
+                WatermarkStrategy.<Tuple3<String, String, Long>>forBoundedOutOfOrderness(Duration.ofSeconds(10))
+                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, String, Long>>() {
+                            @Override
+                            public long extractTimestamp(Tuple3<String, String, Long> element, long recordTimestamp) {
+                                return element.f2;
+                            }
+                        })
+        );
 
         // 橘色流
         DataStream<Tuple3<String, String, Long>> orangeStream = orangeSource.map(new MapFunction<String, Tuple3<String, String, Long>>() {
@@ -60,12 +66,15 @@ public class WindowJoinExample {
                 LOG.info("[橘色流] Key: " + key + ", Value: " + value + ", TimeStamp: [" + eventTime + "|" + timeStamp + "]");
                 return new Tuple3<>(key, value, timeStamp);
             }
-        }).assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Tuple3<String, String, Long>>(Time.seconds(10)) {
-            @Override
-            public long extractTimestamp(Tuple3<String, String, Long> element) {
-                return element.f2;
-            }
-        });
+        }).assignTimestampsAndWatermarks(
+                WatermarkStrategy.<Tuple3<String, String, Long>>forBoundedOutOfOrderness(Duration.ofSeconds(10))
+                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, String, Long>>() {
+                            @Override
+                            public long extractTimestamp(Tuple3<String, String, Long> element, long recordTimestamp) {
+                                return element.f2;
+                            }
+                        })
+        );
 
         // 双流合并
         DataStream<String> result = greenStream.join(orangeStream)
@@ -80,8 +89,10 @@ public class WindowJoinExample {
                         return result;
                     }
                 });
+
         result.print();
-        env.execute("WindowJoinExample");
+
+        env.execute("TumblingWindowJoinExample");
     }
 //    A流：
 //    c,0,2021-02-19 12:09:01
