@@ -102,10 +102,12 @@ public class IntervalJoinExample {
                 .between(Time.seconds(-2), Time.seconds(1))
                 .process(new ProcessJoinFunction<Tuple3<String, String, String>, Tuple3<String, String, String>, String>() {
                     @Override
-                    public void processElement(Tuple3<String, String, String> left, Tuple3<String, String, String> right, Context ctx, Collector<String> out) throws Exception {
+                    public void processElement(Tuple3<String, String, String> left,
+                                               Tuple3<String, String, String> right,
+                                               Context ctx, Collector<String> out) throws Exception {
                         LOG.info("[合并流] Key: {}, Value: {}, EventTime: {}",
                                 left.f0, "[" + left.f1 + ", " + right.f1 + "]",
-                                "[" + right.f2 + ", " + right.f2 + "]"
+                                "[" + right.f2 + "|" + ctx.getRightTimestamp() + ", " + right.f2 + "|" + ctx.getLeftTimestamp() + "]"
                         );
                         out.collect(left.f1 + ", " + right.f1);
                     }

@@ -14,6 +14,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
 import java.time.Duration;
 
 /**
@@ -29,64 +30,74 @@ public class TumblingWindowJoinExample {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         // Stream of (key, value, timestamp)
-        // 绿色流
         DataStream<String> greenSource = env.socketTextStream("localhost", 9100, "\n");
         DataStream<String> orangeSource = env.socketTextStream("localhost", 9101, "\n");
 
-        DataStream<Tuple3<String, String, Long>> greenStream = greenSource.map(new MapFunction<String, Tuple3<String, String, Long>>() {
+        DataStream<Tuple3<String, String, String>> greenStream = greenSource.map(new MapFunction<String, Tuple3<String, String, String>>() {
             @Override
-            public Tuple3<String, String, Long> map(String str) throws Exception {
+            public Tuple3<String, String, String> map(String str) throws Exception {
                 String[] params = str.split(",");
                 String key = params[0];
                 String value = params[1];
                 String eventTime = params[2];
-                Long timeStamp = DateUtil.date2TimeStamp(eventTime, "yyyy-MM-dd HH:mm:ss");
-                LOG.info("[绿色流] Key: " + key + ", Value: " + value + ", TimeStamp: [" + eventTime + "|" + timeStamp + "]");
-                return new Tuple3<>(key, value, timeStamp);
+                LOG.info("[橘色流] Key: {}, Value: {}, EventTime: {}", key, value, eventTime);
+                return new Tuple3<>(key, value, eventTime);
             }
         }).assignTimestampsAndWatermarks(
-                WatermarkStrategy.<Tuple3<String, String, Long>>forBoundedOutOfOrderness(Duration.ofSeconds(10))
-                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, String, Long>>() {
+                WatermarkStrategy.<Tuple3<String, String, String>>forBoundedOutOfOrderness(Duration.ofMillis(100))
+                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, String, String>>() {
                             @Override
-                            public long extractTimestamp(Tuple3<String, String, Long> element, long recordTimestamp) {
-                                return element.f2;
+                            public long extractTimestamp(Tuple3<String, String, String> element, long recordTimestamp) {
+                                Long timeStamp = 0L;
+                                try {
+                                    timeStamp = DateUtil.date2TimeStamp(element.f2, "yyyy-MM-dd HH:mm:ss");
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                return timeStamp;
                             }
                         })
         );
 
         // 橘色流
-        DataStream<Tuple3<String, String, Long>> orangeStream = orangeSource.map(new MapFunction<String, Tuple3<String, String, Long>>() {
+        DataStream<Tuple3<String, String, String>> orangeStream = orangeSource.map(new MapFunction<String, Tuple3<String, String, String>>() {
             @Override
-            public Tuple3<String, String, Long> map(String str) throws Exception {
+            public Tuple3<String, String, String> map(String str) throws Exception {
                 String[] params = str.split(",");
                 String key = params[0];
                 String value = params[1];
                 String eventTime = params[2];
-                Long timeStamp = DateUtil.date2TimeStamp(eventTime, "yyyy-MM-dd HH:mm:ss");
-                LOG.info("[橘色流] Key: " + key + ", Value: " + value + ", TimeStamp: [" + eventTime + "|" + timeStamp + "]");
-                return new Tuple3<>(key, value, timeStamp);
+                LOG.info("[橘色流] Key: {}, Value: {}, EventTime: {}", key, value, eventTime);
+                return new Tuple3<>(key, value, eventTime);
             }
         }).assignTimestampsAndWatermarks(
-                WatermarkStrategy.<Tuple3<String, String, Long>>forBoundedOutOfOrderness(Duration.ofSeconds(10))
-                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, String, Long>>() {
+                WatermarkStrategy.<Tuple3<String, String, String>>forBoundedOutOfOrderness(Duration.ofMillis(100))
+                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple3<String, String, String>>() {
                             @Override
-                            public long extractTimestamp(Tuple3<String, String, Long> element, long recordTimestamp) {
-                                return element.f2;
+                            public long extractTimestamp(Tuple3<String, String, String> element, long recordTimestamp) {
+                                Long timeStamp = 0L;
+                                try {
+                                    timeStamp = DateUtil.date2TimeStamp(element.f2, "yyyy-MM-dd HH:mm:ss");
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                return timeStamp;
                             }
                         })
         );
 
         // 双流合并
-        DataStream<String> result = greenStream.join(orangeStream)
+        DataStream<String> result = orangeStream.join(greenStream)
                 .where(tuple -> tuple.f0)
                 .equalTo(tuple -> tuple.f0)
-                .window(TumblingEventTimeWindows.of(Time.minutes(1)))
-                .apply(new JoinFunction<Tuple3<String, String, Long>, Tuple3<String, String, Long>, String>() {
+                .window(TumblingEventTimeWindows.of(Time.seconds(2)))
+                .apply(new JoinFunction<Tuple3<String, String, String>, Tuple3<String, String, String>, String>() {
                     @Override
-                    public String join(Tuple3<String, String, Long> first, Tuple3<String, String, Long> second) throws Exception {
-                        String result = "[合并流] Key: " + first.f0 + ", Value: " + first.f1 + "," + second.f1 + ", CurrentTime: " + DateUtil.currentDate();
-                        LOG.info(result);
-                        return result;
+                    public String join(Tuple3<String, String, String> first, Tuple3<String, String, String> second) throws Exception {
+                        LOG.info("[合并流] Key: {}, Value: {}, EventTime: {}",
+                                first.f0, first.f1 + "," + second.f1, first.f2 + "," + second.f2
+                        );
+                        return first.f1 + "," + second.f1;
                     }
                 });
 
@@ -94,21 +105,21 @@ public class TumblingWindowJoinExample {
 
         env.execute("TumblingWindowJoinExample");
     }
-//    A流：
-//    c,0,2021-02-19 12:09:01
-//    c,1,2021-02-19 12:09:01
-//    c,3,2021-02-19 12:21:02
-//    c,4,2021-02-19 12:45:03
-//    c,4,2021-02-19 13:39:03
+//    绿色流：
+//    c,0,2021-03-26 12:09:00
+//    c,1,2021-03-26 12:09:01
+//    c,3,2021-03-26 12:09:03
+//    c,4,2021-03-26 12:09:04
+//    c,9,2021-03-26 12:09:09
 //
-//    B流：
-//    c,0,2021-02-19 12:09:01
-//    c,1,2021-02-19 12:09:01
-//    c,2,2021-02-19 12:21:02
-//    c,3,2021-02-19 12:21:02
-//    c,4,2021-02-19 12:45:03
-//    c,5,2021-02-19 12:45:03
-//    c,6,2021-02-19 13:14:04
-//    c,7,2021-02-19 13:14:04
-//    c,4,2021-02-19 13:39:03
+//    橘色流：
+//    c,0,2021-03-26 12:09:00
+//    c,1,2021-03-26 12:09:01
+//    c,2,2021-03-26 12:09:02
+//    c,3,2021-03-26 12:09:03
+//    c,4,2021-03-26 12:09:04
+//    c,5,2021-03-26 12:09:05
+//    c,6,2021-03-26 12:09:06
+//    c,7,2021-03-26 12:09:07
+//    c,9,2021-03-26 12:09:09
 }
