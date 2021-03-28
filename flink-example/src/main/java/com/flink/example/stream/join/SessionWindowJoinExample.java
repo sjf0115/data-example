@@ -9,7 +9,7 @@ import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +18,11 @@ import java.text.ParseException;
 import java.time.Duration;
 
 /**
- * 滚动窗口 Join Example
+ * 会话窗口 Join Example
  * Created by wy on 2021/2/18.
  */
-public class TumblingWindowJoinExample {
-    private static final Logger LOG = LoggerFactory.getLogger(TumblingWindowJoinExample.class);
+public class SessionWindowJoinExample {
+    private static final Logger LOG = LoggerFactory.getLogger(SessionWindowJoinExample.class);
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -91,7 +91,7 @@ public class TumblingWindowJoinExample {
         DataStream<String> result = orangeStream.join(greenStream)
                 .where(tuple -> tuple.f0)
                 .equalTo(tuple -> tuple.f0)
-                .window(TumblingEventTimeWindows.of(Time.seconds(2)))
+                .window(EventTimeSessionWindows.withGap(Time.seconds(1)))
                 .apply(new JoinFunction<Tuple3<String, String, String>, Tuple3<String, String, String>, String>() {
                     @Override
                     public String join(Tuple3<String, String, String> first, Tuple3<String, String, String> second) throws Exception {
@@ -104,23 +104,20 @@ public class TumblingWindowJoinExample {
 
         result.print();
 
-        env.execute("TumblingWindowJoinExample");
+        env.execute("SessionWindowJoinExample");
     }
 //    绿色流：
 //    key,0,2021-03-26 12:09:00
-//    key,1,2021-03-26 12:09:01
-//    key,3,2021-03-26 12:09:03
-//    key,4,2021-03-26 12:09:04
-//    key,9,2021-03-26 12:09:09
-//
-//    橘色流：
-//    key,0,2021-03-26 12:09:00
-//    key,1,2021-03-26 12:09:01
-//    key,2,2021-03-26 12:09:02
-//    key,3,2021-03-26 12:09:03
 //    key,4,2021-03-26 12:09:04
 //    key,5,2021-03-26 12:09:05
+//    key,11,2021-03-26 12:09:11
+//
+//    橘色流：
+//    key,1,2021-03-26 12:09:01
+//    key,2,2021-03-26 12:09:02
+//    key,5,2021-03-26 12:09:05
 //    key,6,2021-03-26 12:09:06
-//    key,7,2021-03-26 12:09:07
+//    key,8,2021-03-26 12:09:08
 //    key,9,2021-03-26 12:09:09
+//    key,11,2021-03-26 12:09:11
 }
