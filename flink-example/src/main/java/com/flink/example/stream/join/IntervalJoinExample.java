@@ -19,8 +19,11 @@ import java.text.ParseException;
 import java.time.Duration;
 
 /**
- * Interval Join 示例
- * Created by wy on 2021/3/22.
+ * 功能：Interval Join 示例
+ * 作者：SmartSi
+ * 博客：http://smartsi.club/
+ * 公众号：大数据生态
+ * 日期：2021/3/22 下午5:56
  */
 public class IntervalJoinExample {
     private static final Logger LOG = LoggerFactory.getLogger(TumblingWindowJoinExample.class);

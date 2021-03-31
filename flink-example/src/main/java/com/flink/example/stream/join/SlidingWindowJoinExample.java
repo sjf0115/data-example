@@ -18,8 +18,11 @@ import java.text.ParseException;
 import java.time.Duration;
 
 /**
- * 滑动窗口 Join Example
- * Created by wy on 2021/2/18.
+ * 功能：滑动窗口 Join 示例
+ * 作者：SmartSi
+ * 博客：http://smartsi.club/
+ * 公众号：大数据生态
+ * 日期：2021/3/18 下午5:56
  */
 public class SlidingWindowJoinExample {
     private static final Logger LOG = LoggerFactory.getLogger(SlidingWindowJoinExample.class);
