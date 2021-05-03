@@ -26,7 +26,7 @@ import java.time.Duration;
  * 日期：2021/3/22 下午5:56
  */
 public class IntervalJoinExample {
-    private static final Logger LOG = LoggerFactory.getLogger(TumblingWindowJoinExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(IntervalJoinExample.class);
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -125,7 +125,7 @@ public class IntervalJoinExample {
 //    c,1,2021-03-23 12:09:01
 //    c,6,2021-03-23 12:09:06
 //    c,7,2021-03-23 12:09:07
-
+//
 //
 //    橘色流：
 //    c,0,2021-03-23 12:09:00
