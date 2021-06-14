@@ -28,13 +28,23 @@ public class DateUtil {
 
     /**
      * 时间字符串转时间戳
-     *
      * @param dateStr 字符串时间
      * @param format 时间格式
      * @return
      */
     public static Long date2TimeStamp(String dateStr, String format) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat(format);
+        return sdf.parse(dateStr).getTime();
+    }
+
+    /**
+     * 时间字符串转时间戳
+     * @param dateStr
+     * @return
+     * @throws ParseException
+     */
+    public static Long date2TimeStamp(String dateStr) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat(FULL_DATE_FORMAT);
         return sdf.parse(dateStr).getTime();
     }
 
@@ -81,8 +91,24 @@ public class DateUtil {
         return dateFormat;
     }
 
+    /**
+     * 时间戳转字符串时间
+     * @param timeStamp
+     * @param formats
+     * @return
+     */
     public static String timeStamp2Date(Long timeStamp, String formats){
         String date = new SimpleDateFormat(formats).format(new Date(timeStamp));
+        return date;
+    }
+
+    /**
+     * 时间戳转字符串时间
+     * @param timeStamp
+     * @return
+     */
+    public static String timeStamp2Date(Long timeStamp){
+        String date = new SimpleDateFormat(FULL_DATE_FORMAT).format(new Date(timeStamp));
         return date;
     }
 

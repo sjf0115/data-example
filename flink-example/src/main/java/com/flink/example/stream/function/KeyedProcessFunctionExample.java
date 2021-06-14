@@ -25,8 +25,8 @@ import java.time.Duration;
  * Created by wy on 2021/2/28.
  */
 public class KeyedProcessFunctionExample {
-
     private static final Logger LOG = LoggerFactory.getLogger(KeyedProcessFunctionExample.class);
+    private static int delayTime = 10000;
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -53,7 +53,7 @@ public class KeyedProcessFunctionExample {
                             public long extractTimestamp(Tuple2<String, String> element, long recordTimestamp) {
                                 Long timeStamp = 0L;
                                 try {
-                                    timeStamp = DateUtil.date2TimeStamp(element.f1, "yyyy-MM-dd HH:mm:ss");
+                                    timeStamp = DateUtil.date2TimeStamp(element.f1);
                                 } catch (ParseException e) {
                                     e.printStackTrace();
                                 }
@@ -77,10 +77,8 @@ public class KeyedProcessFunctionExample {
      * 自定义 KeyedProcessFunction
      */
     private static class MyKeyedProcessFunction extends KeyedProcessFunction<String, Tuple2<String, String>, Tuple2<String, Long>> {
-
         // 状态
         private ValueState<MyEvent> state;
-
         @Override
         public void open(Configuration parameters) throws Exception {
             // 状态描述符
@@ -91,26 +89,29 @@ public class KeyedProcessFunctionExample {
 
         @Override
         public void processElement(Tuple2<String, String> value, Context ctx, Collector<Tuple2<String, Long>> out) throws Exception {
+            // 获取Watermark时间戳
+            long watermark = ctx.timerService().currentWatermark();
+            LOG.info("[Watermark] watermark: [{}|{}]", watermark, DateUtil.timeStamp2Date(watermark));
+
             // 当前状态值
-            MyEvent currentStateValue = state.value();
-            if (currentStateValue == null) {
-                currentStateValue = new MyEvent();
-                currentStateValue.key = value.f0;
-                currentStateValue.count = 0L;
+            MyEvent stateValue = state.value();
+            if (stateValue == null) {
+                stateValue = new MyEvent();
+                stateValue.count = 0L;
             }
-
             // 更新值
-            currentStateValue.count++;
-            currentStateValue.lastModified = ctx.timestamp();
-
+            stateValue.count++;
+            stateValue.lastModified = ctx.timestamp();
             // 更新状态
-            state.update(currentStateValue);
+            state.update(stateValue);
 
             // 注册事件时间定时器 60s后调用onTimer方法
-            ctx.timerService().registerEventTimeTimer(currentStateValue.lastModified + 60000);
+            ctx.timerService().registerEventTimeTimer(stateValue.lastModified + delayTime);
 
-            LOG.info("[ProcessElement] Key: {}, Count: {}, LastModified: {}",
-                    currentStateValue.key, currentStateValue.count, currentStateValue.lastModified
+            String key = ctx.getCurrentKey();
+            LOG.info("[Element] Key: {}, Count: {}, LastModified: [{}|{}]",
+                    key, stateValue.count, stateValue.lastModified,
+                    DateUtil.timeStamp2Date(stateValue.lastModified)
             );
         }
 
@@ -119,13 +120,21 @@ public class KeyedProcessFunctionExample {
             // Key
             String key = ctx.getCurrentKey();
             // 当前状态值
-            MyEvent currentStateValue = state.value();
+            MyEvent stateValue = state.value();
             // 检查这是一个过时的定时器还是最新的定时器
-            if (timestamp == currentStateValue.lastModified + 60000) {
-                out.collect(new Tuple2<>(currentStateValue.key, currentStateValue.count));
+            boolean isLatestTimer = false;
+            if (timestamp == stateValue.lastModified + delayTime) {
+                out.collect(new Tuple2<>(key, stateValue.count));
+                isLatestTimer = true;
             }
-            LOG.info("[OnTimer] Key: {}, Count: {}, LastModified: {}, CurTimestamp: {}",
-                    key, currentStateValue.count, currentStateValue.lastModified, timestamp
+            Long timerTimestamp = ctx.timestamp();
+            Long watermark = ctx.timerService().currentWatermark();
+            LOG.info("[Timer] Key: {}, Count: {}, LastModified: [{}|{}], TimerTimestamp: [{}|{}], Watermark: [{}|{}], IsLatestTimer: {}",
+                    key, stateValue.count,
+                    stateValue.lastModified, DateUtil.timeStamp2Date(stateValue.lastModified),
+                    timerTimestamp, DateUtil.timeStamp2Date(timerTimestamp),
+                    watermark, DateUtil.timeStamp2Date(watermark),
+                    isLatestTimer
             );
         }
     }
@@ -134,8 +143,15 @@ public class KeyedProcessFunctionExample {
      * 存储在状态中的数据结构
      */
     public static class MyEvent {
-        public String key;
         public Long count;
         public Long lastModified;
     }
 }
+
+//a,2021-06-13 20:23:08
+//a,2021-06-13 20:23:11
+//b,2021-06-13 20:23:23
+//c,2021-06-13 20:23:34
+//a,2021-06-13 20:23:45
+//b,2021-06-13 20:23:59
+//b,2021-06-13 20:25:01

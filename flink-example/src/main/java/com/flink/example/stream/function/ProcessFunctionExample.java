@@ -1,5 +1,8 @@
 package com.flink.example.stream.function;
 
+import com.common.example.utils.DateUtil;
+import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
@@ -13,12 +16,16 @@ import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.time.Duration;
+
 /**
  * ProcessFunction Example
  * Created by wy on 2021/2/28.
  */
 public class ProcessFunctionExample {
-    private static final Logger LOG = LoggerFactory.getLogger(KeyedProcessFunctionExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessFunctionExample.class);
+    private static int delayTime = 10000;
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -26,7 +33,7 @@ public class ProcessFunctionExample {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
-        DataStream<Long> result = source.map(new MapFunction<String, Tuple2<String, String>>() {
+        DataStream<Tuple2<String, String>> stream = source.map(new MapFunction<String, Tuple2<String, String>>() {
             @Override
             public Tuple2<String, String> map(String value) throws Exception {
                 String[] params = value.split(",");
@@ -34,7 +41,26 @@ public class ProcessFunctionExample {
                 String eventTime = params[1];
                 return new Tuple2<>(key, eventTime);
             }
-        }).keyBy(tuple -> tuple.f0).process(new MyProcessFunction());
+        });
+
+        // 事件时间戳以及watermark
+        DataStream<Long> result = stream.assignTimestampsAndWatermarks(
+                WatermarkStrategy.<Tuple2<String, String>>forBoundedOutOfOrderness(Duration.ofSeconds(10))
+                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple2<String, String>>() {
+                            @Override
+                            public long extractTimestamp(Tuple2<String, String> element, long recordTimestamp) {
+                                Long timeStamp = 0L;
+                                try {
+                                    timeStamp = DateUtil.date2TimeStamp(element.f1);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                return timeStamp;
+                            }
+                        })
+                )
+                .keyBy(tuple -> tuple.f0)
+                .process(new MyProcessFunction());
 
         result.print();
         env.execute("ProcessFunctionExample");
@@ -44,10 +70,8 @@ public class ProcessFunctionExample {
      * 自定义ProcessFunction
      */
     private static class MyProcessFunction extends ProcessFunction<Tuple2<String, String>, Long> {
-
         // 状态
         private ValueState<MyEvent> state;
-
         @Override
         public void open(Configuration parameters) throws Exception {
             // 状态描述符
@@ -58,38 +82,51 @@ public class ProcessFunctionExample {
 
         @Override
         public void processElement(Tuple2<String, String> value, Context ctx, Collector<Long> out) throws Exception {
+            // 获取Watermark时间戳
+            long watermark = ctx.timerService().currentWatermark();
+            LOG.info("[Watermark] watermark: [{}|{}]", watermark, DateUtil.timeStamp2Date(watermark));
+
+            String key = value.f0;
             // 当前状态值
-            MyEvent currentStateValue = state.value();
-            if (currentStateValue == null) {
-                currentStateValue = new MyEvent();
-                currentStateValue.count = 0L;
+            MyEvent stateValue = state.value();
+            if (stateValue == null) {
+                stateValue = new MyEvent();
+                stateValue.count = 0L;
             }
-
             // 更新值
-            currentStateValue.count++;
-            currentStateValue.lastModified = ctx.timestamp();
-
+            stateValue.key = key;
+            stateValue.count++;
+            stateValue.lastModified = ctx.timestamp();
             // 更新状态
-            state.update(currentStateValue);
+            state.update(stateValue);
 
-            // 注册事件时间定时器 60s后调用onTimer方法
-            ctx.timerService().registerEventTimeTimer(currentStateValue.lastModified + 60000);
-
-            LOG.info("[ProcessElement] Count: {}, LastModified: {}",
-                    currentStateValue.count, currentStateValue.lastModified
+            // 注册事件时间定时器 10s后调用onTimer方法
+            ctx.timerService().registerEventTimeTimer(stateValue.lastModified + delayTime);
+            LOG.info("[Element] Key: {}, Count: {}, LastModified: [{}|{}]",
+                    stateValue.key, stateValue.count, stateValue.lastModified,
+                    DateUtil.timeStamp2Date(stateValue.lastModified)
             );
         }
 
         @Override
         public void onTimer(long timestamp, OnTimerContext ctx, Collector<Long> out) throws Exception {
             // 当前状态值
-            MyEvent currentStateValue = state.value();
+            MyEvent stateValue = state.value();
             // 检查这是一个过时的定时器还是最新的定时器
-            if (timestamp == currentStateValue.lastModified + 60000) {
-                out.collect(currentStateValue.count);
+            boolean isLatestTimer = false;
+            if (timestamp == stateValue.lastModified + delayTime) {
+                out.collect(stateValue.count);
+                isLatestTimer = true;
             }
-            LOG.info("[OnTimer] Count: {}, LastModified: {}, CurTimestamp: {}",
-                    currentStateValue.count, currentStateValue.lastModified, timestamp
+
+            Long timerTimestamp = ctx.timestamp();
+            Long watermark = ctx.timerService().currentWatermark();
+            LOG.info("[Timer] Key: {}, Count: {}, LastModified: [{}|{}], TimerTimestamp: [{}|{}], Watermark: [{}|{}], IsLatestTimer: {}",
+                    stateValue.key, stateValue.count,
+                    stateValue.lastModified, DateUtil.timeStamp2Date(stateValue.lastModified),
+                    timerTimestamp, DateUtil.timeStamp2Date(timerTimestamp),
+                    watermark, DateUtil.timeStamp2Date(watermark),
+                    isLatestTimer
             );
         }
     }
@@ -98,8 +135,16 @@ public class ProcessFunctionExample {
      * 存储在状态中的数据结构
      */
     public static class MyEvent {
+        public String key;
         public Long count;
         public Long lastModified;
     }
-
 }
+
+//a,2021-06-13 20:23:08
+//a,2021-06-13 20:23:11
+//b,2021-06-13 20:23:23
+//c,2021-06-13 20:23:34
+//a,2021-06-13 20:23:45
+//b,2021-06-13 20:23:59
+//b,2021-06-13 20:25:01
