@@ -44,7 +44,7 @@ public class ProcessFunctionExample {
         });
 
         // 事件时间戳以及watermark
-        DataStream<Long> result = stream.assignTimestampsAndWatermarks(
+        DataStream<Tuple2<String, Long>> result = stream.assignTimestampsAndWatermarks(
                 WatermarkStrategy.<Tuple2<String, String>>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                         .withTimestampAssigner(new SerializableTimestampAssigner<Tuple2<String, String>>() {
                             @Override
@@ -69,7 +69,7 @@ public class ProcessFunctionExample {
     /**
      * 自定义ProcessFunction
      */
-    private static class MyProcessFunction extends ProcessFunction<Tuple2<String, String>, Long> {
+    private static class MyProcessFunction extends ProcessFunction<Tuple2<String, String>, Tuple2<String, Long>> {
         // 状态
         private ValueState<MyEvent> state;
         @Override
@@ -81,7 +81,7 @@ public class ProcessFunctionExample {
         }
 
         @Override
-        public void processElement(Tuple2<String, String> value, Context ctx, Collector<Long> out) throws Exception {
+        public void processElement(Tuple2<String, String> value, Context ctx, Collector<Tuple2<String, Long>> out) throws Exception {
             // 获取Watermark时间戳
             long watermark = ctx.timerService().currentWatermark();
             LOG.info("[Watermark] watermark: [{}|{}]", watermark, DateUtil.timeStamp2Date(watermark));
@@ -109,13 +109,13 @@ public class ProcessFunctionExample {
         }
 
         @Override
-        public void onTimer(long timestamp, OnTimerContext ctx, Collector<Long> out) throws Exception {
+        public void onTimer(long timestamp, OnTimerContext ctx, Collector<Tuple2<String, Long>> out) throws Exception {
             // 当前状态值
             MyEvent stateValue = state.value();
             // 检查这是一个过时的定时器还是最新的定时器
             boolean isLatestTimer = false;
             if (timestamp == stateValue.lastModified + delayTime) {
-                out.collect(stateValue.count);
+                out.collect(new Tuple2<>(stateValue.key, stateValue.count));
                 isLatestTimer = true;
             }
 
