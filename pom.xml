@@ -31,7 +31,7 @@
         <zookeeper.version>3.4.12</zookeeper.version>
         <hbase.version>2.1.6</hbase.version>
         <scala.binary.version>2.11</scala.binary.version>
-        <flink.version>1.11.2</flink.version>
+        <flink.version>1.12.4</flink.version>
         <log4j.version>2.12.1</log4j.version>
         <kafka.version>2.5.0</kafka.version>
         <junit.version>4.12</junit.version>
@@ -97,8 +97,10 @@
                 <groupId>org.apache.flink</groupId>
                 <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
                 <version>${flink.version}</version>
+                <scope>provided</scope>
             </dependency>
 
+            <!-- flink connector -->
             <dependency>
                 <groupId>org.apache.flink</groupId>
                 <artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
@@ -107,10 +109,8 @@
 
             <dependency>
                 <groupId>org.apache.flink</groupId>
-                <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+                <artifactId>flink-connector-jdbc_${scala.binary.version}</artifactId>
                 <version>${flink.version}</version>
-                <scope>test</scope>
-                <classifier>tests</classifier>
             </dependency>
 
             <!-- flink table api -->
@@ -122,6 +122,14 @@
             </dependency>
 
             <!-- flink 单元测试 -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+                <version>${flink.version}</version>
+                <scope>test</scope>
+                <classifier>tests</classifier>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.flink</groupId>
                 <artifactId>flink-test-utils_${scala.binary.version}</artifactId>
