@@ -41,6 +41,7 @@
         <hadoop.version>2.7.7</hadoop.version>
         <calcite.version>1.27.0</calcite.version>
         <clickhouse.version>0.3.0</clickhouse.version>
+        <mysql.version>8.0.22</mysql.version>
     </properties>
 
     <dependencyManagement>
@@ -180,6 +181,13 @@
                 <groupId>ru.yandex.clickhouse</groupId>
                 <artifactId>clickhouse-jdbc</artifactId>
                 <version>${clickhouse.version}</version>
+            </dependency>
+
+            <!-- MySQL -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.version}</version>
             </dependency>
 
             <!-- apache common -->
