@@ -1,6 +1,6 @@
 package com.flink.example.stream.function;
 
-import com.flink.example.bean.WBehavior;
+import com.flink.example.bean.Behavior;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
@@ -12,7 +12,7 @@ import java.util.Objects;
  * 微博求和
  * Created by wy on 2020/12/10.
  */
-public class BehaviorSumMapFunction extends RichMapFunction<WBehavior, Long> {
+public class BehaviorSumMapFunction extends RichMapFunction<Behavior, Long> {
 
     private ValueState<Long> counterState;
 
@@ -24,7 +24,7 @@ public class BehaviorSumMapFunction extends RichMapFunction<WBehavior, Long> {
     }
 
     @Override
-    public Long map(WBehavior behavior) throws Exception {
+    public Long map(Behavior behavior) throws Exception {
         Long count = counterState.value();
         if (Objects.equals(count, null)) {
             count = 0L;

@@ -1,6 +1,6 @@
 package com.flink.example.stream.state.state;
 
-import com.flink.example.bean.WBehavior;
+import com.flink.example.bean.Behavior;
 import com.flink.example.stream.function.BehaviorParseMapFunction;
 import com.flink.example.stream.function.BehaviorSumMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
@@ -31,7 +31,7 @@ public class KeyedStateExample {
 
         DataStreamSource<String> source = env.addSource(consumer).setParallelism(1);
         DataStream<Long> stream = source.map(new BehaviorParseMapFunction()).setParallelism(1).uid("behavior-parse-map-function")
-                .keyBy(WBehavior::getUid)
+                .keyBy(Behavior::getUid)
                 .map(new BehaviorSumMapFunction()).setParallelism(1).uid("behavior-sum-map-function");//
 
         env.execute("keyed-state-stream");

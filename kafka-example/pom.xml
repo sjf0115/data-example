@@ -12,6 +12,13 @@
     <artifactId>kafka-example</artifactId>
 
     <dependencies>
+
+        <!-- 公共库 -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>common-example</artifactId>
+        </dependency>
+
         <!-- kafka -->
         <dependency>
             <groupId>org.apache.kafka</groupId>

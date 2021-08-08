@@ -1,6 +1,6 @@
 package com.flink.example.stream.connector;
 
-import com.flink.example.bean.WBehavior;
+import com.flink.example.bean.Behavior;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -29,7 +29,7 @@ public class KafkaToKafkaStream {
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("auto.offset.reset", "latest");
 
-        String topic = "weibo_behavior";
+        String topic = "behavior";
         FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(), props);
 
         SingleOutputStreamOperator<String> behavior = env.addSource(consumer)
@@ -39,7 +39,7 @@ public class KafkaToKafkaStream {
                     public String map(String s) throws Exception {
                         String[] params = s.split("\\s+");
                         int size = params.length;
-                        WBehavior behavior = new WBehavior();
+                        Behavior behavior = new Behavior();
                         if (size > 0) {
                             behavior.setUid(params[0]);
                         }

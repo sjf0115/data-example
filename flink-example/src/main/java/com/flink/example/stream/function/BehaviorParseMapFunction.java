@@ -1,18 +1,18 @@
 package com.flink.example.stream.function;
 
-import com.flink.example.bean.WBehavior;
+import com.flink.example.bean.Behavior;
 import org.apache.flink.api.common.functions.RichMapFunction;
 
 /**
  * 微博数据集 数据解析 MapFunction
  * Created by wy on 2020/11/22.
  */
-public class BehaviorParseMapFunction extends RichMapFunction<String, WBehavior> {
+public class BehaviorParseMapFunction extends RichMapFunction<String, Behavior> {
     @Override
-    public WBehavior map(String s) throws Exception {
+    public Behavior map(String s) throws Exception {
         String[] params = s.split("\\s+");
         int size = params.length;
-        WBehavior behavior = new WBehavior();
+        Behavior behavior = new Behavior();
         if (size > 0) {
             behavior.setUid(params[0]);
         }
