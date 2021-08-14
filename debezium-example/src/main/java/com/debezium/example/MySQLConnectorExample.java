@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class MySQLConnectorExample {
     public static void main(String[] args) {
         // Define the configuration for the Debezium Engine with MySQL connector...
-        final Properties props = config.asProperties();
+        final Properties props = null;
         // 引擎配置
         props.setProperty("name", "engine");
         props.setProperty("connector.class", "io.debezium.connector.mysql.MySqlConnector");
