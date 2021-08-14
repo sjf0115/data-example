@@ -20,6 +20,7 @@
         <module>kafka-example</module>
         <module>calcite-example</module>
         <module>clickhouse-example</module>
+        <module>debezium-example</module>
     </modules>
 
     <properties>
@@ -42,6 +43,7 @@
         <calcite.version>1.27.0</calcite.version>
         <clickhouse.version>0.3.0</clickhouse.version>
         <mysql.version>8.0.22</mysql.version>
+        <debezium.version>1.6.1.Final</debezium.version>
     </properties>
 
     <dependencyManagement>
@@ -188,6 +190,25 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql.version}</version>
+            </dependency>
+
+            <!--debezium  -->
+            <dependency>
+                <groupId>io.debezium</groupId>
+                <artifactId>debezium-api</artifactId>
+                <version>${debezium.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.debezium</groupId>
+                <artifactId>debezium-embedded</artifactId>
+                <version>${debezium.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.debezium</groupId>
+                <artifactId>debezium-connector-mysql</artifactId>
+                <version>${debezium.version}</version>
             </dependency>
 
             <!-- apache common -->
