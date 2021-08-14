@@ -1,6 +1,6 @@
 
 
--- Source
+-- 1. 简单Kafka表
 CREATE TABLE kafka_source_table (
   uid STRING COMMENT '用户Id',
   wid STRING COMMENT '微博Id',
@@ -15,8 +15,14 @@ CREATE TABLE kafka_source_table (
   'value.format' = 'json',
   'value.json.ignore-parse-errors' = 'true'
 );
-
+-- 元数据字段
 CREATE TABLE kafka_meta_source_table (
+  -- 元数据字段
+  topic STRING METADATA FROM 'topic',
+  partition STRING METADATA FROM 'partition',
+  offset BIGINT METADATA FROM 'offset',
+  timestamp TIMESTAMP(3) METADATA FROM 'timestamp',
+  -- 业务字段
   uid STRING COMMENT '用户Id',
   wid STRING COMMENT '微博Id',
   tm STRING COMMENT '发微博时间',
@@ -25,12 +31,11 @@ CREATE TABLE kafka_meta_source_table (
   'connector' = 'kafka',
   'topic' = 'behavior',
   'properties.bootstrap.servers' = 'localhost:9092',
-  'properties.group.id' = 'kafka-example',
+  'properties.group.id' = 'kafka-meta-example',
   'scan.startup.mode' = 'earliest-offset',
   'value.format' = 'json',
   'value.json.ignore-parse-errors' = 'true'
 );
-
 
 CREATE TABLE KafkaTable (
   `event_time` TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  -- from Debezium format
