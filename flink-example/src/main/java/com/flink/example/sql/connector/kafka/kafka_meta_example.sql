@@ -14,7 +14,7 @@ CREATE TABLE kafka_meta_source_table (
   'connector' = 'kafka',
   'topic' = 'behavior',
   'properties.bootstrap.servers' = 'localhost:9092',
-  'properties.group.id' = 'kafka-meta-example',
+  'properties.group.id' = 'kafka-connector-meta',
   'scan.startup.mode' = 'earliest-offset',
   'value.format' = 'json',
   'value.json.ignore-parse-errors' = 'true'
@@ -43,6 +43,3 @@ SELECT
   `topic`, `partition_id`, `offset`, `ts`,
   `uid`, `wid`, `tm`
 FROM kafka_meta_source_table;
-
-
--- 在当前文件目录执行提交SQL命令: sql-client.sh embedded -f kafka_meta_example.sql

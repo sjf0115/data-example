@@ -64,11 +64,18 @@ public class SourceGenerator {
                 String wid = params[1];
                 String time = params[2];
                 String content = params[3];
-                Behavior behavior = new Behavior(uid, wid, time, content);
-                String value = gson.toJson(behavior);
+//                Behavior behavior = new Behavior(uid, wid, time, content);
+//                String value = gson.toJson(behavior);
+                Behavior keyBehavior = new Behavior(uid+"-"+wid, null, null, null);
+                String key = gson.toJson(keyBehavior);
+                System.out.println(key);
+
+                Behavior valueBehavior = new Behavior(uid, wid, time, content);
+                String value = gson.toJson(valueBehavior);
+
                 // 异步发送
                 System.out.println(value);
-                asyncSend(uid, value);
+                asyncSend(key, value);
                 long end = System.nanoTime();
                 long diff = end - start;
                 while (diff < (delay*1000)) {
