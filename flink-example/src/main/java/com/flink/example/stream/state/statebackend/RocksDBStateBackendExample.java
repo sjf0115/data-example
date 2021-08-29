@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 功能：
+ * 功能：RocksDBStateBackend
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
@@ -26,7 +26,7 @@ public class RocksDBStateBackendExample {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStateBackend(null);
+        //env.setStateBackend(new RocksDBStateBackend("hdfs:///fink-checkpoints", true));
 
         env.setStateBackend((StateBackend) new FsStateBackend("hdfs://localhost:9000/flink/checkpoints"));
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3,1000));

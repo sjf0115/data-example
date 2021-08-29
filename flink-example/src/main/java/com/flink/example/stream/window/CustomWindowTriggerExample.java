@@ -98,8 +98,8 @@ public class CustomWindowTriggerExample {
             boolean isContains = uidList.contains(uid);
             if (!isContains) {
                 uidList.add(uid);
+                uidState.update(uidList);
             }
-            uidState.update(uidList);
 
             // 大于等于3个用户触发计算
             if (uidList.size() >= maxCount) {
@@ -166,12 +166,12 @@ public class CustomWindowTriggerExample {
         }
     }
 }
-// 10,a,1
-// 11,a,2
-// 10,b,1
-// 11,b,4
-// 10,c,3
-// 10,d,5
-// 11,c,1
-// 10,b,2
-// 10,a,4
+// c10,ua,1
+// c11,ua,2
+// c10,ub,1
+// c11,ub,4
+// c10,uc,3
+// c12,ua,5
+// c11,uc,1
+// c12,ub,2
+// c12,uc,4
