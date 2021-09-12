@@ -1,4 +1,4 @@
-package com.kafka.example;
+package com.kafka.example.consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -9,14 +9,17 @@ import java.util.Arrays;
 import java.util.Properties;
 
 /**
- * Kafka 消费者 示例
- * Created by wy on 2020/10/10.
+ * 功能：自动提交 Offset
+ * 作者：SmartSi
+ * 博客：http://smartsi.club/
+ * 公众号：大数据生态
+ * 日期：2021/9/11 上午11:32
  */
-public class KafkaConsumeExample {
+public class AutoCommitOffsetExample {
     public static void main(String[] args) {
         Properties props = new Properties();
         props.setProperty("bootstrap.servers", "localhost:9092");
-        props.setProperty("group.id", "kafka-consumer-example");
+        props.setProperty("group.id", "auto-commit-offset-example");
         props.setProperty("enable.auto.commit", "true");
         props.setProperty("auto.commit.interval.ms", "1000");
         props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
@@ -26,7 +29,7 @@ public class KafkaConsumeExample {
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
             for (ConsumerRecord<String, String> record : records) {
-                System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
+                System.out.printf("offset = %d, key = %s, value = %s\n", record.offset(), record.key(), record.value());
             }
         }
     }
