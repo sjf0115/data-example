@@ -1,4 +1,4 @@
-package com.flink.example.stream.connector;
+package com.flink.example.stream.connector.kafka;
 
 import com.flink.example.bean.Behavior;
 import com.google.gson.Gson;

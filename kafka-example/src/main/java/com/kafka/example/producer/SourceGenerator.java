@@ -1,8 +1,9 @@
-package com.kafka.example.consumer;
+package com.kafka.example.producer;
 
 import com.common.example.bean.Behavior;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.kafka.example.consumer.AsyncSendCallback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
