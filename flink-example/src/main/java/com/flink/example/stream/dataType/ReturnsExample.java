@@ -8,4 +8,7 @@ package com.flink.example.stream.dataType;
  * 日期：2021/10/5 下午6:08
  */
 public class ReturnsExample {
+    public static void main(String[] args) {
+
+    }
 }
