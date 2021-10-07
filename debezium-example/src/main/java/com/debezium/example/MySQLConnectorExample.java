@@ -19,28 +19,38 @@ import java.util.concurrent.TimeUnit;
 public class MySQLConnectorExample {
     public static void main(String[] args) {
         // Define the configuration for the Debezium Engine with MySQL connector...
-        final Properties props = null;
+        final Properties props = new Properties();
         // 引擎配置
         props.setProperty("name", "engine");
         props.setProperty("connector.class", "io.debezium.connector.mysql.MySqlConnector");
         props.setProperty("offset.storage", "org.apache.kafka.connect.storage.FileOffsetBackingStore");
-        props.setProperty("offset.storage.file.filename", "/tmp/offsets.dat");
+        props.setProperty("offset.storage.file.filename", "/tmp/debezium/offsets.dat");
         props.setProperty("offset.flush.interval.ms", "60000");
         // Connector 配置
         props.setProperty("database.hostname", "localhost");
         props.setProperty("database.port", "3306");
-        props.setProperty("database.user", "root");
-        props.setProperty("database.password", "root");
+        props.setProperty("database.user", "cdc_user");
+        props.setProperty("database.password", "cdc_root");
         props.setProperty("database.server.id", "85744");
-        props.setProperty("database.server.name", "my-app-connector");
+        props.setProperty("database.server.name", "debezium-embedded-mysql-server");
+        props.setProperty("database.include.list", "debezium_sample");
+        props.setProperty("table.include.list", "stu");
         props.setProperty("database.history", "io.debezium.relational.history.FileDatabaseHistory");
-        props.setProperty("database.history.file.filename", "/path/to/storage/dbhistory.dat");
+        props.setProperty("database.history.file.filename", "/tmp/debezium/db_history.dat");
 
         // 创建引擎
         DebeziumEngine.Builder<ChangeEvent<String, String>> builder = DebeziumEngine.create(Json.class);
         builder.using(props);
         builder.notifying(record -> {
-            System.out.println(record);
+            System.out.println("Record: " + record);
+        });
+        builder.using(new DebeziumEngine.CompletionCallback() {
+            @Override
+            public void handle(boolean isSuccess, String s, Throwable throwable) {
+                if (throwable != null) {
+                    System.out.println("Result: " + isSuccess + ", Message: " + s);
+                }
+            }
         });
         DebeziumEngine<ChangeEvent<String, String>> engine = builder.build();
 
