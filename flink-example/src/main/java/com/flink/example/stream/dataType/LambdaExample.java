@@ -144,6 +144,6 @@ public class LambdaExample {
 
     public static void main(String[] args) throws Exception {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-        flapMap5(env);
+        map3(env);
     }
 }
