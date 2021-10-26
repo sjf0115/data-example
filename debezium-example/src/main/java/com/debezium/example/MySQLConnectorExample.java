@@ -34,7 +34,7 @@ public class MySQLConnectorExample {
         props.setProperty("database.server.id", "85744");
         props.setProperty("database.server.name", "debezium-embedded-mysql-server");
         props.setProperty("database.include.list", "debezium_sample");
-        props.setProperty("table.include.list", "stu");
+        props.setProperty("table.include.list", "debezium_sample.stu");
         props.setProperty("database.history", "io.debezium.relational.history.FileDatabaseHistory");
         props.setProperty("database.history.file.filename", "/tmp/debezium/db_history.dat");
 
@@ -42,7 +42,8 @@ public class MySQLConnectorExample {
         DebeziumEngine.Builder<ChangeEvent<String, String>> builder = DebeziumEngine.create(Json.class);
         builder.using(props);
         builder.notifying(record -> {
-            System.out.println("Record: " + record);
+            System.out.println("Key: " + record.key());
+            System.out.println("Value: " + record.value());
         });
         builder.using(new DebeziumEngine.CompletionCallback() {
             @Override
@@ -67,3 +68,5 @@ public class MySQLConnectorExample {
         }
     }
 }
+
+
