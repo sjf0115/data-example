@@ -1,6 +1,5 @@
 package com.flink.example.stream.partitioner;
 
-import com.flink.example.stream.state.state.KeyGroupExample;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
@@ -11,7 +10,7 @@ import org.slf4j.LoggerFactory;
  * Created by wy on 2021/3/14.
  */
 public class RebalancePartitionerExample {
-    private static final Logger LOG = LoggerFactory.getLogger(KeyGroupExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RebalancePartitionerExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

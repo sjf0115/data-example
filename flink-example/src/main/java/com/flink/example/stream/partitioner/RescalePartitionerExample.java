@@ -1,6 +1,5 @@
 package com.flink.example.stream.partitioner;
 
-import com.flink.example.stream.state.state.KeyGroupExample;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;

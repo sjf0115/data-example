@@ -1,6 +1,5 @@
 package com.flink.example.stream.partitioner;
 
-import com.flink.example.stream.state.state.KeyGroupExample;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.functions.Partitioner;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -14,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * Created by wy on 2021/3/21.
  */
 public class CustomPartitionerExample {
-    private static final Logger LOG = LoggerFactory.getLogger(KeyGroupExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CustomPartitionerExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
