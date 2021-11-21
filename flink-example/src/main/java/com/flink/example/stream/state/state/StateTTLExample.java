@@ -6,6 +6,7 @@ import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.memory.MemoryStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
@@ -26,48 +27,44 @@ public class StateTTLExample {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setStateBackend(new MemoryStateBackend());
 
-        // 设置事件时间特性
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
-        DataStream<Long> stream = source.map(new StateMapFunction());
+        DataStream<Long> stream = source.map(new RichMapFunction<String, Long>() {
+            private ValueState<Long> counterState;
+            @Override
+            public void open(Configuration parameters) throws Exception {
+                super.open(parameters);
+
+                // TTL 配置
+                StateTtlConfig ttlConfig = StateTtlConfig
+                        .newBuilder(Time.minutes(1))
+                        .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+                        .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
+                        .build();
+
+                // 状态描述符
+                ValueStateDescriptor<Long> stateDescriptor = new ValueStateDescriptor<>("counter", Long.class);
+                // 设置 TTL
+                stateDescriptor.enableTimeToLive(ttlConfig);
+                counterState = getRuntimeContext().getState(stateDescriptor);
+            }
+
+            @Override
+            public Long map(String behavior) throws Exception {
+                Long count = counterState.value();
+                if (Objects.equals(count, null)) {
+                    count = 0L;
+                }
+                Long newCount = count + 1;
+                LOG.info("[State] Counter: {}", newCount);
+                counterState.update(newCount);
+                return newCount;
+            }
+        });
         stream.print();
 
         env.execute("StateTTLExample");
-    }
-
-    /**
-     * 有状态 MapFunction
-     */
-    public static class StateMapFunction extends RichMapFunction<String, Long> {
-        private ValueState<Long> counterState;
-        @Override
-        public void open(Configuration parameters) throws Exception {
-            super.open(parameters);
-
-            // TTL 配置
-            StateTtlConfig ttlConfig = StateTtlConfig
-                    .newBuilder(Time.minutes(1))
-                    .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
-                    .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
-                    .build();
-            // 状态描述符
-            ValueStateDescriptor<Long> stateDescriptor = new ValueStateDescriptor<>("counter", Long.class);
-            // 设置 TTL
-            stateDescriptor.enableTimeToLive(ttlConfig);
-            counterState = getRuntimeContext().getState(stateDescriptor);
-        }
-
-        @Override
-        public Long map(String behavior) throws Exception {
-            Long count = counterState.value();
-            if (Objects.equals(count, null)) {
-                count = 0L;
-            }
-            Long newCount = count + 1;
-            LOG.info("[State] Counter: {}", newCount);
-            counterState.update(newCount);
-            return newCount;
-        }
     }
 }
