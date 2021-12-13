@@ -11,6 +11,7 @@ import org.apache.hadoop.hive.ql.exec.UDAFEvaluatorResolver;
  * 日期：2021/12/4 上午11:00
  */
 public class SimpleAverageUDAF extends UDAF {
+
     public SimpleAverageUDAF(UDAFEvaluatorResolver rslv) {
         super(rslv);
     }
@@ -24,4 +25,6 @@ public class SimpleAverageUDAF extends UDAF {
     public UDAFEvaluatorResolver getResolver() {
         return super.getResolver();
     }
+
+
 }
