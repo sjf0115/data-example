@@ -20,6 +20,7 @@ public class RowFormatFileSinkExample {
     public static void main(String[] args) throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.enableCheckpointing(500);
 
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
@@ -27,7 +28,7 @@ public class RowFormatFileSinkExample {
         final FileSink<String> sink = FileSink
                 .forRowFormat(new Path(outputPath), new SimpleStringEncoder<String>("UTF-8"))
                 // 生成 Bucket
-                .withBucketAssigner(new DateTimeBucketAssigner<>("yyyyMMdd-HH"))
+                .withBucketAssigner(new DateTimeBucketAssigner<>("yyyyMMdd-HH-mm"))
                 .withBucketCheckInterval(60L * 1000L)
                 // 滚动策略
                 .withRollingPolicy(
