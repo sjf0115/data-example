@@ -1,6 +1,5 @@
 package com.flink.example.stream.state.statebackend;
 
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
@@ -28,35 +27,28 @@ public class HashMapStateBackendExample {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        // 在事件时间模式下使用处理时间语义
+        env.getConfig().setAutoWatermarkInterval(0);
+
         // 设置状态后端
         env.setStateBackend(new HashMapStateBackend());
-        // 设置 Checkpoint
+
+        // 设置Checkpoint存储
         env.enableCheckpointing(1000L);
         FileSystemCheckpointStorage checkpointStorage = new FileSystemCheckpointStorage("hdfs://localhost:9000/flink/checkpoint");
         env.getCheckpointConfig().setCheckpointStorage(checkpointStorage);
 
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
-        DataStream<Tuple2<String, Long>> result = source.map(new MapFunction<String, Tuple2<String, String>>() {
-            // 清洗
+        DataStream<Tuple2<String, Long>> result = source.keyBy(new KeySelector<String, String>() {
             @Override
-            public Tuple2<String, String> map(String value) throws Exception {
-                String[] params = value.split(",");
-                String time = params[0];
-                String key = params[1];
-                LOG.info("[Input] Key: {}, Time: {}", key, time);
-                return new Tuple2<>(time, key);
+            public String getKey(String uid) throws Exception {
+                return uid;
             }
-        }).keyBy(new KeySelector<Tuple2<String, String>, String>() {
-            // 分组
-            @Override
-            public String getKey(Tuple2<String, String> tuple) throws Exception {
-                return tuple.f1;
-            }
-        }).map(new RichMapFunction<Tuple2<String, String>, Tuple2<String, Long>>() {
+        }).map(new RichMapFunction<String, Tuple2<String, Long>>() {
             // 计数器
             private ValueState<Long> counterState;
-
             @Override
             public void open(Configuration parameters) throws Exception {
                 super.open(parameters);
@@ -65,15 +57,14 @@ public class HashMapStateBackendExample {
             }
 
             @Override
-            public Tuple2<String, Long> map(Tuple2<String, String> tuple) throws Exception {
-                String key = tuple.f1;
+            public Tuple2<String, Long> map(String key) throws Exception {
                 Long count = counterState.value();
                 if (Objects.equals(count, null)) {
                     count = 0L;
                 }
                 Long newCount = count + 1;
                 counterState.update(newCount);
-                LOG.info("[Output] Key: {}, Count: {}", key, newCount);
+                LOG.info("Key: {}, Count: {}", key, newCount);
                 return new Tuple2<>(key, newCount);
             }
         });
@@ -83,11 +74,20 @@ public class HashMapStateBackendExample {
         env.execute("HashMapStateBackendExample");
     }
 }
+// 输入
+// a
+// a
+// c
+// d
+// a
+// d
+// c
 
-// 2021-10-30 11:21:00,a
-// 2021-10-30 11:21:01,a
-// 2021-10-30 11:21:02,c
-// 2021-10-30 11:21:03,d
-// 2021-10-30 11:21:04,a
-// 2021-10-30 11:21:05,d
-// 2021-10-30 11:21:06,c
+// 输出
+//Key: a, Count: 1
+//Key: a, Count: 2
+//Key: c, Count: 1
+//Key: d, Count: 1
+//Key: a, Count: 3
+//Key: d, Count: 2
+//Key: c, Count: 2
