@@ -1,12 +1,16 @@
 package com.flink.example.stream.state.state;
 
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.StateTtlConfig;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.state.memory.MemoryStateBackend;
+import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
+import org.apache.flink.runtime.state.storage.FileSystemCheckpointStorage;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
@@ -27,44 +31,70 @@ public class StateTTLExample {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStateBackend(new MemoryStateBackend());
+        // 在事件时间模式下使用处理时间语义
+        env.getConfig().setAutoWatermarkInterval(0);
+
+        // 设置状态后端
+        env.setStateBackend(new HashMapStateBackend());
+
+        // 设置Checkpoint存储
+        env.enableCheckpointing(1000L);
+        String checkpointPath = "hdfs://localhost:9000/flink/checkpoint";
+        FileSystemCheckpointStorage checkpointStorage = new FileSystemCheckpointStorage(checkpointPath);
+        env.getCheckpointConfig().setCheckpointStorage(checkpointStorage);
 
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
-        DataStream<Long> stream = source.map(new RichMapFunction<String, Long>() {
-            private ValueState<Long> counterState;
+        DataStream<Tuple2<String, Long>> stream = source.map(new MapFunction<String, Tuple2<String, Long>>() {
+            @Override
+            public Tuple2<String, Long> map(String value) throws Exception {
+                String[] params = value.split(",");
+                return new Tuple2<String, Long>(params[0], Long.parseLong(params[1]));
+            }
+        }).keyBy(new KeySelector<Tuple2<String, Long>, String>() {
+            @Override
+            public String getKey(Tuple2<String, Long> tuple2) throws Exception {
+                return tuple2.f0;
+            }
+        }).map(new RichMapFunction<Tuple2<String, Long>, Tuple2<String, Long>>() {
+            private ValueState<Long> lastLoginState;
             @Override
             public void open(Configuration parameters) throws Exception {
                 super.open(parameters);
-
-                // TTL 配置
+                // 状态描述符
+                ValueStateDescriptor<Long> stateDescriptor = new ValueStateDescriptor<>("LastLoginState", Long.class);
+                // 设置 TTL
                 StateTtlConfig ttlConfig = StateTtlConfig
                         .newBuilder(Time.minutes(1))
+                        .setTtlTimeCharacteristic(StateTtlConfig.TtlTimeCharacteristic.ProcessingTime)
                         .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
                         .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
+                        //.cleanupFullSnapshot()
+                        .cleanupIncrementally(10, false)
+                        //.cleanupInRocksdbCompactFilter(1000)
                         .build();
-
-                // 状态描述符
-                ValueStateDescriptor<Long> stateDescriptor = new ValueStateDescriptor<>("counter", Long.class);
-                // 设置 TTL
                 stateDescriptor.enableTimeToLive(ttlConfig);
-                counterState = getRuntimeContext().getState(stateDescriptor);
+                lastLoginState = getRuntimeContext().getState(stateDescriptor);
             }
 
             @Override
-            public Long map(String behavior) throws Exception {
-                Long count = counterState.value();
-                if (Objects.equals(count, null)) {
-                    count = 0L;
+            public Tuple2<String, Long> map(Tuple2<String, Long> tuple2) throws Exception {
+                Long loginTime = tuple2.f1;
+                String uid = tuple2.f0;
+                Long lastLoginTime = lastLoginState.value();
+                if (Objects.equals(lastLoginTime, null)) {
+                    lastLoginTime = 0L;
                 }
-                Long newCount = count + 1;
-                LOG.info("[State] Counter: {}", newCount);
-                counterState.update(newCount);
-                return newCount;
+                if (loginTime > lastLoginTime) {
+                    lastLoginTime = loginTime;
+                }
+                lastLoginState.update(lastLoginTime);
+                LOG.info("[State] uid: {}, LastLoginTime: {}", uid, lastLoginTime);
+                return new Tuple2<>(uid, lastLoginTime);
             }
         });
-        stream.print();
 
+        stream.print();
         env.execute("StateTTLExample");
     }
 }
