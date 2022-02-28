@@ -1,5 +1,6 @@
 package com.flink.example.stream.state.state;
 
+import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.StateTtlConfig;
@@ -38,7 +39,7 @@ public class StateTTLExample {
         env.setStateBackend(new HashMapStateBackend());
 
         // 设置Checkpoint存储
-        env.enableCheckpointing(1000L);
+        env.enableCheckpointing(10000L);
         String checkpointPath = "hdfs://localhost:9000/flink/checkpoint";
         FileSystemCheckpointStorage checkpointStorage = new FileSystemCheckpointStorage(checkpointPath);
         env.getCheckpointConfig().setCheckpointStorage(checkpointStorage);
@@ -47,9 +48,11 @@ public class StateTTLExample {
 
         DataStream<Tuple2<String, Long>> stream = source.map(new MapFunction<String, Tuple2<String, Long>>() {
             @Override
-            public Tuple2<String, Long> map(String value) throws Exception {
-                String[] params = value.split(",");
-                return new Tuple2<String, Long>(params[0], Long.parseLong(params[1]));
+            public Tuple2<String, Long> map(String uid) throws Exception {
+                long loginTime = System.currentTimeMillis();
+                String date = DateUtil.timeStamp2Date(loginTime);
+                LOG.info("[Login] uid: {}, LoginTime: [{}|{}]", uid, loginTime, date);
+                return new Tuple2<String, Long>(uid, loginTime);
             }
         }).keyBy(new KeySelector<Tuple2<String, Long>, String>() {
             @Override
@@ -57,6 +60,7 @@ public class StateTTLExample {
                 return tuple2.f0;
             }
         }).map(new RichMapFunction<Tuple2<String, Long>, Tuple2<String, Long>>() {
+            // 记录有效期内的首次登录时间
             private ValueState<Long> lastLoginState;
             @Override
             public void open(Configuration parameters) throws Exception {
@@ -83,13 +87,14 @@ public class StateTTLExample {
                 String uid = tuple2.f0;
                 Long lastLoginTime = lastLoginState.value();
                 if (Objects.equals(lastLoginTime, null)) {
-                    lastLoginTime = 0L;
+                    lastLoginTime = loginTime;
                 }
-                if (loginTime > lastLoginTime) {
+                if (loginTime < lastLoginTime) {
                     lastLoginTime = loginTime;
                 }
                 lastLoginState.update(lastLoginTime);
-                LOG.info("[State] uid: {}, LastLoginTime: {}", uid, lastLoginTime);
+                String date = DateUtil.timeStamp2Date(lastLoginTime);
+                LOG.info("[State] uid: {}, LastLoginTime: [{}|{}]", uid, lastLoginTime, date);
                 return new Tuple2<>(uid, lastLoginTime);
             }
         });
@@ -98,3 +103,9 @@ public class StateTTLExample {
         env.execute("StateTTLExample");
     }
 }
+// a
+// b
+// a
+// 一分钟后
+// a
+// b
