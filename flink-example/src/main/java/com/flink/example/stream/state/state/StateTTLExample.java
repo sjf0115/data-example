@@ -69,7 +69,7 @@ public class StateTTLExample {
                 ValueStateDescriptor<Long> stateDescriptor = new ValueStateDescriptor<>("LastLoginState", Long.class);
                 // 设置 TTL
                 StateTtlConfig ttlConfig = StateTtlConfig
-                        .newBuilder(Time.minutes(1))
+                        .newBuilder(Time.minutes(5))
                         .setTtlTimeCharacteristic(StateTtlConfig.TtlTimeCharacteristic.ProcessingTime)
                         .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
                         .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
@@ -78,6 +78,7 @@ public class StateTTLExample {
                         //.cleanupInRocksdbCompactFilter(1000)
                         .build();
                 stateDescriptor.enableTimeToLive(ttlConfig);
+
                 lastLoginState = getRuntimeContext().getState(stateDescriptor);
             }
 
