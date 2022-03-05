@@ -27,7 +27,6 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -39,7 +38,6 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-api-java-bridge_${scala.binary.version}</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!-- flink connector -->
@@ -57,7 +55,12 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
-            <scope>provided</scope>
+        </dependency>
+
+        <!-- flink state processor -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-state-processor-api_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- flink test -->

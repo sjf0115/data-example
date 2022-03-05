@@ -35,7 +35,7 @@
         <zookeeper.version>3.4.12</zookeeper.version>
         <hbase.version>2.1.6</hbase.version>
         <scala.binary.version>2.11</scala.binary.version>
-        <flink.version>1.13.0</flink.version>
+        <flink.version>1.13.5</flink.version>
         <log4j.version>2.12.1</log4j.version>
         <kafka.version>2.5.0</kafka.version>
         <junit.version>4.12</junit.version>
@@ -142,6 +142,13 @@
             <dependency>
                 <groupId>org.apache.flink</groupId>
                 <artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
+                <version>${flink.version}</version>
+            </dependency>
+
+            <!-- flink state processor -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-state-processor-api_${scala.binary.version}</artifactId>
                 <version>${flink.version}</version>
             </dependency>
 
