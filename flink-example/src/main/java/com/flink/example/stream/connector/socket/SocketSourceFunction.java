@@ -1,4 +1,4 @@
-package com.flink.example.stream.source;
+package com.flink.example.stream.connector.socket;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.util.IOUtils;
 import org.slf4j.Logger;
@@ -20,7 +20,6 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * 公众号：大数据生态
  * 日期：2022/3/5 上午10:48
  */
-
 public class SocketSourceFunction implements SourceFunction<String> {
     private static final Logger LOG = LoggerFactory.getLogger(SocketSourceFunction.class);
     // Socket

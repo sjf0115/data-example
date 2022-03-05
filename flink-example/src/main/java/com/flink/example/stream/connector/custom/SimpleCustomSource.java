@@ -1,4 +1,4 @@
-package com.flink.example.stream.source;
+package com.flink.example.stream.connector.custom;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;

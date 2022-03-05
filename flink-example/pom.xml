@@ -77,12 +77,12 @@
             <classifier>tests</classifier>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-            <classifier>tests</classifier>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.flink</groupId>-->
+            <!--<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>-->
+            <!--<scope>test</scope>-->
+            <!--<classifier>tests</classifier>-->
+        <!--</dependency>-->
 
         <!-- hadoop -->
         <dependency>

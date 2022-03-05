@@ -1,10 +1,10 @@
-package com.flink.example.stream.source;
+package com.flink.example.stream.connector.socket;
 
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * 功能：
+ * 功能：SocketSourceExample
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
