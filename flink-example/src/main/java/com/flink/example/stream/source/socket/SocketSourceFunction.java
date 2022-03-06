@@ -1,4 +1,4 @@
-package com.flink.example.stream.connector.socket;
+package com.flink.example.stream.source.socket;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.util.IOUtils;
 import org.slf4j.Logger;

@@ -1,5 +1,6 @@
-package com.flink.example.stream.connector.socket;
+package com.flink.example.stream.source.socket;
 
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -15,13 +16,15 @@ public class SocketSourceExample {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // 原生 SocketTextStreamFunction
-        // DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
+        DataStream<String> source = env.socketTextStream("localhost", 9000, "\n");
+        source.print("1");
 
         // 自定义 SocketSourceFunction
-        SocketSourceFunction socketSourceFunction = new SocketSourceFunction("localhost", 9100, "&", 3);
-        DataStreamSource<String> source = env.addSource(socketSourceFunction, "SocketSource");
-        // 输出
-        source.print();
+        SocketSourceFunction socketSourceFunction = new SocketSourceFunction("localhost", 9100, "\n");
+        DataStreamSource<String> source1 = env.addSource(socketSourceFunction, "SocketSource");
+        source1.print("2");
+
+        // 执行
         env.execute("SocketSourceExample");
     }
 }
