@@ -1,4 +1,4 @@
-package com.flink.example.stream.connector.custom;
+package com.flink.example.stream.source;
 
 
 import com.flink.example.bean.Behavior;

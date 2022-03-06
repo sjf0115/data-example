@@ -1,4 +1,4 @@
-package com.flink.example.stream.connector.datagen;
+package com.flink.example.stream.source.datagen;
 
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
