@@ -1,5 +1,6 @@
 package com.flink.example.stream.dataType;
 
+import com.flink.example.bean.Person;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.operators.MapOperator;

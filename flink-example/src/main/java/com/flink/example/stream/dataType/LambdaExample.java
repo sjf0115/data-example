@@ -18,12 +18,14 @@ import org.apache.flink.util.Collector;
  */
 public class LambdaExample {
 
+    // Lambda 表达式
     private static void map1(ExecutionEnvironment env) throws Exception {
         env.fromElements(1, 2, 3)
                 .map(i -> i*i)
                 .print();
     }
 
+    // Lambda 表达式 与泛型
     private static void map2(ExecutionEnvironment env) throws Exception {
         env.fromElements(1, 2, 3)
                 .map(i -> Tuple2.of(i, i*i))
@@ -144,6 +146,6 @@ public class LambdaExample {
 
     public static void main(String[] args) throws Exception {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-        map3(env);
+        map2(env);
     }
 }

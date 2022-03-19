@@ -1,5 +1,6 @@
 package com.flink.example.stream.dataType;
 
+import com.flink.example.bean.Person;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
