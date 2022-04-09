@@ -1,15 +1,8 @@
 package com.flink.example.table.connectors;
 
 import com.google.common.collect.Lists;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions;
-import org.apache.flink.table.api.DataTypes;
-import org.apache.flink.table.api.Schema;
-import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableDescriptor;
-import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.api.*;
 
 import static org.apache.flink.table.api.Expressions.$;
 
@@ -24,17 +17,20 @@ public class KafkaSourceTableExample {
     public static void main(String[] args) throws Exception {
 
         // 执行环境
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
+        EnvironmentSettings settings = EnvironmentSettings
+                .newInstance()
+                .inStreamingMode()
+                .build();
+        TableEnvironment tEnv = TableEnvironment.create(settings);
 
-        // Kafka Table Schema
+        // Schema
         Schema schema = Schema.newBuilder()
                 .column("word", DataTypes.STRING())
                 .column("frequency", DataTypes.BIGINT())
                 .build();
 
-        // Kafka Table TableDescriptor
-        TableDescriptor descriptor = TableDescriptor.forConnector("kafka")
+        // Kafka Source TableDescriptor
+        TableDescriptor kafkaDescriptor = TableDescriptor.forConnector("kafka")
                 .comment("kafka source table")
                 .schema(schema)
                 .option(KafkaConnectorOptions.TOPIC, Lists.newArrayList("word"))
@@ -44,8 +40,8 @@ public class KafkaSourceTableExample {
                 .format("json")
                 .build();
 
-        // 注册表
-        tEnv.createTemporaryTable("kafka_source_table", descriptor);
+        // 注册 Kafka Source 表
+        tEnv.createTemporaryTable("kafka_source_table", kafkaDescriptor);
 
         // 转换为 Table
         Table table = tEnv.from("kafka_source_table");
@@ -56,11 +52,15 @@ public class KafkaSourceTableExample {
                 .select($("word"), $("frequency").sum())
                 .as("word", "frequency");
 
-        // Table 转 DataStream
-        DataStream<Row> result = tEnv.toChangelogStream(resultTable);
-        result.print();
+        // Print Sink TableDescriptor
+        TableDescriptor printDescriptor = TableDescriptor.forConnector("print")
+                .schema(schema)
+                .build();
 
-        // 执行
-        env.execute();
+        // 注册 Print Sink 表
+        tEnv.createTemporaryTable("print_sink_table", printDescriptor);
+
+        // 输出
+        resultTable.executeInsert("print_sink_table");
     }
 }
