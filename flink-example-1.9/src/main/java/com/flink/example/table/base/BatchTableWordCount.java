@@ -15,23 +15,28 @@ import org.apache.flink.table.api.java.BatchTableEnvironment;
  */
 public class BatchTableWordCount {
     public static void main(String[] args) throws Exception {
+        // 创建执行环境
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
         BatchTableEnvironment tEnv = BatchTableEnvironment.create(env);
 
+        // 读取数据创建 DataSet
         DataSet<WordCount> input = env.fromElements(
                 new WordCount("Hello", 1L),
                 new WordCount("Ciao", 1L),
                 new WordCount("Hello", 1L));
 
+        // DataSet 转换为 Table
         Table table = tEnv.fromDataSet(input);
 
-        Table filtered = table
+        // 执行查询
+        Table resultTable = table
                 .groupBy("word")
-                .select("word, frequency.sum as frequency")
-                .filter("frequency = 2");
+                .select("word, frequency.sum as frequency");
 
-        DataSet<WordCount> result = tEnv.toDataSet(filtered, WordCount.class);
+        // Table 转换为 DataSet
+        DataSet<WordCount> result = tEnv.toDataSet(resultTable, WordCount.class);
 
+        // 输出
         result.print();
     }
 }

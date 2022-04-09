@@ -16,9 +16,20 @@ import org.apache.flink.table.api.java.StreamTableEnvironment;
  */
 public class StreamTableWordCount {
     public static void main(String[] args) throws Exception {
+        // 执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+//        EnvironmentSettings settings = EnvironmentSettings
+//                .newInstance()
+//                .useOldPlanner()
+//                .inStreamingMode()
+//                .build();
+//        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
+
+        // 默认使用 OldPlanner
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
 
+        // 读取数据创建 DataStream
         DataStream<WordCount> input = env.fromElements(
                 new WordCount("Hello", 1L),
                 new WordCount("Ciao", 1L),

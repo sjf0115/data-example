@@ -19,6 +19,7 @@ public class BatchSQLWordCount {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
         BatchTableEnvironment tEnv = BatchTableEnvironment.create(env);
 
+        // 读取数据创建 DataSet
         DataSet<WordCount> input = env.fromElements(
                 new WordCount("Hello", 1),
                 new WordCount("Ciao", 1),
@@ -34,6 +35,7 @@ public class BatchSQLWordCount {
         // Table 转换为 DataSet
         DataSet<WordCount> result = tEnv.toDataSet(table, WordCount.class);
 
+        // 输出
         result.print();
     }
 }

@@ -29,6 +29,7 @@ public class StreamSQLWordCount {
         // 默认 OldPlanner
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
 
+        // 读取数据创建 DataStream
         DataStream<WordCount> input = env.fromElements(
                 new WordCount("Hello", 1L),
                 new WordCount("Ciao", 1L),
@@ -43,7 +44,6 @@ public class StreamSQLWordCount {
 
         // Table 转换为 DataSet
         DataStream<Tuple2<Boolean, WordCount>> result = tEnv.toRetractStream(table, WordCount.class);
-
         result.print();
 
         // 执行
