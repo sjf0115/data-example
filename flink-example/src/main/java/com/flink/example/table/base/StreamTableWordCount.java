@@ -13,13 +13,13 @@ import org.apache.flink.util.Collector;
 import static org.apache.flink.table.api.Expressions.$;
 
 /**
- * 功能：SQLWordCount
+ * 功能：Table API WordCount
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
- * 日期：2022/4/1 下午10:59
+ * 日期：2022/3/31 下午9:22
  */
-public class SQLWordCount {
+public class StreamTableWordCount {
     public static void main(String[] args) throws Exception {
         // Table 运行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -33,7 +33,7 @@ public class SQLWordCount {
         // Socket 数据源
         DataStream<String> lines = env.socketTextStream("localhost", 9100, "\n");
         // 单词拆分
-        DataStream<WordCount> wordsStream = lines.flatMap(new FlatMapFunction<String, WordCount>() {
+        DataStream<WordCount> words = lines.flatMap(new FlatMapFunction<String, WordCount>() {
             @Override
             public void flatMap(String value, Collector<WordCount> out) throws Exception {
                 for (String word : value.split("\\s")) {
@@ -42,18 +42,13 @@ public class SQLWordCount {
             }
         });
 
-        // 注册虚拟表
-        tabEnv.createTemporaryView("tb_words", wordsStream, $("word"), $("frequency"));
+        // DataStream 转 Table
+        Table table = tabEnv.fromDataStream(words, $("word"), $("frequency"));
+        Table resultTable = table.groupBy($("word"))
+                .select($("word"), $("frequency").sum())
+                .as("word", "frequency");
 
-        // SQL 语句
-        String sql = "SELECT word, SUM(frequency) AS frequency\n" +
-                "FROM tb_words\n" +
-                "GROUP BY word";
-
-        // 执行 SQL
-        Table resultTable = tabEnv.sqlQuery(sql);
-
-        // Table 转 DataStream
+        // Table 转换为 DataStream
         DataStream<Tuple2<Boolean, WordCount>> resultStream = tabEnv.toRetractStream(resultTable, WordCount.class);
 
         // 输出结果

@@ -1,6 +1,6 @@
-CREATE TABLE kafka_word_table (
+CREATE TABLE kafka_source_table (
   word STRING COMMENT '单词',
-  frequency bigint COMMENT '次数'
+  frequency BIGINT COMMENT '次数'
 ) WITH (
   'connector' = 'kafka',
   'topic' = 'word',
@@ -9,7 +9,7 @@ CREATE TABLE kafka_word_table (
   'scan.startup.mode' = 'earliest-offset',
   'format' = 'json',
   'json.ignore-parse-errors' = 'true',
-  'json.fail-on-missing-field' = 'true'
+  'json.fail-on-missing-field' = 'false'
 );
 
 CREATE TABLE kafka_word_table (
