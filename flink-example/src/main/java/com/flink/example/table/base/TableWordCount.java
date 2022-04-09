@@ -45,7 +45,8 @@ public class TableWordCount {
         // DataStream 转 Table
         Table table = tabEnv.fromDataStream(words, $("word"), $("frequency"));
         Table resultTable = table.groupBy($("word"))
-                .select($("word"), $("frequency").sum().as("frequency"));
+                .select($("word"), $("frequency").sum())
+                .as("word", "frequency");
 
         // Table 转换为 DataStream
         DataStream<Tuple2<Boolean, WordCount>> resultStream = tabEnv.toRetractStream(resultTable, WordCount.class);

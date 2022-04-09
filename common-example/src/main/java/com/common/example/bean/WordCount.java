@@ -1,22 +1,21 @@
-package com.flink.example.bean;
-
+package com.common.example.bean;
 /**
  * 功能：WordCount
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
- * 日期：2022/4/1 下午9:24
+ * 日期：2022/4/5 下午8:07
  */
 public class WordCount {
     // 单词
     private String word;
     // 频次
-    private Long frequency;
+    private long frequency;
 
     public WordCount() {
     }
 
-    public WordCount(String word, Long frequency) {
+    public WordCount(String word, long frequency) {
         this.word = word;
         this.frequency = frequency;
     }
@@ -29,7 +28,7 @@ public class WordCount {
         this.word = word;
     }
 
-    public Long getFrequency() {
+    public long getFrequency() {
         return frequency;
     }
 
