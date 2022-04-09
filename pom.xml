@@ -125,7 +125,7 @@
                 <!--<scope>provided</scope>-->
             </dependency>
 
-            <!-- Flink connector -->
+            <!-- Flink Connector -->
             <dependency>
                 <groupId>org.apache.flink</groupId>
                 <artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
