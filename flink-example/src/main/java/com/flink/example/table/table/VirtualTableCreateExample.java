@@ -9,13 +9,13 @@ import org.apache.flink.types.Row;
 import static org.apache.flink.table.api.Expressions.$;
 
 /**
- * 功能：虚拟表创建示例
+ * 功能：Table API 虚拟表创建示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
  * 日期：2022/4/10 上午10:57
  */
-public class VirtualTableExample {
+public class VirtualTableCreateExample {
     public static void main(String[] args) throws Exception {
         // 创建流和表执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -26,22 +26,22 @@ public class VirtualTableExample {
 
         // 1. 将 Table 注册为虚拟表
         Table inputTable = tableEnv.fromDataStream(dataStream, $("f0"));
-        tableEnv.createTemporaryView("inputTableView", inputTable);
-        Table upperTable = tableEnv.sqlQuery("SELECT UPPER(f0) FROM inputTableView");
+        tableEnv.createTemporaryView("input_table_view", inputTable);
+        Table upperTable = tableEnv.sqlQuery("SELECT UPPER(f0) FROM input_table_view");
         DataStream<Row> upperStream = tableEnv.toDataStream(upperTable);
         upperStream.print("U");
 
         // 2. 将 DataStream 注册为虚拟表
         // 2.1 自动派生所有列
-        tableEnv.createTemporaryView("inputStreamView", dataStream);
+        tableEnv.createTemporaryView("input_stream_view", dataStream);
         // 2.2 自动派生所有列 但使用表达式方式指定提取的字段以及位置
-        //tableEnv.createTemporaryView("inputStreamView2", dataStream, $("f0"));
+        //tableEnv.createTemporaryView("input_stream_view2", dataStream, $("f0"));
         // 2.3 手动定义列
         /*Schema schema = Schema.newBuilder()
                 .column("f0", DataTypes.STRING())
                 .build();
-        tableEnv.createTemporaryView("inputStreamView3", dataStream, schema);*/
-        Table lowerTable = tableEnv.sqlQuery("SELECT LOWER(f0) FROM inputStreamView");
+        tableEnv.createTemporaryView("input_stream_view3", dataStream, schema);*/
+        Table lowerTable = tableEnv.sqlQuery("SELECT LOWER(f0) FROM input_stream_view");
         DataStream<Row> lowerStream = tableEnv.toDataStream(lowerTable);
         lowerStream.print("L");
 
