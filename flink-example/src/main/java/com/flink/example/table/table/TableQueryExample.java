@@ -9,7 +9,7 @@ import org.apache.flink.types.Row;
 import static org.apache.flink.table.api.Expressions.$;
 
 /**
- * 功能：表查询简单示例
+ * 功能：Table API & SQL 查询表简单示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
@@ -32,35 +32,35 @@ public class TableQueryExample {
         // 将 DataStream 转换为 Table
         Table inputTable = tableEnv.fromDataStream(dataStream).as("name", "score");
 
-        // 1. Table API 方式查询表
+        // 1. SQL 方式查询表
+        // 1.1 通过注册虚拟表
+        tableEnv.createTemporaryView("input_table", inputTable);
         // 执行聚合计算
-        Table resultTable1 = inputTable
-                .filter($("name").isNotEqual("Lucy"))
-                .groupBy($("name"))
-                .select($("name"), $("score").sum().as("score_sum"));
+        Table resultTable1 = tableEnv.sqlQuery("SELECT name, SUM(score) AS score_sum\n" +
+                "FROM input_table\n" +
+                "WHERE name <> 'Lucy'\n" +
+                "GROUP BY name");
         // Table 转 Changelog DataStream
         DataStream<Row> resultStream1 = tableEnv.toChangelogStream(resultTable1);
         // 输出
         resultStream1.print("R1");
 
-        // 2. SQL 方式查询表
-        // 2.1 通过注册虚拟表
-        tableEnv.createTemporaryView("inputTableView", inputTable);
-        // 执行聚合计算
+        // 1.2 通过字符串拼接
         Table resultTable2 = tableEnv.sqlQuery("SELECT name, SUM(score) AS score_sum\n" +
-                "FROM inputTableView\n" +
-                "WHERE name <> 'Lucy'\n" +
+                "FROM " + inputTable +
+                " WHERE name <> 'Lucy'\n" +
                 "GROUP BY name");
         // Table 转 Changelog DataStream
         DataStream<Row> resultStream2 = tableEnv.toChangelogStream(resultTable2);
         // 输出
         resultStream2.print("R2");
 
-        // 2.2 通过字符串拼接
-        Table resultTable3 = tableEnv.sqlQuery("SELECT name, SUM(score) AS score_sum\n" +
-                "FROM " + inputTable +
-                " WHERE name <> 'Lucy'\n" +
-                "GROUP BY name");
+        // 2. Table API 方式查询表
+        // 执行聚合计算
+        Table resultTable3 = inputTable
+                .filter($("name").isNotEqual("Lucy"))
+                .groupBy($("name"))
+                .select($("name"), $("score").sum().as("score_sum"));
         // Table 转 Changelog DataStream
         DataStream<Row> resultStream3 = tableEnv.toChangelogStream(resultTable3);
         // 输出
@@ -72,13 +72,13 @@ public class TableQueryExample {
 }
 //R2:3> +I[Alice, 12]
 //R3:3> +I[Alice, 12]
+//R1:3> +I[Alice, 12]
 //R2:3> +I[Bob, 10]
 //R3:3> +I[Bob, 10]
-//R3:3> -U[Alice, 12]
-//R3:3> +U[Alice, 112]
-//R2:3> -U[Alice, 12]
-//R2:3> +U[Alice, 112]
-//R1:3> +I[Alice, 12]
 //R1:3> +I[Bob, 10]
+//R2:3> -U[Alice, 12]
 //R1:3> -U[Alice, 12]
 //R1:3> +U[Alice, 112]
+//R2:3> +U[Alice, 112]
+//R3:3> -U[Alice, 12]
+//R3:3> +U[Alice, 112]
