@@ -16,7 +16,7 @@ import static org.apache.flink.table.api.Expressions.$;
  * 公众号：大数据生态
  * 日期：2022/4/10 上午11:08
  */
-public class StreamSQLSimpleWordCount {
+public class SimpleStreamSQLWordCount {
     public static void main(String[] args) throws Exception {
         // 执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
