@@ -1,6 +1,4 @@
-package com.flink.example.table.table;/**
- * Created by wy on 2022/4/10.
- */
+package com.flink.example.table.table;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -11,7 +9,7 @@ import org.apache.flink.types.Row;
 import static org.apache.flink.table.api.Expressions.$;
 
 /**
- * 功能：SQL 方式输出表示例
+ * 功能：SQL & Table API 方式输出表示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
