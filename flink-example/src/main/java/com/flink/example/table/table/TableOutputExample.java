@@ -33,33 +33,44 @@ public class TableOutputExample {
         // 将 DataStream 转换为 Table
         Table inputTable = tableEnv.fromDataStream(dataStream).as("name", "score");
 
-        // 1. 通过 Table API executeInsert
+        // 1. 通过 SQL INSERT INTO
+        // 注册输入虚拟表
+        tableEnv.createTemporaryView("input_table", inputTable);
+        tableEnv.executeSql("CREATE TEMPORARY TABLE print_sql_sink (\n" +
+                "  name STRING,\n" +
+                "  score BIGINT\n" +
+                ") WITH (\n" +
+                "  'connector' = 'print',\n" +
+                "  'print-identifier' = 'SQL'\n" +
+                ")");
+        tableEnv.executeSql("INSERT INTO print_sql_sink\n" +
+                "SELECT name, SUM(score) AS score_sum\n" +
+                "FROM input_table\n" +
+                "GROUP BY name");
+
+        // 2. 通过 Table API executeInsert
         // 聚合计算
         Table outputTable = inputTable
                 .filter($("name").isNotEqual("Lucy"))
                 .groupBy($("name"))
                 .select($("name"), $("score").sum().as("score_sum"));
-        // Flink 1.13 版本推荐使用 DDL 方式创建输出表
-        tableEnv.executeSql("CREATE TEMPORARY TABLE print_sql_sink (\n" +
-                "  name STRING,\n" +
-                "  score BIGINT\n" +
-                ") WITH (\n" +
-                "  'connector' = 'print'\n" +
-                ")");
-        outputTable.executeInsert("print_sql_sink");
-
-        // 2. 通过 SQL INSERT INTO
-        // 注册输入虚拟表
-        tableEnv.createTemporaryView("input_table", inputTable);
+        // Flink 1.13 版本推荐使用 DDL 方式创建输出表 1.14 版本可以用 Table API 创建
         tableEnv.executeSql("CREATE TEMPORARY TABLE print_table_sink (\n" +
                 "  name STRING,\n" +
                 "  score BIGINT\n" +
                 ") WITH (\n" +
-                "  'connector' = 'print'\n" +
+                "  'connector' = 'print',\n" +
+                "  'print-identifier' = 'Table'\n" +
                 ")");
-        tableEnv.executeSql("INSERT INTO print_table_sink\n" +
-                "SELECT name, SUM(score) AS score_sum\n" +
-                "FROM input_table\n" +
-                "GROUP BY name");
+        outputTable.executeInsert("print_table_sink");
     }
 }
+//SQL:2> +I[Lucy, 50]
+//SQL:3> +I[Alice, 12]
+//SQL:3> +I[Bob, 10]
+//SQL:3> -U[Alice, 12]
+//SQL:3> +U[Alice, 112]
+//Table:3> +I[Alice, 12]
+//Table:3> +I[Bob, 10]
+//Table:3> -U[Alice, 12]
+//Table:3> +U[Alice, 112]
