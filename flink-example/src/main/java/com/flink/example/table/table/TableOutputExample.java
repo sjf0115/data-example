@@ -8,6 +8,8 @@ import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
 
+import static org.apache.flink.table.api.Expressions.$;
+
 /**
  * 功能：SQL 方式输出表示例
  * 作者：SmartSi
@@ -16,7 +18,7 @@ import org.apache.flink.types.Row;
  * 日期：2022/4/10 下午7:59
  */
 public class TableOutputExample {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         // 创建流和表执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
@@ -30,29 +32,34 @@ public class TableOutputExample {
         );
         // 将 DataStream 转换为 Table
         Table inputTable = tableEnv.fromDataStream(dataStream).as("name", "score");
-        // 注册输入虚拟表
-        tableEnv.createTemporaryView("input_table", inputTable);
-        // 创建输出 Print Connector 表
-        String sinkSql = "CREATE TEMPORARY TABLE print_sink_table (\n" +
+
+        // 1. 通过 Table API executeInsert
+        // 聚合计算
+        Table outputTable = inputTable
+                .filter($("name").isNotEqual("Lucy"))
+                .groupBy($("name"))
+                .select($("name"), $("score").sum().as("score_sum"));
+        // Flink 1.13 版本推荐使用 DDL 方式创建输出表
+        tableEnv.executeSql("CREATE TEMPORARY TABLE print_sql_sink (\n" +
                 "  name STRING,\n" +
                 "  score BIGINT\n" +
                 ") WITH (\n" +
                 "  'connector' = 'print'\n" +
-                ")";
-        tableEnv.executeSql(sinkSql);
+                ")");
+        outputTable.executeInsert("print_sql_sink");
 
-        // 1. 通过 SQL INSERT INTO
-        String sql = "INSERT INTO print_sink_table\n" +
+        // 2. 通过 SQL INSERT INTO
+        // 注册输入虚拟表
+        tableEnv.createTemporaryView("input_table", inputTable);
+        tableEnv.executeSql("CREATE TEMPORARY TABLE print_table_sink (\n" +
+                "  name STRING,\n" +
+                "  score BIGINT\n" +
+                ") WITH (\n" +
+                "  'connector' = 'print'\n" +
+                ")");
+        tableEnv.executeSql("INSERT INTO print_table_sink\n" +
                 "SELECT name, SUM(score) AS score_sum\n" +
                 "FROM input_table\n" +
-                "GROUP BY name";
-        tableEnv.executeSql(sql);
-
-        // 2. 通过 Table API executeInsert
-        String selectSQL = "SELECT name, SUM(score) AS score_sum\n" +
-                "FROM input_table\n" +
-                "GROUP BY name";
-        Table outputTable = tableEnv.sqlQuery(selectSQL);
-        outputTable.executeInsert("print_sink_table");
+                "GROUP BY name");
     }
 }
