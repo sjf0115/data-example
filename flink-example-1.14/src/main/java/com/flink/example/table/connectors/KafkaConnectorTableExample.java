@@ -7,15 +7,14 @@ import org.apache.flink.table.api.*;
 import static org.apache.flink.table.api.Expressions.$;
 
 /**
- * 功能：Kafka Source Table
+ * 功能：Table API 方式创建 Kafka Connector Table 示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
  * 日期：2022/4/9 下午7:27
  */
-public class KafkaSourceTableExample {
+public class KafkaConnectorTableExample {
     public static void main(String[] args) throws Exception {
-
         // 执行环境
         EnvironmentSettings settings = EnvironmentSettings
                 .newInstance()
@@ -29,7 +28,7 @@ public class KafkaSourceTableExample {
                 .column("frequency", DataTypes.BIGINT())
                 .build();
 
-        // Kafka Source TableDescriptor
+        // 创建 Kafka Connector 表
         TableDescriptor kafkaDescriptor = TableDescriptor.forConnector("kafka")
                 .comment("kafka source table")
                 .schema(schema)
@@ -39,8 +38,6 @@ public class KafkaSourceTableExample {
                 .option("scan.startup.mode", "earliest-offset")
                 .format("json")
                 .build();
-
-        // 注册 Kafka Source 表
         tEnv.createTemporaryTable("kafka_source_table", kafkaDescriptor);
 
         // 转换为 Table
@@ -52,12 +49,10 @@ public class KafkaSourceTableExample {
                 .select($("word"), $("frequency").sum())
                 .as("word", "frequency");
 
-        // Print Sink TableDescriptor
+        // 创建 Print Connector 表
         TableDescriptor printDescriptor = TableDescriptor.forConnector("print")
                 .schema(schema)
                 .build();
-
-        // 注册 Print Sink 表
         tEnv.createTemporaryTable("print_sink_table", printDescriptor);
 
         // 输出
