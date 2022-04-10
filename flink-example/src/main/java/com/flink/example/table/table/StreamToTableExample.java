@@ -79,5 +79,9 @@ public class StreamToTableExample {
                 .build();
         Table table7 = tableEnv.fromDataStream(dataStream, schema7);
         table7.printSchema();
+
+        DataStream<User> resultStream = tableEnv.toAppendStream(table7, User.class);
+        resultStream.print();
+        env.execute();
     }
 }
