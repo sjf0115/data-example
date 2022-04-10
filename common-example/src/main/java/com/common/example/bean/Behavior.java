@@ -1,8 +1,11 @@
 package com.common.example.bean;
 
 /**
- * 微博用户行为
- * Created by wy on 2020/10/27.
+ * 功能：微博用户行为
+ * 作者：SmartSi
+ * 博客：http://smartsi.club/
+ * 公众号：大数据生态
+ * 日期：2022/4/5 下午8:07
  */
 public class Behavior {
     // 用户Id
@@ -13,6 +16,9 @@ public class Behavior {
     private String tm;
     // 微博内容
     private String content;
+
+    public Behavior() {
+    }
 
     public Behavior(String uid, String wid, String tm, String content) {
         this.uid = uid;
@@ -51,5 +57,15 @@ public class Behavior {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        return "Behavior{" +
+                "uid='" + uid + '\'' +
+                ", wid='" + wid + '\'' +
+                ", tm='" + tm + '\'' +
+                ", content='" + content + '\'' +
+                '}';
     }
 }
