@@ -1,6 +1,4 @@
-package com.flink.example.table.base;/**
- * Created by wy on 2022/4/11.
- */
+package com.flink.example.table.base;
 
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
