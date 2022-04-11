@@ -1,12 +1,7 @@
 package com.flink.example.table.base;
 
 import org.apache.flink.connector.datagen.table.DataGenConnectorOptions;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.api.DataTypes;
-import org.apache.flink.table.api.Schema;
-import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableDescriptor;
-import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+import org.apache.flink.table.api.*;
 
 import static org.apache.flink.table.api.Expressions.$;
 
@@ -20,9 +15,11 @@ import static org.apache.flink.table.api.Expressions.$;
 public class StreamTableWordCount {
     public static void main(String[] args) throws Exception {
         // 执行环境
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
-        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
+        EnvironmentSettings settings = EnvironmentSettings
+                .newInstance()
+                .inStreamingMode()
+                .build();
+        TableEnvironment tEnv = TableEnvironment.create(settings);
 
         // 创建输入表
         tEnv.createTemporaryTable("source_table",
