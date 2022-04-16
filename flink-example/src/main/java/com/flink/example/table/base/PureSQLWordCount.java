@@ -15,10 +15,9 @@ public class PureSQLWordCount {
         // TableEnvironment
         EnvironmentSettings settings = EnvironmentSettings
                 .newInstance()
-                .inStreamingMode()
                 .useBlinkPlanner()
+                .inStreamingMode()
                 .build();
-
         TableEnvironment tableEnv = TableEnvironment.create(settings);
 
         // 创建输入表
