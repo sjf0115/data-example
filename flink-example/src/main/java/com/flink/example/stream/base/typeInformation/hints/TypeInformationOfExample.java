@@ -1,4 +1,4 @@
-package com.flink.example.stream.dataType;
+package com.flink.example.stream.base.typeInformation.hints;
 
 import com.common.example.bean.WordCount;
 import org.apache.flink.api.common.typeinfo.TypeHint;

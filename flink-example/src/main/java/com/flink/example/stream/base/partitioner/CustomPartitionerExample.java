@@ -1,4 +1,4 @@
-package com.flink.example.stream.partitioner;
+package com.flink.example.stream.base.partitioner;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.functions.Partitioner;

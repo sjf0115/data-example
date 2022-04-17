@@ -1,4 +1,4 @@
-package com.flink.example.stream.dataType;
+package com.flink.example.stream.base.typeInformation.hints;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;

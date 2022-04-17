@@ -1,4 +1,4 @@
-package com.flink.example.stream.dataType;
+package com.flink.example.stream.base.typeInformation.hints;
 
 import com.flink.example.bean.Stu;
 import org.apache.flink.api.common.functions.MapFunction;

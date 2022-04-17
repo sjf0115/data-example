@@ -1,4 +1,4 @@
-package com.flink.example.stream.dataType;
+package com.flink.example.stream.base.typeInformation.custom;
 
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

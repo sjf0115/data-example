@@ -1,4 +1,4 @@
-package com.flink.example.stream.partitioner;
+package com.flink.example.stream.base.partitioner;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

@@ -1,4 +1,4 @@
-package com.flink.example.stream.dataType;
+package com.flink.example.stream.base.typeInformation.lambda;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;

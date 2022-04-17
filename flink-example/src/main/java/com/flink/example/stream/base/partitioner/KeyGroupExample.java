@@ -1,4 +1,4 @@
-package com.flink.example.stream.partitioner;
+package com.flink.example.stream.base.partitioner;
 
 import com.google.common.collect.Lists;
 import org.apache.flink.runtime.state.KeyGroupRange;
