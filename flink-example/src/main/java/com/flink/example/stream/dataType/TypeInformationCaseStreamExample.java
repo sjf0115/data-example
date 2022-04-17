@@ -1,8 +1,7 @@
 package com.flink.example.stream.dataType;
 
 import com.common.example.bean.WordCount;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.scala.typeutils.Types;
+import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.Table;
@@ -37,10 +36,7 @@ public class TypeInformationCaseStreamExample {
 
         // 转换为 Row 类型
         DataStream<Row> stream2 = tEnv.toAppendStream(table,
-                Types.ROW(
-                        new String[]{"word", "frequency"},
-                        new TypeInformation<?>[]{Types.STRING(), Types.LONG()}
-                )
+                Types.ROW(Types.STRING, Types.LONG)
         );
         stream2.print("R2");
 
