@@ -1,13 +1,10 @@
 package com.flink.example.table.table;
 
 import com.common.example.bean.User;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.scala.typeutils.Types;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
-import org.apache.flink.types.Row;
 
 import java.time.Instant;
 
@@ -41,14 +38,6 @@ public class TableToStreamExample {
 //
 //        DataStream<User> stream2 = tEnv.toAppendStream(table, Types.POJO(User.class));
 //        stream2.print("R2");
-
-        DataStream<Row> stream3 = tEnv.toAppendStream(table,
-                Types.ROW(
-                        new String[]{"name", "score", "eventTime"},
-                        new TypeInformation<?>[]{Types.STRING(), Types.INT(), Types.INSTANT()}
-                )
-        );
-        stream3.print("R3");
 
         env.execute();
     }
