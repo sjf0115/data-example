@@ -24,17 +24,22 @@ public class TypesExample {
                 .returns(Types.TUPLE(Types.INT, Types.INT))
                 .print();
 
-
+        // 基本类型
         TypeInformation<Integer> intType = Types.INT;
+
+        // Java 原始类型数组
+        TypeInformation<?> primitiveArrayType = Types.PRIMITIVE_ARRAY(Types.INT);
+        // Java 对象数组
+        TypeInformation<Person[]> objectArrayType = Types.OBJECT_ARRAY(Types.POJO(Person.class));
+
+        // Java POJO
+        TypeInformation<Person> pojoType = Types.POJO(Person.class);
+
+//        Types.GENERIC();
+
         // Java List
         TypeInformation<List<Integer>> listType = Types.LIST(Types.INT);
         // Java Map
         TypeInformation<Map<String, Integer>> mapType = Types.MAP(Types.STRING, Types.INT);
-        // Java 对象数组
-        TypeInformation<Person[]> objectArrayType = Types.OBJECT_ARRAY(Types.POJO(Person.class));
-        // Java 原始类型数组
-        TypeInformation<?> primitiveArrayType = Types.PRIMITIVE_ARRAY(Types.INT);
-        // Java POJO
-        TypeInformation<Person> pojoType = Types.POJO(Person.class);
     }
 }
