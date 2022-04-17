@@ -3,6 +3,7 @@ package com.flink.example.stream.dataType;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -16,15 +17,14 @@ public class TypeInformationCaseGenericExample {
     public static void main(String[] args) throws Exception {
         // 执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.fromElements(1, 2, 3)
-                .map(i -> Tuple2.of(i, i*i))
-                // 如果不指定 returns 返回的 TypeInformation 会抛出异常
-                //.returns(Types.TUPLE(Types.INT, Types.INT))
-                .returns(TypeInformation.of(new TypeHint<Tuple2<Integer, Integer>>(){}))
-                .print();
+        DataStream<Tuple2<String, Integer>> result = env.fromElements("a", "b", "a")
+                .map(value -> Tuple2.of(value, 1))
+                .returns(TypeInformation.of(new TypeHint<Tuple2<String, Integer>>() {}));
+        result.print();
+
         env.execute();
     }
 }
-//1> (1,1)
-//2> (2,4)
-//3> (3,9)
+//3> (a,1)
+//4> (b,1)
+//1> (a,1)
