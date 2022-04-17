@@ -35,9 +35,7 @@ public class TypeInformationCaseStreamExample {
         stream1.print("R1");
 
         // 转换为 Row 类型
-        DataStream<Row> stream2 = tEnv.toAppendStream(table,
-                Types.ROW(Types.STRING, Types.LONG)
-        );
+        DataStream<Row> stream2 = tEnv.toAppendStream(table, Types.ROW(Types.STRING, Types.LONG));
         stream2.print("R2");
 
         env.execute();
