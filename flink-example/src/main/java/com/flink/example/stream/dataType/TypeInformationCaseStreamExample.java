@@ -1,6 +1,7 @@
 package com.flink.example.stream.dataType;
 
 import com.common.example.bean.WordCount;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -34,16 +35,22 @@ public class TypeInformationCaseStreamExample {
         DataStream<WordCount> stream1 = tEnv.toAppendStream(table, Types.POJO(WordCount.class));
         stream1.print("R1");
 
-        // 转换为 Row 类型
-        DataStream<Row> stream2 = tEnv.toAppendStream(table, Types.ROW(Types.STRING, Types.LONG));
+        DataStream<WordCount> stream2 = tEnv.toAppendStream(table, TypeInformation.of(WordCount.class));
         stream2.print("R2");
+
+        // 转换为 Row 类型
+        DataStream<Row> stream3 = tEnv.toAppendStream(table, Types.ROW(Types.STRING, Types.LONG));
+        stream3.print("R3");
 
         env.execute();
     }
 }
+//R2:3> WordCount{word='World', frequency=6}
+//R1:4> WordCount{word='World', frequency=6}
+//R2:2> WordCount{word='Hello', frequency=4}
 //R1:3> WordCount{word='Hello', frequency=4}
 //R1:1> WordCount{word='Hello', frequency=10}
-//R1:4> WordCount{word='World', frequency=6}
-//R2:2> +I[World, 6]
-//R2:1> +I[Hello, 4]
-//R2:3> +I[Hello, 10]
+//R2:4> WordCount{word='Hello', frequency=10}
+//R3:4> +I[World, 6]
+//R3:3> +I[Hello, 4]
+//R3:1> +I[Hello, 10]

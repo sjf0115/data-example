@@ -1,16 +1,14 @@
 package com.flink.example.stream.dataType;
 
-import com.flink.example.bean.Person;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
+import com.common.example.bean.WordCount;
 import org.apache.flink.api.common.typeinfo.Types;
-import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
-
-import java.util.List;
-import java.util.Map;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.util.Collector;
 
 /**
- * 功能：
+ * 功能：Types 快捷方式示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
@@ -18,28 +16,25 @@ import java.util.Map;
  */
 public class TypesExample {
     public static void main(String[] args) throws Exception {
-        ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-        env.fromElements(1, 2, 3)
-                .map(i -> Tuple2.of(i, i*i))
-                .returns(Types.TUPLE(Types.INT, Types.INT))
-                .print();
+        // 执行环境
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        // 基本类型
-        TypeInformation<Integer> intType = Types.INT;
+        // 示例1 Types.TUPLE
+        DataStream<Tuple2<String, Integer>> result1 = env.fromElements("a", "b", "a")
+                .map(value -> Tuple2.of(value, 1))
+                .returns(Types.TUPLE(Types.STRING, Types.INT));
+        result1.print("R1");
 
-        // Java 原始类型数组
-        TypeInformation<?> primitiveArrayType = Types.PRIMITIVE_ARRAY(Types.INT);
-        // Java 对象数组
-        TypeInformation<Person[]> objectArrayType = Types.OBJECT_ARRAY(Types.POJO(Person.class));
+        // 示例2 Types.POJO
+        DataStream<WordCount> result2 = env.fromElements("a b a")
+                .flatMap((String value, Collector<WordCount> out) -> {
+                    for(String word : value.split("\\s")) {
+                        out.collect(new WordCount(word, 1));
+                    }
+                })
+                .returns(Types.POJO(WordCount.class));
+        result2.print("R2");
 
-        // Java POJO
-        TypeInformation<Person> pojoType = Types.POJO(Person.class);
-
-//        Types.GENERIC();
-
-        // Java List
-        TypeInformation<List<Integer>> listType = Types.LIST(Types.INT);
-        // Java Map
-        TypeInformation<Map<String, Integer>> mapType = Types.MAP(Types.STRING, Types.INT);
+        env.execute();
     }
 }
