@@ -1,7 +1,7 @@
 package com.flink.example.stream.source;
 
 
-import com.flink.example.bean.Behavior;
+import com.common.example.bean.Behavior;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
 import java.util.Random;

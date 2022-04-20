@@ -1,6 +1,6 @@
 package com.flink.example.stream.source.datagen;
 
-import com.flink.example.bean.Order;
+import com.common.example.bean.Order;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;

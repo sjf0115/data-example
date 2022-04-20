@@ -1,6 +1,6 @@
 package com.flink.example.stream.watermark;
 
-import com.flink.example.bean.Behavior;
+import com.common.example.bean.Behavior;
 import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.common.eventtime.WatermarkGenerator;
 import org.apache.flink.api.common.eventtime.WatermarkOutput;

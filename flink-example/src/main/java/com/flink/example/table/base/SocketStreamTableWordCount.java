@@ -1,6 +1,6 @@
 package com.flink.example.table.base;
 
-import com.flink.example.bean.WordCount;
+import com.common.example.bean.WordCount;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;

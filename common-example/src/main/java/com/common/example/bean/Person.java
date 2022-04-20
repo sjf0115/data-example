@@ -1,4 +1,4 @@
-package com.flink.example.bean;
+package com.common.example.bean;
 /**
  * 功能：Pojo 类 Person
  * 作者：SmartSi

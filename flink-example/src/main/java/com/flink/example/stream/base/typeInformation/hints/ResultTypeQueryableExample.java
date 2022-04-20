@@ -1,6 +1,6 @@
 package com.flink.example.stream.base.typeInformation.hints;
 
-import com.flink.example.bean.Stu;
+import com.common.example.bean.Stu;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;

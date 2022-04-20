@@ -1,4 +1,4 @@
-package com.flink.example.bean;
+package com.common.example.bean;
 
 /**
  * Context对象

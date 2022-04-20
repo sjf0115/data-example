@@ -1,6 +1,6 @@
 package com.flink.example.stream.function;
 
-import com.flink.example.bean.Behavior;
+import com.common.example.bean.Behavior;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;

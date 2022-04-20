@@ -1,4 +1,4 @@
-package com.flink.example.bean;
+package com.common.example.bean;
 /**
  * 功能：订单
  * 作者：SmartSi

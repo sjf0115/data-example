@@ -1,6 +1,6 @@
 package com.flink.example.stream.connector.kafka;
 
-import com.flink.example.bean.Behavior;
+import com.common.example.bean.Behavior;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -47,7 +47,7 @@ public class KafkaToKafkaStream {
                             behavior.setWid(params[1]);
                         }
                         if (size > 2) {
-                            behavior.setTime(params[2]);
+                            behavior.setTm(params[2]);
                         }
                         if (size > 3) {
                             behavior.setContent(params[3]);

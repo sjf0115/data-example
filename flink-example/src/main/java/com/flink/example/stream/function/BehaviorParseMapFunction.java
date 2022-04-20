@@ -1,6 +1,6 @@
 package com.flink.example.stream.function;
 
-import com.flink.example.bean.Behavior;
+import com.common.example.bean.Behavior;
 import org.apache.flink.api.common.functions.RichMapFunction;
 
 /**
@@ -20,7 +20,7 @@ public class BehaviorParseMapFunction extends RichMapFunction<String, Behavior> 
             behavior.setWid(params[1]);
         }
         if (size > 3) {
-            behavior.setTime(params[2] + " " + params[3]);
+            behavior.setTm(params[2] + " " + params[3]);
         }
         if (size > 4) {
             behavior.setContent(params[4]);

@@ -1,7 +1,7 @@
 package com.flink.example.stream.window;
 
 import com.common.example.utils.DateUtil;
-import com.flink.example.bean.ContextInfo;
+import com.common.example.bean.ContextInfo;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;

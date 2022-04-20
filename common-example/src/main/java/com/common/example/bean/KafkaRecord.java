@@ -1,4 +1,4 @@
-package com.flink.example.bean;
+package com.common.example.bean;
 
 /**
  * 功能：Kafka 记录

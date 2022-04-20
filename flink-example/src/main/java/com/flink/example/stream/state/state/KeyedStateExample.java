@@ -1,6 +1,6 @@
 package com.flink.example.stream.state.state;
 
-import com.flink.example.bean.Behavior;
+import com.common.example.bean.Behavior;
 import com.flink.example.stream.function.BehaviorParseMapFunction;
 import com.flink.example.stream.function.BehaviorSumMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
