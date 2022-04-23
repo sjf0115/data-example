@@ -12,13 +12,13 @@ import java.time.Instant;
 import static org.apache.flink.table.api.Expressions.$;
 
 /**
- * 功能：流转换为表
+ * 功能：fromDataStream 示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
  * 日期：2022/4/10 上午11:58
  */
-public class StreamToTableExample {
+public class FromDataStreamExample {
     public static void main(String[] args) throws Exception {
         // Stream 执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
