@@ -8,7 +8,7 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
 
 /**
- * 功能：Stream 转换为 Table 示例
+ * 功能：Stream 转换 Table 示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
@@ -19,8 +19,6 @@ public class Stream2TableExample {
         // 创建流和表执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
-
-        // 创建 DataStream
 
         // 示例1 fromDataStream()
         DataStream<WordCount> sourceStream1 = env.fromElements(
