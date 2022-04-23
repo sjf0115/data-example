@@ -50,3 +50,24 @@ public class Stream2TableExample {
         env.execute();
     }
 }
+//(
+//`word` STRING,
+//`count` INT
+//)
+//(
+//`word` STRING,
+//`count` INT
+//)
+//(
+//`f0` STRING,
+//`f1` INT
+//)
+//R1:2> +I[hello, 1]
+//R2:2> +I[hello, 1]
+//R2:3> +I[word, 4]
+//R1:4> +I[hello, 1]
+//R1:3> +I[word, 4]
+//R2:4> +I[hello, 1]
+//R3:2> +I[hello, 1]
+//R3:3> +I[word, 4]
+//R3:4> +I[hello, 1]
