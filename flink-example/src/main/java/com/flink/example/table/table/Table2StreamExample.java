@@ -53,7 +53,7 @@ public class Table2StreamExample {
         // DataStream<Tuple2<Boolean, WordCount>> resultStream3 = tEnv.toRetractStream(table3, WordCount.class);
         resultStream3.print("R3");
 
-        // 示例4 toRetractStream
+        // 示例4 toChangelogStream
         DataStream<WordCount> sourceStream4 = env.fromElements(
                 new WordCount("hello", 1),
                 new WordCount("word", 4),
