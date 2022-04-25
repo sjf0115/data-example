@@ -22,10 +22,24 @@ public class ModuleTableAPIExample {
         tableEnv.listModules();
         tableEnv.listFullModules();
 
-        // Load a hive module
+        // 加载 Hive Module
         tableEnv.loadModule("hive", new HiveModule());
-
-        // Show all enabled modules
         tableEnv.listModules();
+        tableEnv.listFullModules();
+
+        // 变更解析顺序
+        tableEnv.useModules("hive", "core");
+        tableEnv.listModules();
+        tableEnv.listFullModules();
+
+        // 禁用 core 模块
+        tableEnv.useModules("hive");
+        tableEnv.listModules();
+        tableEnv.listFullModules();
+
+        // 卸载 Hive 模块
+        tableEnv.unloadModule("hive");
+        tableEnv.listModules();
+        tableEnv.listFullModules();
     }
 }
