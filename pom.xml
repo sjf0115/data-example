@@ -34,7 +34,7 @@
         <common.version>3.4</common.version>
         <jcommander.version>1.78</jcommander.version>
         <presto.version>0.86</presto.version>
-        <hive.version>2.3.7</hive.version>
+        <hive.version>2.3.4</hive.version>
         <zookeeper.version>3.4.12</zookeeper.version>
         <hbase.version>2.1.6</hbase.version>
         <scala.binary.version>2.11</scala.binary.version>
