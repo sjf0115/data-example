@@ -51,11 +51,6 @@
             <artifactId>flink-connector-hive_${scala.binary.version}</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-exec</artifactId>
-        </dependency>
-
         <!-- Flink Format -->
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -121,6 +116,12 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
+        </dependency>
+
+        <!-- Hive -->
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
         </dependency>
 
         <!-- guava -->

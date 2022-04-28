@@ -1,4 +1,4 @@
-CREATE TABLE kafka_source_table (
+CREATE TABLE kafka_word_count_table (
   word STRING COMMENT '单词',
   frequency BIGINT COMMENT '次数'
 ) WITH (
@@ -10,4 +10,4 @@ CREATE TABLE kafka_source_table (
   'format' = 'json',
   'json.ignore-parse-errors' = 'true',
   'json.fail-on-missing-field' = 'false'
-);
+)
