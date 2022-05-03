@@ -64,8 +64,9 @@ SELECT
     ts + INTERVAL '3:20:15.111' HOUR TO SECOND(3)   AS hour_to_second_ms,  -- 3小时20分钟15秒111毫秒    -- 2022-05-01 15:30:30.567
     ts + INTERVAL '20:15' MINUTE TO SECOND          AS minute_to_second,   -- 20分钟15秒              -- 2022-05-01 12:30:30.456
     ts + INTERVAL '20:15.111' MINUTE TO SECOND(3)   AS minute_to_second_ms,-- 20分钟15秒111毫秒        -- 2022-05-01 12:30:30.567
-    ts + INTERVAL '15' SECOND                       AS only_second,        -- 15秒                   -- 2022-05-01 12:10:30.456
-    ts + INTERVAL '15.111' SECOND(3)                AS only_second_ms     -- 15秒111毫秒              -- 2022-05-01 12:10:30.567
+    ts + INTERVAL '15' SECOND                       AS second_add,         -- 15秒                   -- 2022-05-01 12:10:30.456
+    ts + INTERVAL '-15' SECOND                      AS second_minus,       -- 15秒                   -- 2022-05-01 12:10:00.456
+    ts + INTERVAL '15.111' SECOND(3)                AS second_ms_add       -- 15秒111毫秒             -- 2022-05-01 12:10:30.567
 FROM (
   -- 2022-05-01 12:10:15.456
   SELECT TO_TIMESTAMP_LTZ(1651378215456, 3) AS ts
