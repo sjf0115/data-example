@@ -22,22 +22,37 @@ public class IntervalExample {
 
         // 创建输出表
         String sinkSql = "CREATE TABLE interval_sink_table (\n" +
-                "  interval_year_value TIMESTAMP(3),\n" +
-                "  interval_year_p_value TIMESTAMP(3),\n" +
-                "  interval_year_p_to_month_value TIMESTAMP(3),\n" +
-                "  interval_month_value TIMESTAMP(3),\n" +
-                "  interval_day_value TIMESTAMP(3),\n" +
-                "  interval_day_p1_value TIMESTAMP(3),\n" +
-                "  interval_day_p1_to_hour_value TIMESTAMP(3),\n" +
-                "  interval_day_p1_to_minute_value TIMESTAMP(3),\n" +
-                "  interval_day_p1_to_second_p2_value TIMESTAMP(3),\n" +
-                "  interval_hour_value TIMESTAMP(3),\n" +
-                "  interval_hour_to_minute_value TIMESTAMP(3),\n" +
-                "  interval_hour_to_second_value TIMESTAMP(3),\n" +
-                "  interval_minute_value TIMESTAMP(3),\n" +
-                "  interval_minute_to_second_p2_value TIMESTAMP(3),\n" +
-                "  interval_second_value TIMESTAMP(3),\n" +
-                "  interval_second_p2_value TIMESTAMP(3)\n" +
+                "  year_1   TIMESTAMP(3),\n" +
+                "  year_2   TIMESTAMP(3),\n" +
+                "  year_3   TIMESTAMP(3),\n" +
+                "  year_4   TIMESTAMP(3),\n" +
+                "  month_1  TIMESTAMP(3),\n" +
+                "  month_2  TIMESTAMP(3),\n" +
+                "  month_3  TIMESTAMP(3),\n" +
+                "  month_4  TIMESTAMP(3),\n" +
+                "  day_1    TIMESTAMP(3),\n" +
+                "  day_2    TIMESTAMP(3),\n" +
+                "  day_3    TIMESTAMP(3),\n" +
+                "  day_4    TIMESTAMP(3),\n" +
+                "  hour_1   TIMESTAMP(3),\n" +
+                "  hour_2   TIMESTAMP(3),\n" +
+                "  hour_3   TIMESTAMP(3),\n" +
+                "  hour_4   TIMESTAMP(3),\n" +
+                "  minute_1 TIMESTAMP(3),\n" +
+                "  minute_2 TIMESTAMP(3),\n" +
+                "  minute_3 TIMESTAMP(3),\n" +
+                "  minute_4 TIMESTAMP(3),\n" +
+                "  minute_5 TIMESTAMP(3),\n" +
+                "  minute_6 TIMESTAMP(3),\n" +
+                "  second_1 TIMESTAMP(3),\n" +
+                "  second_2 TIMESTAMP(3),\n" +
+                "  second_3 TIMESTAMP(3),\n" +
+                "  second_4 TIMESTAMP(3),\n" +
+                "  second_5 TIMESTAMP(3),\n" +
+                "  second_6 TIMESTAMP(3),\n" +
+                "  second_7 TIMESTAMP(3),\n" +
+                "  second_8 TIMESTAMP(3),\n" +
+                "  second_9 TIMESTAMP(3)\n" +
                 ") WITH (\n" +
                 "  'connector' = 'print',\n" +
                 "  'print-identifier' = 'interval',\n" +
@@ -48,62 +63,43 @@ public class IntervalExample {
         // 执行计算并输出
         String sql = "INSERT INTO interval_sink_table\n" +
                 "SELECT\n" +
-                "    -- 1. 年-月。取值范围为 [-9999-11, +9999-11]，其中 p 是指有效位数，取值范围 [1, 4]，默认值为 2。比如如果值为 1000，但是 p = 2，则会直接报错。\n" +
-                "    -- INTERVAL YEAR\n" +
-                "    f1 + INTERVAL '10' YEAR AS interval_year\n" +
-                "    -- INTERVAL YEAR(p)\n" +
-                "    , f1 + INTERVAL '100' YEAR(3) AS interval_year_p\n" +
-                "    -- INTERVAL YEAR(p) TO MONTH\n" +
-                "    , f1 + INTERVAL '10-03' YEAR(3) TO MONTH AS interval_year_p_to_month\n" +
-                "    -- INTERVAL MONTH\n" +
-                "    , f1 + INTERVAL '13' MONTH AS interval_month\n" +
-                "\n" +
-                "    -- 2. 日-小时-秒。取值范围为 [-999999 23:59:59.999999999, +999999 23:59:59.999999999]，其中 p1\\p2 都是有效位数，p1 取值范围 [1, 6]，默认值为 2；p2 取值范围 [0, 9]，默认值为 6\n" +
-                "    -- INTERVAL DAY\n" +
-                "    , f1 + INTERVAL '10' DAY AS interval_day\n" +
-                "    -- INTERVAL DAY(p1)\n" +
-                "    , f1 + INTERVAL '100' DAY(3) AS interval_day_p1\n" +
-                "    -- INTERVAL DAY(p1) TO HOUR\n" +
-                "    , f1 + INTERVAL '10 03' DAY(3) TO HOUR AS interval_day_p1_to_hour\n" +
-                "    -- INTERVAL DAY(p1) TO MINUTE\n" +
-                "    , f1 + INTERVAL '10 03:12' DAY(3) TO MINUTE AS interval_day_p1_to_minute\n" +
-                "    -- INTERVAL DAY(p1) TO SECOND(p2)\n" +
-                "    , f1 + INTERVAL '10 00:00:00.004' DAY TO SECOND(3) AS interval_day_p1_to_second_p2\n" +
-                "    -- INTERVAL HOUR\n" +
-                "    , f1 + INTERVAL '10' HOUR AS interval_hour\n" +
-                "    -- INTERVAL HOUR TO MINUTE\n" +
-                "    , f1 + INTERVAL '10:03' HOUR TO MINUTE AS interval_hour_to_minute\n" +
-                "    -- INTERVAL HOUR TO SECOND(p2)\n" +
-                "    , f1 + INTERVAL '00:00:00.004' HOUR TO SECOND(3) AS interval_hour_to_second\n" +
-                "    -- INTERVAL MINUTE\n" +
-                "    , f1 + INTERVAL '10' MINUTE AS interval_minute\n" +
-                "    -- INTERVAL MINUTE TO SECOND(p2)\n" +
-                "    , f1 + INTERVAL '05:05.006' MINUTE TO SECOND(3) AS interval_minute_to_second_p2\n" +
-                "    -- INTERVAL SECOND\n" +
-                "    , f1 + INTERVAL '3' SECOND AS interval_second\n" +
-                "    -- INTERVAL SECOND(p2)\n" +
-                "    , f1 + INTERVAL '300' SECOND(3) AS interval_second_p2\n" +
+                "    ts + INTERVAL '-1' YEAR                         AS year_1,    -- 1年\n" +
+                "    ts + INTERVAL '+1' YEAR                         AS year_2,    -- 1年\n" +
+                "    ts + INTERVAL '10' YEAR(2)                      AS year_3,    -- 10年\n" +
+                "    ts + INTERVAL '1000' YEAR(4)                    AS year_4,    -- 1000年\n" +
+                "    ts + INTERVAL '1-03' YEAR TO MONTH              AS month_1,   -- 1年3个月\n" +
+                "    ts + INTERVAL '15' MONTH                        AS month_2,   -- 15个月\n" +
+                "    ts + INTERVAL '+3' MONTH                        AS month_3,   -- 3个月\n" +
+                "    ts + INTERVAL '-3' MONTH                        AS month_4,   -- 3个月\n" +
+                "    ts + INTERVAL '+1' DAY                          AS day_1,     -- 1天\n" +
+                "    ts + INTERVAL '-1' DAY                          AS day_2,     -- 1天\n" +
+                "    ts + INTERVAL '10' DAY(2)                       AS day_3,     -- 10天\n" +
+                "    ts + INTERVAL '365' DAY(3)                      AS day_4,     -- 365天\n" +
+                "    ts + INTERVAL '-1 03' DAY TO HOUR               AS hour_1,    -- 1天3小时\n" +
+                "    ts + INTERVAL '1 03' DAY TO HOUR                AS hour_2,    -- 1天3小时\n" +
+                "    ts + INTERVAL '10 03' DAY(2) TO HOUR            AS hour_3,    -- 10天3小时\n" +
+                "    ts + INTERVAL '+3' HOUR                         AS hour_4,    -- 3小时\n" +
+                "    ts + INTERVAL '-3' HOUR                         AS hour_5,    -- 3小时\n" +
+                "    ts + INTERVAL '1 03:20' DAY TO MINUTE           AS minute_1,  -- 1天3小时20分钟\n" +
+                "    ts + INTERVAL '-1 03:20' DAY TO MINUTE          AS minute_2,  -- 1天3小时20分钟\n" +
+                "    ts + INTERVAL '3:20' HOUR TO MINUTE             AS minute_3,  -- 3小时20分钟\n" +
+                "    ts + INTERVAL '-3:20' HOUR TO MINUTE            AS minute_4,  -- 3小时20分钟\n" +
+                "    ts + INTERVAL '+20' MINUTE                      AS minute_5,  -- 20分钟\n" +
+                "    ts + INTERVAL '-20' MINUTE                      AS minute_6,  -- 20分钟\n" +
+                "    ts + INTERVAL '1 03:20:15' DAY TO SECOND        AS second_1,  -- 1天3小时20分钟15秒\n" +
+                "    ts + INTERVAL '1 03:20:15.111' DAY TO SECOND(3) AS second_2,  -- 1天3小时20分钟15秒111毫秒\n" +
+                "    ts + INTERVAL '3:20:15' HOUR TO SECOND          AS second_3,  -- 3小时20分钟15秒\n" +
+                "    ts + INTERVAL '3:20:15.111' HOUR TO SECOND(3)   AS second_4,  -- 3小时20分钟15秒111毫秒\n" +
+                "    ts + INTERVAL '20:15' MINUTE TO SECOND          AS second_5,  -- 20分钟15秒\n" +
+                "    ts + INTERVAL '20:15.111' MINUTE TO SECOND(3)   AS second_6,  -- 20分钟15秒111毫秒\n" +
+                "    ts + INTERVAL '15' SECOND                       AS second_7,  -- 15秒\n" +
+                "    ts + INTERVAL '-15' SECOND                      AS second_8,  -- 15秒\n" +
+                "    ts + INTERVAL '15.111' SECOND(3)                AS second_9   -- 15秒111毫秒\n" +
                 "FROM (\n" +
-                "  -- 2022-05-01 12:10:15\n" +
-                "  SELECT TO_TIMESTAMP_LTZ(1651378215468, 3) AS f1\n" +
+                "  -- 2022-05-01 12:10:15.456\n" +
+                "  SELECT TO_TIMESTAMP_LTZ(1651378215456, 3) AS ts\n" +
                 ")";
         tableEnv.executeSql(sql);
     }
 }
-//2032-05-01T12:10:15.468,
-//2122-05-01T12:10:15.468,
-//2032-08-01T12:10:15.468,
-//2023-06-01T12:10:15.468,
-//2022-05-11T12:10:15.468,
-//2022-08-09T12:10:15.468,
-//2022-05-11T15:10:15.468,
-//2022-05-11T15:22:15.468,
-//2022-05-11T12:10:15.472,
-//2022-05-01T22:10:15.468,
-//2022-05-01T22:13:15.468,
-//2022-05-01T12:10:15.472,
-//2022-05-01T12:20:15.468,
-//2022-05-01T12:15:20.474,
-//2022-05-01T12:10:18.468,
-//2022-05-01T12:15:15.468,
 
