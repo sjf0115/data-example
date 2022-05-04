@@ -24,9 +24,9 @@ import java.util.Properties;
 public class UserBehaviorGenerator {
     private static final Gson gson = new GsonBuilder().create();
     // 每秒1000条
-    private static final long SPEED = 10;
+    private static final long SPEED = 1;
     // 最多发送条数
-    private static final long THRESHOLD = 10000;
+    private static final long THRESHOLD = 100;
     private static final String TOPIC = "user_behavior";
 
     /**

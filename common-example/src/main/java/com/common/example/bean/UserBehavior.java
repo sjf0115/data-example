@@ -12,16 +12,18 @@ public class UserBehavior {
     private Long cid;
     private String type;
     private Long ts;
+    private String time;
 
     public UserBehavior() {
     }
 
-    public UserBehavior(Long uid, Long pid, Long cid, String type, Long ts) {
+    public UserBehavior(Long uid, Long pid, Long cid, String type, Long ts, String time) {
         this.uid = uid;
         this.pid = pid;
         this.cid = cid;
         this.type = type;
         this.ts = ts;
+        this.time = time;
     }
 
     public Long getUid() {
@@ -62,5 +64,25 @@ public class UserBehavior {
 
     public void setTs(Long ts) {
         this.ts = ts;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    @Override
+    public String toString() {
+        return "UserBehavior{" +
+                "uid=" + uid +
+                ", pid=" + pid +
+                ", cid=" + cid +
+                ", type='" + type + '\'' +
+                ", ts=" + ts +
+                ", time='" + time + '\'' +
+                '}';
     }
 }

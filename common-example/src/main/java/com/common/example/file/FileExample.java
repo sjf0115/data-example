@@ -40,7 +40,7 @@ public class FileExample {
                 String date = DateUtil.timeStamp2Date(timestamp);
                 String dt = date.substring(0, 10);
                 if (dt.equals("2017-11-27") || dt.equals("2017-11-28")) {
-                    String json = gson.toJson(new UserBehavior(uid, pid, cid, type, timestamp));
+                    String json = gson.toJson(new UserBehavior(uid, pid, cid, type, timestamp, date));
                     System.out.println("Index: " + index + ", " + json + ", " + date);
                     writer.write(json);
                     writer.newLine();
