@@ -20,50 +20,87 @@ public class GroupWindowSQLExample {
                 .build();
         TableEnvironment tEnv = TableEnvironment.create(settings);
 
+        // 1. 示例1 基于事件时间的滚动窗口
+        //runEventTimeExample(tEnv);
+
+        // 2. 示例2 基于处理时间的滚动窗口
+        runProcessTimeExample(tEnv);
+    }
+
+    // 示例1 基于事件时间的滚动窗口
+    private static void runEventTimeExample(TableEnvironment tEnv) {
         // 创建输入表
-        String sourceSql = "CREATE TABLE user_behavior (\n" +
+        tEnv.executeSql("CREATE TABLE user_behavior_event_time (\n" +
                 "  uid BIGINT COMMENT '用户Id',\n" +
                 "  pid BIGINT COMMENT '商品Id',\n" +
                 "  cid BIGINT COMMENT '商品类目Id',\n" +
                 "  type STRING COMMENT '行为类型',\n" +
                 "  ts BIGINT COMMENT '行为时间',\n" +
-                "  ts_ltz AS TO_TIMESTAMP_LTZ(ts, 3),\n" +
-                "  proctime AS PROCTIME(), -- 通过计算列产生一个处理时间列\n" +
+                "  ts_ltz AS TO_TIMESTAMP_LTZ(ts, 3), -- 事件时间\n" +
                 "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '1' MINUTE -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列\n" +
                 ") WITH (\n" +
                 "  'connector' = 'kafka',\n" +
                 "  'topic' = 'user_behavior',\n" +
                 "  'properties.bootstrap.servers' = 'localhost:9092',\n" +
-                "  'properties.group.id' = 'kafka-connector-value',\n" +
+                "  'properties.group.id' = 'group-window-tumble',\n" +
                 "  'scan.startup.mode' = 'earliest-offset',\n" +
                 "  'format' = 'json',\n" +
                 "  'json.ignore-parse-errors' = 'false',\n" +
                 "  'json.fail-on-missing-field' = 'true'\n" +
-                ")";
-        tEnv.executeSql(sourceSql);
+                ")");
 
-        // 创建输出表
-        String sinkSql = "CREATE TABLE user_behavior_result (\n" +
-                "  uid BIGINT COMMENT '用户Id',\n" +
-                "  window_tart STRING COMMENT '窗口开始时间',\n" +
-                "  window_end STRING COMMENT '窗口结束时间',\n" +
-                "  num BIGINT COMMENT '条数'\n" +
+        tEnv.executeSql("CREATE TABLE user_behavior_event_time_uv (\n" +
+                "  window_start TIMESTAMP(3) COMMENT '窗口开始时间',\n" +
+                "  window_end TIMESTAMP(3) COMMENT '窗口结束时间',\n" +
+                "  uv BIGINT COMMENT '用户数'\n" +
                 ") WITH (\n" +
                 "  'connector' = 'print',\n" +
-                "  'print-identifier' = 'behavior',\n" +
+                "  'print-identifier' = 'ET',\n" +
                 "  'sink.parallelism' = '1'\n" +
-                ")";
-        tEnv.executeSql(sinkSql);
-
+                ")");
         // 执行计算并输出
-        String sql = "INSERT INTO user_behavior_result\n" +
+        tEnv.executeSql("INSERT INTO user_behavior_event_time_uv\n" +
                 "SELECT\n" +
-                "  uid,\n" +
-                "  DATE_FORMAT(TUMBLE_START(ts_ltz, INTERVAL '1' MINUTE), 'yyyy-MM-dd HH:mm:ss') AS window_tart,\n" +
-                "  DATE_FORMAT(TUMBLE_END(ts_ltz, INTERVAL '1' MINUTE), 'yyyy-MM-dd HH:mm:ss') AS window_end,\n" +
-                "  COUNT(*) AS num\n" +
-                "FROM user_behavior\n" +
-                "GROUP BY TUMBLE(ts_ltz, INTERVAL '1' MINUTE), uid";
-        tEnv.executeSql(sql);
+                "  TUMBLE_START(ts_ltz, INTERVAL '1' HOUR) AS window_start,\n" +
+                "  TUMBLE_END(ts_ltz, INTERVAL '1' HOUR) AS window_end,\n" +
+                "  COUNT(DISTINCT uid) AS uv\n" +
+                "FROM user_behavior_event_time\n" +
+                "GROUP BY TUMBLE(ts_ltz, INTERVAL '1' HOUR)");
+    }
+
+    // 示例2 基于处理时间的滚动窗口
+    private static void runProcessTimeExample(TableEnvironment tEnv) {
+        tEnv.executeSql("CREATE TABLE user_behavior_process_time (\n" +
+                "  uid BIGINT COMMENT '用户Id',\n" +
+                "  pid BIGINT COMMENT '商品Id',\n" +
+                "  cid BIGINT COMMENT '商品类目Id',\n" +
+                "  type STRING COMMENT '行为类型',\n" +
+                "  process_time AS PROCTIME() -- 处理时间\n" +
+                ") WITH (\n" +
+                "  'connector' = 'kafka',\n" +
+                "  'topic' = 'user_behavior',\n" +
+                "  'properties.bootstrap.servers' = 'localhost:9092',\n" +
+                "  'properties.group.id' = 'group-window-tumble',\n" +
+                "  'scan.startup.mode' = 'earliest-offset',\n" +
+                "  'format' = 'json',\n" +
+                "  'json.ignore-parse-errors' = 'false',\n" +
+                "  'json.fail-on-missing-field' = 'true'\n" +
+                ")");
+        tEnv.executeSql("CREATE TABLE user_behavior_process_time_uv (\n" +
+                "  window_start TIMESTAMP(3) COMMENT '窗口开始时间',\n" +
+                "  window_end TIMESTAMP(3) COMMENT '窗口结束时间',\n" +
+                "  uv BIGINT COMMENT '用户数'\n" +
+                ") WITH (\n" +
+                "  'connector' = 'print',\n" +
+                "  'print-identifier' = 'PT',\n" +
+                "  'sink.parallelism' = '1'\n" +
+                ")");
+        tEnv.executeSql("INSERT INTO user_behavior_process_time_uv\n" +
+                "SELECT\n" +
+                "  TUMBLE_START(process_time, INTERVAL '1' HOUR) AS window_start,\n" +
+                "  TUMBLE_END(process_time, INTERVAL '1' HOUR) AS window_end,\n" +
+                "  COUNT(DISTINCT uid) AS uv\n" +
+                "FROM user_behavior_process_time\n" +
+                "GROUP BY TUMBLE(process_time, INTERVAL '1' HOUR)");
     }
 }

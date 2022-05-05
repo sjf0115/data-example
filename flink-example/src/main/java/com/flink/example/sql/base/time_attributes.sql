@@ -13,7 +13,7 @@ CREATE TABLE user_behavior_timestamp_ltz (
   'topic' = 'user_behavior',
   'properties.bootstrap.servers' = 'localhost:9092',
   'properties.group.id' = 'user_behavior_timestamp_ltz',
-  'scan.startup.mode' = 'earliest-offset',
+  'scan.startup.mode' = 'latest-offset',
   'format' = 'json',
   'json.ignore-parse-errors' = 'true',
   'json.fail-on-missing-field' = 'false'
@@ -38,10 +38,10 @@ CREATE TABLE user_behavior_timestamp (
   'topic' = 'user_behavior',
   'properties.bootstrap.servers' = 'localhost:9092',
   'properties.group.id' = 'user_behavior_timestamp',
-  'scan.startup.mode' = 'earliest-offset',
+  'scan.startup.mode' = 'latest-offset',
   'format' = 'json',
-  'json.ignore-parse-errors' = 'true',
-  'json.fail-on-missing-field' = 'false'
+  'json.ignore-parse-errors' = 'false',
+  'json.fail-on-missing-field' = 'true'
 );
 
 SELECT TUMBLE_START(`time`, INTERVAL '1' HOUR), COUNT(DISTINCT uid)
@@ -54,7 +54,6 @@ CREATE TABLE user_behavior_process_time (
   pid BIGINT COMMENT '商品Id',
   cid BIGINT COMMENT '商品类目Id',
   type STRING COMMENT '行为类型',
-  time TIMESTAMP(3) COMMENT '行为时间',
   proctime AS PROCTIME() -- 通过计算列产生一个处理时间列
 ) WITH (
   'connector' = 'kafka',
@@ -63,10 +62,11 @@ CREATE TABLE user_behavior_process_time (
   'properties.group.id' = 'user_behavior_process_time',
   'scan.startup.mode' = 'earliest-offset',
   'format' = 'json',
-  'json.ignore-parse-errors' = 'true',
-  'json.fail-on-missing-field' = 'false'
+  'json.ignore-parse-errors' = 'false',
+  'json.fail-on-missing-field' = 'true'
 );
 
+INSERT INTO user_behavior_result
 SELECT TUMBLE_START(proctime, INTERVAL '1' HOUR), COUNT(DISTINCT uid)
-FROM user_behavior_timestamp
+FROM user_behavior_process_time
 GROUP BY TUMBLE(proctime, INTERVAL '1' HOUR);
