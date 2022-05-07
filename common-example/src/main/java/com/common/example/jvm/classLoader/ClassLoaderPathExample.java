@@ -1,7 +1,8 @@
 package com.common.example.jvm.classLoader;
 
-import java.util.Arrays;
-import java.util.List;
+import sun.misc.Launcher;
+
+import java.net.URL;
 
 /**
  * 功能：ClassLoader 加载路径
@@ -12,54 +13,40 @@ import java.util.List;
  */
 public class ClassLoaderPathExample {
 
-//    ${JAVA_HOME}/jre/lib/resources.jar
-//    ${JAVA_HOME}/jre/lib/rt.jar
-//    ${JAVA_HOME}/jre/lib/sunrsasign.jar
-//    ${JAVA_HOME}/jre/lib/jsse.jar
-//    ${JAVA_HOME}/jre/lib/jce.jar
-//    ${JAVA_HOME}/jre/lib/charsets.jar
-//    ${JAVA_HOME}/jre/lib/jfr.jar
-//    ${JAVA_HOME}/jre/classes
+    // 启动类加载器加载的路径
     public static void bootClassLoaderLoadingPath() {
-        //获取启动列加载器加载的目录
-        String bootStrapLoadingPath = System.getProperty("sun.boot.class.path");
-        //把加载的目录转为集合
-        List<String> bootLoadingPathList = Arrays.asList(bootStrapLoadingPath.split(";"));
-        for (String bootPath : bootLoadingPathList){
-            System.out.println("启动类加载器加载的目录：" + bootPath);
-            for (String path : bootPath.split(":")) {
+        String bootStrapPath = System.getProperty("sun.boot.class.path");
+        System.out.println("启动类加载器加载的路径: ");
+        for (String paths : bootStrapPath.split(";")){
+            for (String path : paths.split(":")) {
                 System.out.println(path);
             }
         }
+
+        System.out.println("启动类加载器加载的路径: ");
+        URL[] urLs = Launcher.getBootstrapClassPath().getURLs();
+        for (URL url : urLs) {
+            System.out.println(url.toExternalForm());
+        }
     }
 
-    /**
-     * 拓展类加载器加载的目录
-     */
+    // 拓展类加载器加载的路径
     public static void extClassLoaderLoadingPath() {
-        //获取启动列加载器加载的目录
-        String bootStrapLoadingPath = System.getProperty("java.ext.dirs");
-        //把加载的目录转为集合
-        List<String> bootLoadingPathList = Arrays.asList(bootStrapLoadingPath.split(";"));
-        for (String bootPath:bootLoadingPathList){
-            System.out.println("拓展类加载器加载的目录："+bootPath);
-            for (String path : bootPath.split(":")) {
+        String extClassLoaderPath = System.getProperty("java.ext.dirs");
+        System.out.println("拓展类加载器加载的路径: ");
+        for (String paths : extClassLoaderPath.split(";")){
+            for (String path : paths.split(":")) {
                 System.out.println(path);
             }
         }
     }
 
-    /**
-     * 应用程序类加载器加载的目录
-     */
+    // 应用程序类加载器加载的路径
     public static void appClassLoaderLoadingPath(){
-        //获取启动列加载器加载的目录
-        String bootStrapLoadingPath=System.getProperty("java.class.path");
-        //把加载的目录转为集合
-        List<String> bootLoadingPathList= Arrays.asList(bootStrapLoadingPath.split(";"));
-        for (String bootPath:bootLoadingPathList){
-            System.out.println("应用程序类加载器加载的目录："+bootPath);
-            for (String path : bootPath.split(":")) {
+        String appClassLoaderPath = System.getProperty("java.class.path");
+        for (String paths : appClassLoaderPath.split(";")){
+            System.out.println("应用程序类加载器加载的路径: ");
+            for (String path : paths.split(":")) {
                 System.out.println(path);
             }
         }
@@ -67,7 +54,7 @@ public class ClassLoaderPathExample {
 
     public static void main(String[] args) {
         // bootClassLoaderLoadingPath();
-        extClassLoaderLoadingPath();
-        // appClassLoaderLoadingPath();
+        // extClassLoaderLoadingPath();
+        appClassLoaderLoadingPath();
     }
 }
