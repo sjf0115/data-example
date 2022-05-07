@@ -8,12 +8,17 @@ package com.common.example.jvm.classLoader;
  */
 public class ClassLoaderParent {
     public static void main(String[] args) {
-        // 应用程序类加载器 sun.misc.Launcher$AppClassLoader@49476842
-        ClassLoader classLoader = ClassLoaderParent.class.getClassLoader();
-        System.out.println(classLoader);
-        // 扩展类加载器 sun.misc.Launcher$ExtClassLoader@5acf9800
-        System.out.println(classLoader.getParent());
-        // 启动类加载器 null
-        System.out.println(classLoader.getParent().getParent());
+        // 应用程序类加载器(系统类加载器)
+        // ClassLoader systemClassLoader = ClassLoaderParent.class.getClassLoader();
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        System.out.println(systemClassLoader); // sun.misc.Launcher$AppClassLoader@49476842
+
+        // 获取上层加载器:扩展类加载器
+        ClassLoader extClassLoader = systemClassLoader.getParent();
+        System.out.println(extClassLoader); // sun.misc.Launcher$ExtClassLoader@5acf9800
+        
+        // 获取上层加载器:启动类加载器
+        ClassLoader bootstrapClassLoader = extClassLoader.getParent();
+        System.out.println(bootstrapClassLoader); // null
     }
 }
