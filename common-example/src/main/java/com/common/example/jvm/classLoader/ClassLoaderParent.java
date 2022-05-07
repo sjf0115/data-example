@@ -8,8 +8,9 @@ package com.common.example.jvm.classLoader;
  */
 public class ClassLoaderParent {
     public static void main(String[] args) {
+        // 1. 示例1 加载器层级结构
+
         // 应用程序类加载器(系统类加载器)
-        // ClassLoader systemClassLoader = ClassLoaderParent.class.getClassLoader();
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         System.out.println(systemClassLoader); // sun.misc.Launcher$AppClassLoader@49476842
 
@@ -20,5 +21,15 @@ public class ClassLoaderParent {
         // 获取上层加载器:启动类加载器
         ClassLoader bootstrapClassLoader = extClassLoader.getParent();
         System.out.println(bootstrapClassLoader); // null
+
+        // 2. 示例2 加载器场景
+
+        // 自定义类使用应用程序类加载器
+        ClassLoader classLoader1 = ClassLoaderParent.class.getClassLoader();
+        System.out.println(classLoader1); // sun.misc.Launcher$AppClassLoader@49476842
+
+        // Java 核心类库使用启动类加载器
+        ClassLoader classLoader2 = Object.class.getClassLoader();
+        System.out.println(classLoader2); // null
     }
 }
