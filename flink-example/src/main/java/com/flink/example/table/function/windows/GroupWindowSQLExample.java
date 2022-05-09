@@ -42,7 +42,7 @@ public class GroupWindowSQLExample {
                 "  'connector' = 'kafka',\n" +
                 "  'topic' = 'user_behavior',\n" +
                 "  'properties.bootstrap.servers' = 'localhost:9092',\n" +
-                "  'properties.group.id' = 'group-window-tumble',\n" +
+                "  'properties.group.id' = 'group-window-tumble-event-time',\n" +
                 "  'scan.startup.mode' = 'earliest-offset',\n" +
                 "  'format' = 'json',\n" +
                 "  'json.ignore-parse-errors' = 'false',\n" +
@@ -80,7 +80,7 @@ public class GroupWindowSQLExample {
                 "  'connector' = 'kafka',\n" +
                 "  'topic' = 'user_behavior',\n" +
                 "  'properties.bootstrap.servers' = 'localhost:9092',\n" +
-                "  'properties.group.id' = 'group-window-tumble',\n" +
+                "  'properties.group.id' = 'group-window-tumble-process-time',\n" +
                 "  'scan.startup.mode' = 'earliest-offset',\n" +
                 "  'format' = 'json',\n" +
                 "  'json.ignore-parse-errors' = 'false',\n" +
