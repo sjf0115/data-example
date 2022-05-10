@@ -30,9 +30,13 @@ public class TumbleGroupWindowTableExample {
                 Row.of("1001", "2017-11-27 13:00:31", 1511758831000L),
                 Row.of("1001", "2017-11-27 23:45:59", 1511797559000L)
         );
-        Table table = tEnv.fromDataStream(inputStream, $("uid"), $(""));
+        Table inputTable = tEnv.fromDataStream(inputStream, $("uid"), $(""));
 
-        table.window(Tumble.over(lit(10).minutes()).on($("rowtime")).as("w"));
+        Table outputTable = inputTable
+                //.window(Tumble.over("10.minutes").on("rowtime").as("w"))
+                .window(Tumble.over(lit(1).minutes()).on($("rowtime")).as("w"))
+                .groupBy($("w"), $("uid")) // 根据时间窗口 w 和用户 uid 分组
+                .select($("uid"), $("w").start(), $("w").end(), $("w").rowtime(), $("b").count());
 
     }
 }

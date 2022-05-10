@@ -24,8 +24,7 @@ public class TimeAttributeTableExample {
         // 1. 示例1 处理时间属性
         runProcessTimeExample(env, tEnv);
         // 2. 示例2 事件时间属性
-
-
+        runEventTimeExample(env, tEnv);
     }
 
     // 示例1 处理时间属性
@@ -43,6 +42,14 @@ public class TimeAttributeTableExample {
 
     // 示例2 事件时间属性
     private static void runEventTimeExample(StreamExecutionEnvironment env, StreamTableEnvironment tEnv) {
-
+        DataStream<Row> inputStream = env.fromElements(
+                Row.of("1000", "2017-11-27 13:01:21", 1511758881000L),
+                Row.of("1000", "2017-11-27 17:00:14", 1511773214000L),
+                Row.of("1000", "2017-11-27 23:39:27", 1511797167000L),
+                Row.of("1001", "2017-11-27 13:00:31", 1511758831000L),
+                Row.of("1001", "2017-11-27 23:45:59", 1511797559000L)
+        );
+        Table table = tEnv.fromDataStream(inputStream, $("uid"), $("time"), $("ts"), $("process_time").rowtime());
+        table.printSchema();
     }
 }

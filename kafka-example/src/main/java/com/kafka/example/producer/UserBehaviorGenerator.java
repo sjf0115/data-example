@@ -27,7 +27,7 @@ public class UserBehaviorGenerator {
     private static final long SPEED = 1;
     // 最多发送条数
     private static final long THRESHOLD = 10;
-    private static final String TOPIC = "user_behavior";
+    private static final String TOPIC = "user_behavior_2";
 
     /**
      * 异步发送Kafka
