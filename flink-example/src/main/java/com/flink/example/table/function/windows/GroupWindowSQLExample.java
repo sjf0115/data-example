@@ -2,6 +2,8 @@ package com.flink.example.table.function.windows;
 
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 功能：Group Windows SQL 示例
@@ -11,6 +13,9 @@ import org.apache.flink.table.api.TableEnvironment;
  * 日期：2022/5/3 下午9:29
  */
 public class GroupWindowSQLExample {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GroupWindowSQLExample.class);
+
     public static void main(String[] args) throws Exception {
         // TableEnvironment
         EnvironmentSettings settings = EnvironmentSettings
@@ -20,33 +25,50 @@ public class GroupWindowSQLExample {
                 .build();
         TableEnvironment tEnv = TableEnvironment.create(settings);
 
+        LOG.info("create source table");
+
         // 1. 示例1 基于事件时间的滚动窗口
-        //runEventTimeExample(tEnv);
+        runEventTimeExample(tEnv);
 
         // 2. 示例2 基于处理时间的滚动窗口
-        runProcessTimeExample(tEnv);
+        //runProcessTimeExample(tEnv);
     }
 
     // 示例1 基于事件时间的滚动窗口
     private static void runEventTimeExample(TableEnvironment tEnv) {
         // 创建输入表
+//        tEnv.executeSql("CREATE TABLE user_behavior_event_time (\n" +
+//                "  uid BIGINT COMMENT '用户Id',\n" +
+//                "  pid BIGINT COMMENT '商品Id',\n" +
+//                "  cid BIGINT COMMENT '商品类目Id',\n" +
+//                "  type STRING COMMENT '行为类型',\n" +
+//                "  ts BIGINT COMMENT '行为时间',\n" +
+//                "  ts_ltz AS TO_TIMESTAMP_LTZ(ts, 3), -- 事件时间\n" +
+//                "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '1' MINUTE -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列\n" +
+//                ") WITH (\n" +
+//                "  'connector' = 'kafka',\n" +
+//                "  'topic' = 'user_behavior',\n" +
+//                "  'properties.bootstrap.servers' = 'localhost:9092',\n" +
+//                "  'properties.group.id' = 'group-window-tumble-event-time',\n" +
+//                "  'scan.startup.mode' = 'earliest-offset',\n" +
+//                "  'format' = 'json',\n" +
+//                "  'json.ignore-parse-errors' = 'false',\n" +
+//                "  'json.fail-on-missing-field' = 'true'\n" +
+//                ")");
+
         tEnv.executeSql("CREATE TABLE user_behavior_event_time (\n" +
                 "  uid BIGINT COMMENT '用户Id',\n" +
                 "  pid BIGINT COMMENT '商品Id',\n" +
                 "  cid BIGINT COMMENT '商品类目Id',\n" +
-                "  type STRING COMMENT '行为类型',\n" +
-                "  ts BIGINT COMMENT '行为时间',\n" +
+                "  `type` STRING COMMENT '行为类型',\n" +
+                "  ts BIGINT COMMENT '行为时间戳',\n" +
                 "  ts_ltz AS TO_TIMESTAMP_LTZ(ts, 3), -- 事件时间\n" +
-                "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '1' MINUTE -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列\n" +
-                ") WITH (\n" +
-                "  'connector' = 'kafka',\n" +
-                "  'topic' = 'user_behavior',\n" +
-                "  'properties.bootstrap.servers' = 'localhost:9092',\n" +
-                "  'properties.group.id' = 'group-window-tumble-event-time',\n" +
-                "  'scan.startup.mode' = 'earliest-offset',\n" +
-                "  'format' = 'json',\n" +
-                "  'json.ignore-parse-errors' = 'false',\n" +
-                "  'json.fail-on-missing-field' = 'true'\n" +
+                "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '1' MINUTE\n" +
+                ")\n" +
+                "WITH (\n" +
+                "  'connector' = 'filesystem',\n" +
+                "  'path' = 'file:///opt/data/user_behavior.csv',\n" +
+                "  'format' = 'csv'\n" +
                 ")");
 
         tEnv.executeSql("CREATE TABLE user_behavior_event_time_uv (\n" +

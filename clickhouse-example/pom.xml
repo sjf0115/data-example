@@ -18,12 +18,6 @@
             <groupId>com.example</groupId>
             <artifactId>common-example</artifactId>
         </dependency>
-
-        <!-- clickhouse -->
-        <dependency>
-            <groupId>ru.yandex.clickhouse</groupId>
-            <artifactId>clickhouse-jdbc</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
