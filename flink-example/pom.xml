@@ -104,6 +104,12 @@
             <!--<scope>provided</scope>-->
         </dependency>
 
+        <!-- Flink 本地运行 WebUI -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-runtime-web_${scala.binary.version}</artifactId>
+        </dependency>
+
         <!-- flink test -->
         <dependency>
             <groupId>org.apache.flink</groupId>

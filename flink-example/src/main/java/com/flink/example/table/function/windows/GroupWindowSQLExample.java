@@ -1,7 +1,11 @@
 package com.flink.example.table.function.windows;
 
-import org.apache.flink.table.api.EnvironmentSettings;
+import com.common.example.utils.FlinkOptions;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.RestOptions;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,13 +21,21 @@ public class GroupWindowSQLExample {
     private static final Logger LOG = LoggerFactory.getLogger(GroupWindowSQLExample.class);
 
     public static void main(String[] args) throws Exception {
+
+        // 本地运行
+        Configuration configuration = new Configuration();
+        configuration.setString(RestOptions.BIND_PORT, FlinkOptions.WEB_UI_BIND_PORT);
+
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(configuration);
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
+
         // TableEnvironment
-        EnvironmentSettings settings = EnvironmentSettings
-                .newInstance()
-                .useBlinkPlanner()
-                .inStreamingMode()
-                .build();
-        TableEnvironment tEnv = TableEnvironment.create(settings);
+//        EnvironmentSettings settings = EnvironmentSettings
+//                .newInstance()
+//                .useBlinkPlanner()
+//                .inStreamingMode()
+//                .build();
+//        TableEnvironment tEnv = TableEnvironment.create(settings);
 
         LOG.info("create source table");
 
@@ -32,6 +44,8 @@ public class GroupWindowSQLExample {
 
         // 2. 示例2 基于处理时间的滚动窗口
         //runProcessTimeExample(tEnv);
+
+        //env.execute("GroupWindowSQLExample");
     }
 
     // 示例1 基于事件时间的滚动窗口
@@ -62,13 +76,15 @@ public class GroupWindowSQLExample {
                 "  cid BIGINT COMMENT '商品类目Id',\n" +
                 "  `type` STRING COMMENT '行为类型',\n" +
                 "  ts BIGINT COMMENT '行为时间戳',\n" +
+                "  ts BIGINT COMMENT '行为时间戳',\n" +
                 "  ts_ltz AS TO_TIMESTAMP_LTZ(ts, 3), -- 事件时间\n" +
                 "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '1' MINUTE\n" +
                 ")\n" +
                 "WITH (\n" +
                 "  'connector' = 'filesystem',\n" +
                 "  'path' = 'file:///opt/data/user_behavior.csv',\n" +
-                "  'format' = 'csv'\n" +
+                "  'format' = 'csv',\n" +
+                "  'csv.ignore-parse-errors' = 'true'\n" +
                 ")");
 
         tEnv.executeSql("CREATE TABLE user_behavior_event_time_uv (\n" +
