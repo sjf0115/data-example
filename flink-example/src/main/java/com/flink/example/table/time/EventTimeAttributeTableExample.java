@@ -10,6 +10,7 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
 
 import java.time.Duration;
+import java.time.ZoneId;
 
 import static org.apache.flink.table.api.Expressions.$;
 
@@ -25,6 +26,13 @@ public class EventTimeAttributeTableExample {
         // 执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
+
+        //tEnv.getConfig().setLocalTimeZone(ZoneOffset.ofHours(8));
+
+        tEnv.getConfig().setLocalTimeZone(ZoneId.of("UTC"));
+
+        ZoneId localTimeZone = tEnv.getConfig().getLocalTimeZone();
+        System.out.println(localTimeZone);
 
         DataStream<UserBehavior> sourceStream = env.fromElements(
                 new UserBehavior(1001L, 3827899L, 2920476L, "pv", 1511713473000L, "2017-11-27 00:24:33"),
@@ -47,8 +55,12 @@ public class EventTimeAttributeTableExample {
         );
 
         // 注册虚拟表
-        Table behaviorTable = tEnv.fromDataStream(behaviorStream, $("uid"), $("ts"), $("ts_row").rowtime());
-        tEnv.createTemporaryView("user_behavior", behaviorTable);
+//        Table behaviorTable = tEnv.fromDataStream(behaviorStream, $("uid"), $("ts"), $("ts_row").rowtime());
+//        tEnv.createTemporaryView("user_behavior", behaviorTable);
+
+        tEnv.createTemporaryView("user_behavior", behaviorStream, $("uid"), $("ts"), $("ts_row").rowtime());
+
+
 
         Table resultTable = tEnv.sqlQuery("SELECT uid, ts, ts_row, DATE_FORMAT(ts_row, 'yyyy-MM-dd HH:mm:ss') FROM user_behavior");
         DataStream<Row> resultStream = tEnv.toAppendStream(resultTable, Row.class);
