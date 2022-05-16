@@ -11,12 +11,12 @@ CREATE TABLE user_behavior (
   'connector' = 'kafka',
   'topic' = 'user_behavior',
   'properties.bootstrap.servers' = 'localhost:9092',
-  'properties.group.id' = 'group-window-tumble',
+  'properties.group.id' = 'user_behavior',
   'scan.startup.mode' = 'latest-offset',
   'format' = 'json',
   'json.ignore-parse-errors' = 'false',
   'json.fail-on-missing-field' = 'true'
-);
+)
 
 -- CREATE TABLE user_behavior (
 --   uid BIGINT COMMENT '用户Id',
@@ -42,19 +42,18 @@ CREATE TABLE user_behavior_cnt (
   cnt BIGINT COMMENT '次数'
 ) WITH (
   'connector' = 'print',
-  'print-identifier' = 'ET',
-  'sink.parallelism' = '1'
+  'print-identifier' = 'ET'
 )
 
 INSERT INTO user_behavior_cnt
 SELECT
-  DATE_FORMAT(TUMBLE_START(ts, INTERVAL '1' HOUR), 'yyyy-MM-dd HH:mm:ss') AS window_start,
-  DATE_FORMAT(TUMBLE_END(ts, INTERVAL '1' HOUR), 'yyyy-MM-dd HH:mm:ss') AS window_end,
-  TUMBLE_START(ts, INTERVAL '1' HOUR) AS window_start_timestamp,
-  TUMBLE_END(ts, INTERVAL '1' HOUR) AS window_end_timestamp,
+  DATE_FORMAT(TUMBLE_START(ts_ltz, INTERVAL '1' HOUR), 'yyyy-MM-dd HH:mm:ss') AS window_start,
+  DATE_FORMAT(TUMBLE_END(ts_ltz, INTERVAL '1' HOUR), 'yyyy-MM-dd HH:mm:ss') AS window_end,
+  TUMBLE_START(ts_ltz, INTERVAL '1' HOUR) AS window_start_timestamp,
+  TUMBLE_END(ts_ltz, INTERVAL '1' HOUR) AS window_end_timestamp,
   COUNT(*) AS cnt
 FROM user_behavior
-GROUP BY TUMBLE(ts, INTERVAL '1' HOUR)
+GROUP BY TUMBLE(ts_ltz, INTERVAL '1' HOUR)
 
 
 --  示例2 基于处理时间的滚动窗口
@@ -73,7 +72,7 @@ CREATE TABLE user_behavior_process_time (
   'format' = 'json',
   'json.ignore-parse-errors' = 'false',
   'json.fail-on-missing-field' = 'true'
-);
+)
 
 CREATE TABLE user_behavior_process_time_uv (
   window_start TIMESTAMP(3) COMMENT '窗口开始时间',
@@ -83,7 +82,7 @@ CREATE TABLE user_behavior_process_time_uv (
   'connector' = 'print',
   'print-identifier' = 'PT',
   'sink.parallelism' = '1'
-);
+)
 
 INSERT INTO user_behavior_process_time_uv
 SELECT
@@ -91,4 +90,4 @@ SELECT
   TUMBLE_END(process_time, INTERVAL '1' HOUR) AS window_end,
   COUNT(DISTINCT uid) AS uv
 FROM user_behavior_process_time
-GROUP BY TUMBLE(process_time, INTERVAL '1' HOUR);
+GROUP BY TUMBLE(process_time, INTERVAL '1' HOUR)
