@@ -26,6 +26,7 @@ public class EventTimeGroupWindowSQLExample {
                 "  cid BIGINT COMMENT '商品类目Id',\n" +
                 "  type STRING COMMENT '行为类型',\n" +
                 "  ts BIGINT COMMENT '行为时间',\n" +
+                "  `time` STRING COMMENT '行为时间',\n" +
                 "  ts_ltz AS TO_TIMESTAMP_LTZ(ts, 3), -- 事件时间\n" +
                 "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '1' MINUTE -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列\n" +
                 ") WITH (\n" +
@@ -45,7 +46,9 @@ public class EventTimeGroupWindowSQLExample {
                 "  window_end STRING COMMENT '窗口结束时间',\n" +
                 "  window_start_timestamp TIMESTAMP(3) COMMENT '窗口开始时间',\n" +
                 "  window_end_timestamp TIMESTAMP(3) COMMENT '窗口结束时间',\n" +
-                "  cnt BIGINT COMMENT '次数'\n" +
+                "  cnt BIGINT COMMENT '次数',\n" +
+                "  min_time STRING COMMENT '最小行为时间',\n" +
+                "  max_time STRING COMMENT '最大行为时间'\n" +
                 ") WITH (\n" +
                 "  'connector' = 'print',\n" +
                 "  'print-identifier' = 'ET'\n" +
@@ -58,7 +61,9 @@ public class EventTimeGroupWindowSQLExample {
                 "  DATE_FORMAT(TUMBLE_END(ts_ltz, INTERVAL '1' HOUR), 'yyyy-MM-dd HH:mm:ss') AS window_end,\n" +
                 "  TUMBLE_START(ts_ltz, INTERVAL '1' HOUR) AS window_start_timestamp,\n" +
                 "  TUMBLE_END(ts_ltz, INTERVAL '1' HOUR) AS window_end_timestamp,\n" +
-                "  COUNT(*) AS cnt\n" +
+                "  COUNT(*) AS cnt,\n" +
+                "  MIN(`time`) AS min_time,\n" +
+                "  MAX(`time`) AS max_time\n" +
                 "FROM user_behavior\n" +
                 "GROUP BY TUMBLE(ts_ltz, INTERVAL '1' HOUR)");
     }
