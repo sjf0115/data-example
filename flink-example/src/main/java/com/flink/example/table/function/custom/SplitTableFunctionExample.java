@@ -9,7 +9,7 @@ import static org.apache.flink.table.api.Expressions.$;
 import static org.apache.flink.table.api.Expressions.call;
 
 /**
- * 功能：SplitTableFunction 表函数调用示例
+ * 功能：SplitTableFunction 自定义表函数调用示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
