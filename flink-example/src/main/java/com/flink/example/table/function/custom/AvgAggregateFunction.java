@@ -1,6 +1,8 @@
 package com.flink.example.table.function.custom;
 
 import org.apache.flink.table.functions.AggregateFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 功能：自定义聚合函数 Avg
@@ -11,6 +13,8 @@ import org.apache.flink.table.functions.AggregateFunction;
  */
 public class AvgAggregateFunction extends AggregateFunction<Double, AvgAggregateFunction.AvgAccumulator>{
 
+    private static final Logger LOG = LoggerFactory.getLogger(AvgAggregateFunction.class);
+
     // 聚合中间结果数据结构
     public static class AvgAccumulator {
         public long sum = 0;
@@ -20,12 +24,14 @@ public class AvgAggregateFunction extends AggregateFunction<Double, AvgAggregate
     // 创建 Accumulator 数据结构
     @Override
     public AvgAccumulator createAccumulator() {
+        LOG.info("[INFO] createAccumulator ...................");
         return new AvgAccumulator();
     }
 
     // 返回最终结果 平均值
     @Override
     public Double getValue(AvgAccumulator acc) {
+        LOG.info("[INFO] getValue ...................");
         if (acc.count == 0) {
             return null;
         } else {
@@ -35,18 +41,21 @@ public class AvgAggregateFunction extends AggregateFunction<Double, AvgAggregate
 
     // 接收输入元素并累加到 Accumulator 数据结构
     public void accumulate(AvgAccumulator acc, Long value) {
+        LOG.info("[INFO] accumulate ...................");
         acc.sum += value;
         acc.count ++;
     }
 
     // 非必须:回撤
     public void retract(AvgAccumulator acc, Long value) {
+        LOG.info("[INFO] retract ...................");
         acc.sum -= value;
         acc.count --;
     }
 
     // 非必须:合并 Accumulator 数据结构
     public void merge(AvgAccumulator acc, Iterable<AvgAccumulator> iterable) {
+        LOG.info("[INFO] merge ...................");
         for (AvgAccumulator a : iterable) {
             acc.count += a.count;
             acc.sum += a.sum;
@@ -55,6 +64,7 @@ public class AvgAggregateFunction extends AggregateFunction<Double, AvgAggregate
 
     // 非必须:重置 Accumulator 数据结构
     public void resetAccumulator(AvgAccumulator acc) {
+        LOG.info("[INFO] resetAccumulator ...................");
         acc.count = 0;
         acc.sum = 0L;
     }

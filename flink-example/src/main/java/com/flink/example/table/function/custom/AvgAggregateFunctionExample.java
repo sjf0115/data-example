@@ -31,33 +31,40 @@ public class AvgAggregateFunctionExample {
         // 注册虚拟表
         tEnv.createTemporaryView("stu_score", sourceStream, $("name"), $("course"), $("score"));
 
-        // 1. Table API JoinLateral
+        // 1. Table API 内联方式
         run1(tEnv);
 
-        // 2. Table API LeftOuterJoinLateral
+        // 2. Table API 注册临时系统函数
         //run2(tEnv);
 
-        // 3. SQL LATERAL TABLE Join 语法
+        // 3. SQL 注册临时系统函数
         //run3(tEnv);
-
-        // 4. SQL LATERAL TABLE Join 语法 重命名字段
-        //run4(tEnv);
-
-        // 5. SQL LATERAL TABLE Left Join 语法
-        //run5(tEnv);
-
-        // 6. SQL LATERAL TABLE Left Join 语法 重命名字段
-        //run6(tEnv);
     }
 
-    // Table API joinLateral
+    // Table API 内联方式
     private static void run1(StreamTableEnvironment tEnv) {
         tEnv.from("stu_score")
                 .groupBy($("course"))
-                .select($("course"), call(AvgAggregateFunction.class, $("score")))
+                .select($("course"), call(AvgAggregateFunction.class, $("score")).as("avg_score"))
                 .execute()
                 .print();
     }
 
+    // Table API 注册临时系统函数
+    private static void run2(StreamTableEnvironment tEnv) {
+        tEnv.createTemporarySystemFunction("custom_avg", AvgAggregateFunction.class);
+        tEnv.from("stu_score")
+                .groupBy($("course"))
+                .select($("course"), call("custom_avg", $("score")).as("avg_score"))
+                .execute()
+                .print();
+    }
 
+    // SQL 注册临时系统函数
+    private static void run3(StreamTableEnvironment tEnv) {
+        tEnv.createTemporarySystemFunction("custom_avg", new AvgAggregateFunction());
+        tEnv.sqlQuery("SELECT course, custom_avg(score) AS avg_score FROM stu_score GROUP BY course")
+                .execute()
+                .print();
+    }
 }
