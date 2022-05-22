@@ -18,6 +18,7 @@ public class Top2TableAggregateFunction extends TableAggregateFunction<Tuple2<Lo
         public long second = 0;
     }
 
+    // 创建 Top2Accumulator 累加器并做初始化
     @Override
     public Top2Accumulator createAccumulator() {
         Top2Accumulator acc = new Top2Accumulator();
@@ -26,6 +27,7 @@ public class Top2TableAggregateFunction extends TableAggregateFunction<Tuple2<Lo
         return acc;
     }
 
+    // 接收输入元素并累加到 Accumulator 数据结构
     public void accumulate(Top2Accumulator acc, Long value) {
         if (value > acc.first) {
             acc.second = acc.first;
@@ -35,6 +37,7 @@ public class Top2TableAggregateFunction extends TableAggregateFunction<Tuple2<Lo
         }
     }
 
+    // 输出元素
     public void emitValue(Top2Accumulator acc, Collector<Tuple2<Long, Integer>> out) {
         if (acc.first != Integer.MIN_VALUE) {
             out.collect(Tuple2.of(acc.first, 1));
@@ -44,6 +47,7 @@ public class Top2TableAggregateFunction extends TableAggregateFunction<Tuple2<Lo
         }
     }
 
+    // 合并
     public void merge(Top2Accumulator acc, Iterable<Top2Accumulator> iterable) {
         for (Top2Accumulator otherAcc : iterable) {
             // 复用 accumulate 方法
