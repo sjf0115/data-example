@@ -27,7 +27,6 @@
         <module>flink-example-1.9</module>
         <module>flink-example-1.11</module>
         <module>redis-example</module>
-        <module>flink-connector-socket</module>
     </modules>
 
     <properties>
