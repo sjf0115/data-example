@@ -1,21 +1,20 @@
-package com.common.example.jmx;
-
-import com.common.example.bean.ResourceItem;
+package com.common.example.jmx.bean;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 功能：
+ * 功能：实现自定义 ResourceMBean
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
- * 日期：2022/6/2 下午9:47
+ * 日期：2022/6/2 下午4:13
  */
-public class ResourceX implements ResourceMXBean {
-    private List<ResourceItem> items = new ArrayList<>();
+public class Resource implements ResourceMBean {
+    private List<String> items = new ArrayList<>();
+
     @Override
-    public ResourceItem getLastItem() {
+    public String getLastItem() {
         return items.get(getSize()-1);
     }
 
@@ -25,17 +24,17 @@ public class ResourceX implements ResourceMXBean {
     }
 
     @Override
-    public List<ResourceItem> getItems() {
+    public List<String> getItems() {
         return items;
     }
 
     @Override
-    public void addItem(ResourceItem item) {
+    public void addItem(String item) {
         items.add(item);
     }
 
     @Override
-    public ResourceItem getItem(int pos) {
+    public String getItem(int pos) {
         return items.get(pos);
     }
 }

@@ -1,4 +1,4 @@
-package com.common.example.jmx;
+package com.common.example.jmx.bean;
 
 import com.common.example.bean.ResourceItem;
 

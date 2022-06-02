@@ -1,4 +1,6 @@
-package com.common.example.jmx;
+package com.common.example.jmx.server;
+
+import com.common.example.jmx.bean.Resource;
 
 import javax.management.*;
 import java.lang.management.ManagementFactory;

@@ -1,6 +1,7 @@
-package com.common.example.jmx;
+package com.common.example.jmx.server;
 
 import com.common.example.bean.ResourceItem;
+import com.common.example.jmx.bean.ResourceX;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
