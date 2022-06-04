@@ -14,7 +14,7 @@ import java.lang.management.ManagementFactory;
  * 公众号：大数据生态
  * 日期：2022/6/2 下午4:41
  */
-public class MXBeanServerRegister {
+public class ResourceXManagement {
     public static void main(String[] args) throws Exception {
         // 获取 MBean Server
         MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();

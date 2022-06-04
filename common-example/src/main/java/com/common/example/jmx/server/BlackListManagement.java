@@ -17,7 +17,7 @@ import java.net.Socket;
  * 公众号：大数据生态
  * 日期：2022/6/2 下午10:59
  */
-public class BlackListServer {
+public class BlackListManagement {
     public static void main(String[] args) throws Exception {
         String hostname = "localhost";
         int port = 9000;
