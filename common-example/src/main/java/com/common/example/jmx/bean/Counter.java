@@ -19,11 +19,13 @@ public class Counter implements CounterMBean {
         this.counter = counter;
     }
 
+    // 加1
     @Override
     public void increase() {
         this.counter += 1;
     }
 
+    // 减1
     @Override
     public void decrease() {
         this.counter -= 1;

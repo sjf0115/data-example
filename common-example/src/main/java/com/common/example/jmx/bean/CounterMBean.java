@@ -8,10 +8,10 @@ package com.common.example.jmx.bean;
  * 日期：2022/6/4 下午11:24
  */
 public interface CounterMBean {
+    // 管理属性
     public int getCounter();
     public void setCounter(int counter);
-    // 增加1
+    // 管理操作
     public void increase();
-    // 降低1
     public void decrease();
 }
