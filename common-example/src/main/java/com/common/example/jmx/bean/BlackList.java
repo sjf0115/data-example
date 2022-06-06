@@ -24,6 +24,11 @@ public class BlackList implements BlackListMBean {
     }
 
     @Override
+    public void removeBlackItem(String uid) {
+        uidSet.remove(uid);
+    }
+
+    @Override
     public boolean contains(String uid) {
         return uidSet.contains(uid);
     }
