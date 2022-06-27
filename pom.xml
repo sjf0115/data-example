@@ -54,6 +54,7 @@
         <spark.version>3.1.3</spark.version>
         <commons.compress>1.21</commons.compress>
         <redis.version>4.0.1</redis.version>
+        <geohash.version>1.4.0</geohash.version>
     </properties>
 
     <dependencyManagement>
@@ -356,6 +357,13 @@
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${gson.version}</version>
+            </dependency>
+
+            <!-- GeoHash -->
+            <dependency>
+                <groupId>ch.hsr</groupId>
+                <artifactId>geohash</artifactId>
+                <version>${geohash.version}</version>
             </dependency>
 
             <!-- log4j -->

@@ -49,6 +49,12 @@
             <artifactId>gson</artifactId>
         </dependency>
 
+        <!-- GeoHash -->
+        <dependency>
+            <groupId>ch.hsr</groupId>
+            <artifactId>geohash</artifactId>
+        </dependency>
+
         <!-- log4j -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
