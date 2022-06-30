@@ -27,6 +27,7 @@
         <module>flink-example-1.9</module>
         <module>flink-example-1.11</module>
         <module>redis-example</module>
+        <module>hadoop-example</module>
     </modules>
 
     <properties>
@@ -275,6 +276,18 @@
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-common</artifactId>
+                <version>${hadoop.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+                <version>${hadoop.version}</version>
             </dependency>
 
             <!-- calcite -->
