@@ -16,13 +16,13 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 
 /**
- * 功能：WordCount
+ * 功能：WordCount V1
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
  * 日期：2022/6/30 下午10:17
  */
-public class WordCount extends Configured implements Tool {
+public class WordCountV1 extends Configured implements Tool {
 
     public static class WordCountMapper extends MapReduceBase implements Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
@@ -48,7 +48,7 @@ public class WordCount extends Configured implements Tool {
     }
 
     public int run(String[] args) throws Exception {
-        JobConf conf = new JobConf(getConf(), WordCount.class);
+        JobConf conf = new JobConf(getConf(), WordCountV1.class);
         conf.setJobName("WordCount");
         // 输出 Key 格式
         conf.setOutputKeyClass(Text.class);
@@ -73,7 +73,7 @@ public class WordCount extends Configured implements Tool {
     }
 
     public static void main(String[] args) throws Exception {
-        int res = ToolRunner.run(new Configuration(), new WordCount(), args);
+        int res = ToolRunner.run(new Configuration(), new WordCountV1(), args);
         System.exit(res);
     }
 }
