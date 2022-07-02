@@ -60,31 +60,27 @@ public class WordCountV2 extends Configured implements Tool {
         String outputPath = args[1];
 
         Configuration conf = this.getConf();
-        conf.set("mapred.job.queue.name", "xxxx");
-
         Job job = Job.getInstance(conf);
         job.setJobName("WordCountV2");
         job.setJarByClass(WordCountV2.class);
-
-        // 输出 Key 格式
+        // Map 输出 Key 格式
         job.setMapOutputKeyClass(Text.class);
-        // 输出 Value 格式
-        job.setOutputKeyClass(Text.class);
-
-        // mapper
-        job.setMapperClass(WordCountMapper.class);
-
-        // reducer
-        job.setReducerClass(WordCountReducer.class);
-
-        // input
-        FileInputFormat.setInputPaths(job, inputPaths);
+        // Map 输出 Value 格式
         job.setMapOutputValueClass(IntWritable.class);
-
-        // output
-        FileOutputFormat.setOutputPath(job, new Path(outputPath));
+        // Reduce 输出 Key 格式
+        job.setOutputKeyClass(Text.class);
+        // Reduce 输出 Value 格式
         job.setOutputValueClass(IntWritable.class);
-
+        // Mapper 类
+        job.setMapperClass(WordCountMapper.class);
+        // Combiner 类
+        job.setCombinerClass(WordCountReducer.class);
+        // Reducer 类
+        job.setReducerClass(WordCountReducer.class);
+        // 输入路径
+        FileInputFormat.setInputPaths(job, inputPaths);
+        // 输出路径
+        FileOutputFormat.setOutputPath(job, new Path(outputPath));
         boolean success = job.waitForCompletion(true);
         return success ? 0 : 1;
     }

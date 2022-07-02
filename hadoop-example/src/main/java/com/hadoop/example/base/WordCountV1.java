@@ -49,7 +49,7 @@ public class WordCountV1 extends Configured implements Tool {
 
     public int run(String[] args) throws Exception {
         JobConf conf = new JobConf(getConf(), WordCountV1.class);
-        conf.setJobName("WordCount");
+        conf.setJobName("WordCountV1");
         // 输出 Key 格式
         conf.setOutputKeyClass(Text.class);
         // 输出 Value 格式
