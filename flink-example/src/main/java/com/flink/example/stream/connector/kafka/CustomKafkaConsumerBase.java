@@ -92,8 +92,6 @@ public abstract class CustomKafkaConsumerBase<T> extends RichParallelSourceFunct
     }
 
     // 2. RichParallelSourceFunction
-
-
     @Override
     public void open(Configuration parameters) throws Exception {
         // 确定 Offset 提交模式
