@@ -79,6 +79,12 @@
             <artifactId>flink-state-processor-api_${scala.binary.version}</artifactId>
         </dependency>
 
+        <!-- Flink Metric -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-metrics-dropwizard</artifactId>
+        </dependency>
+
         <!-- flink 本地运行 -->
         <dependency>
             <groupId>org.apache.flink</groupId>
