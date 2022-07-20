@@ -1,4 +1,4 @@
-package com.spark.example.batch.base;
+package com.spark.example.core.base;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
