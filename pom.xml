@@ -33,7 +33,7 @@
     <properties>
         <common.example.version>1.0</common.example.version>
         <storm.version>1.1.2</storm.version>
-        <common.version>3.4</common.version>
+        <common.version>3.9</common.version>
         <jcommander.version>1.78</jcommander.version>
         <presto.version>0.86</presto.version>
         <hive.version>2.3.4</hive.version>
