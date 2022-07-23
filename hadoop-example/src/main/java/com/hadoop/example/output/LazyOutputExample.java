@@ -12,7 +12,9 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -20,16 +22,15 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 /**
- * 功能：MultipleOutputs 示例
+ * 功能：LazyOutputFormat 延迟输出示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
- * 日期：2022/7/23 下午2:44
+ * 日期：2022/7/23 下午4:54
  */
-public class MultipleOutputsExample extends Configured implements Tool {
-
+public class LazyOutputExample extends Configured implements Tool {
     // Mapper
-    public static class MultipleOutputsMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+    public static class LazyOutputMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
         private Text word = new Text();
         @Override
@@ -44,7 +45,7 @@ public class MultipleOutputsExample extends Configured implements Tool {
     }
 
     // Reducer
-    public static class MultipleOutputsReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+    public static class LazyOutputReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
         private MultipleOutputs<Text, IntWritable> multipleOutputs;
 
         @Override
@@ -62,8 +63,7 @@ public class MultipleOutputsExample extends Configured implements Tool {
             // key 首字母作为基础输出路径
             String baseOutput = StringUtils.substring(key.toString(), 0, 1);
             // 使用 multipleOutputs
-            // String basePath = StringUtils.lowerCase(baseOutput);
-            String basePath = String.format("%s/part", StringUtils.lowerCase(baseOutput));
+            String basePath = StringUtils.lowerCase(baseOutput);
             multipleOutputs.write(key, new IntWritable(sum), basePath);
         }
 
@@ -83,8 +83,8 @@ public class MultipleOutputsExample extends Configured implements Tool {
 
         Configuration conf = this.getConf();
         Job job = Job.getInstance(conf);
-        job.setJobName("MultipleOutputsExample");
-        job.setJarByClass(MultipleOutputsExample.class);
+        job.setJobName("LazyOutputExample");
+        job.setJarByClass(LazyOutputExample.class);
         // Map 输出 Key 格式
         job.setMapOutputKeyClass(Text.class);
         // Map 输出 Value 格式
@@ -94,19 +94,21 @@ public class MultipleOutputsExample extends Configured implements Tool {
         // Reduce 输出 Value 格式
         job.setOutputValueClass(IntWritable.class);
         // Mapper 类
-        job.setMapperClass(MultipleOutputsMapper.class);
+        job.setMapperClass(LazyOutputMapper.class);
         // Reducer 类
-        job.setReducerClass(MultipleOutputsReducer.class);
+        job.setReducerClass(LazyOutputReducer.class);
         // 输入路径
         FileInputFormat.setInputPaths(job, inputPaths);
         // 输出路径
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
+        // 延迟输出
+        LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
         boolean success = job.waitForCompletion(true);
         return success ? 0 : 1;
     }
 
     public static void main(String[] args) throws Exception {
-        int result = ToolRunner.run(new Configuration(), new MultipleOutputsExample(), args);
+        int result = ToolRunner.run(new Configuration(), new LazyOutputExample(), args);
         System.exit(result);
     }
 }
