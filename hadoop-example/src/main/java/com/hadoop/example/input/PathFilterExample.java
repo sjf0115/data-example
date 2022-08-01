@@ -5,6 +5,7 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -18,13 +19,13 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 /**
- * 功能：使用 文件模式 GlobStatus 过滤
+ * 功能：PathFilter 示例
  * 作者：SmartSi
- * 博客：http://smartsi.club/
+ * CSDN博客：https://blog.csdn.net/sunnyyoona
  * 公众号：大数据生态
- * 日期：2022/7/24 下午10:31
+ * 日期：2022/8/1 下午11:19
  */
-public class GlobStatusExample extends Configured implements Tool {
+public class PathFilterExample extends Configured implements Tool {
     public static class WordCountMapper extends org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, Text> {
         private Text word = new Text();
         private Text path = new Text();
@@ -45,23 +46,29 @@ public class GlobStatusExample extends Configured implements Tool {
     }
 
     public int run(String[] args) throws Exception {
-        String inputPath = "/data/word-count/input/*/{12/31,01/01}";
+        String inputPath = "/data/word-count/input/2007/*/*";
+        String excludePathRegex = "^.*/2007/12/31$";
         String outputPath = "/data/word-count/output/v1";
 
         Configuration conf = this.getConf();
         Job job = Job.getInstance(conf);
 
-        job.setJobName("GlobStatusExample");
-        job.setJarByClass(GlobStatusExample.class);
+        job.setJobName("PathFilterExample");
+        job.setJarByClass(PathFilterExample.class);
         // Map 输出 Key 格式
         job.setMapOutputKeyClass(Text.class);
         // Map 输出 Value 格式
         job.setMapOutputValueClass(Text.class);
         // Mapper 类
         job.setMapperClass(WordCountMapper.class);
-        // 输入路径 使用文件模式 GlobStatus 过滤
+        // 输入路径 使用 PathFilter 过滤
         FileSystem fileSystem = FileSystem.get(conf);
-        FileStatus[] fileStatuses = fileSystem.globStatus(new Path(inputPath));
+        FileStatus[] fileStatuses = fileSystem.globStatus(
+                // 初始路径
+                new Path(inputPath),
+                // 过滤路径
+                new RegexExcludePathFilter(excludePathRegex)
+        );
         for (FileStatus status : fileStatuses) {
             Path path = status.getPath();
             FileInputFormat.addInputPath(job, path);
@@ -73,7 +80,19 @@ public class GlobStatusExample extends Configured implements Tool {
     }
 
     public static void main(String[] args) throws Exception {
-        int result = ToolRunner.run(new Configuration(), new GlobStatusExample(), args);
+        int result = ToolRunner.run(new Configuration(), new PathFilterExample(), args);
         System.exit(result);
+    }
+
+    // 排除满足正则表达式路径过滤器
+    private static class RegexExcludePathFilter implements PathFilter {
+        private final String regex;
+        public RegexExcludePathFilter(String regex) {
+            this.regex = regex;
+        }
+        @Override
+        public boolean accept(Path path) {
+            return !path.toString().matches(regex);
+        }
     }
 }
