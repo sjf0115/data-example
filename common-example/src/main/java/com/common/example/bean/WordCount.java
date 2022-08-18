@@ -1,6 +1,6 @@
 package com.common.example.bean;
 /**
- * 功能：WordCount
+ * 功能：WordCount POJO
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
