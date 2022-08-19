@@ -31,27 +31,18 @@ public class KeyByExample {
             }
         });
 
-        // (1) 使用 KeySelector 进行 KeyBy
-        KeyedStream<Tuple2<String, Integer>, String> keyedStream1 = wordsCount.keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
-            @Override
-            public String getKey(Tuple2<String, Integer> tuple2) throws Exception {
-                return tuple2.f0;
-            }
-        });
+        // (1) 使用 Tuple 下标位置进行 KeyBy
+        KeyedStream<Tuple2<String, Integer>, Tuple> keyedStream1 = wordsCount.keyBy(0);
         keyedStream1.sum(1).print("KeyedStream1");
 
-        // (2) 使用 Tuple 下标位置进行 KeyBy
-        KeyedStream<Tuple2<String, Integer>, Tuple> keyedStream2 = wordsCount.keyBy(0);
+        KeyedStream<Tuple2<String, Integer>, Tuple> keyedStream2 = wordsCount.keyBy(0, 1);
         keyedStream2.sum(1).print("KeyedStream2");
 
-        KeyedStream<Tuple2<String, Integer>, Tuple> keyedStream3 = wordsCount.keyBy(0, 1);
+        // (2) 通过 Tuple 字段名称进行 KeyBy
+        KeyedStream<Tuple2<String, Integer>, Tuple> keyedStream3 = wordsCount.keyBy("f0");
         keyedStream3.sum(1).print("KeyedStream3");
 
-        // (3) 通过 Tuple 字段名称进行 KeyBy
-        KeyedStream<Tuple2<String, Integer>, Tuple> keyedStream4 = wordsCount.keyBy("f0");
-        keyedStream4.sum(1).print("KeyedStream4");
-
-        // (4) 通过 POJO 字段名称进行 KeyBy
+        // (3) 通过 POJO 字段名称进行 KeyBy
         DataStream<WordCount> wordsCount2 = stream.flatMap(new FlatMapFunction<String, WordCount>() {
             @Override
             public void flatMap(String value, Collector out) {
@@ -60,8 +51,17 @@ public class KeyByExample {
                 }
             }
         });
-        KeyedStream<WordCount, Tuple> keyedStream5 = wordsCount2.keyBy("word");
-        keyedStream5.sum("frequency").print("KeyedStream5");
+        KeyedStream<WordCount, Tuple> keyedStream4 = wordsCount2.keyBy("word");
+        keyedStream4.sum("frequency").print("KeyedStream4");
+
+        // (4) 使用 KeySelector 进行 KeyBy
+        KeyedStream<Tuple2<String, Integer>, String> keyedStream5 = wordsCount.keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
+            @Override
+            public String getKey(Tuple2<String, Integer> tuple2) throws Exception {
+                return tuple2.f0;
+            }
+        });
+        keyedStream5.sum(1).print("KeyedStream5");
 
         env.execute("KeyByExample");
     }
