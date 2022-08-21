@@ -1,6 +1,6 @@
 package com.flink.example.stream.state.checkpoint;
 
-import com.flink.example.stream.source.SimpleCustomSource;
+import com.flink.example.stream.source.simple.SimpleCustomSource;
 import com.flink.example.stream.function.MyStatefulMapFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;

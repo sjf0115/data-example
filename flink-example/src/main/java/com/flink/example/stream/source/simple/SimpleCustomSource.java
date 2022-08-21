@@ -1,4 +1,4 @@
-package com.flink.example.stream.source;
+package com.flink.example.stream.source.simple;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
@@ -12,6 +12,16 @@ import java.util.UUID;
  */
 public class SimpleCustomSource extends RichParallelSourceFunction<Tuple2<String, Integer>> {
 
+    // Sleep 时间间隔 默认 1s
+    private Long sleepInterval = 1000L;
+
+    public SimpleCustomSource() {
+    }
+
+    public SimpleCustomSource(Long sleepInterval) {
+        this.sleepInterval = sleepInterval;
+    }
+
     private Random random = new Random();
     private volatile boolean cancel;
 
@@ -23,7 +33,7 @@ public class SimpleCustomSource extends RichParallelSourceFunction<Tuple2<String
                 int value = random.nextInt(100 / 2 - 1) + 1;
                 ctx.collect(new Tuple2<>(uid, value));
             }
-            Thread.sleep(1000L);
+            Thread.sleep(sleepInterval);
         }
     }
 
