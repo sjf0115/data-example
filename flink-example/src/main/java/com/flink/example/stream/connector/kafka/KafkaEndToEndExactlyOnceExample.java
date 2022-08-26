@@ -41,7 +41,7 @@ public class KafkaEndToEndExactlyOnceExample {
         env.enableCheckpointing(60*1000);
         // 重启与恢复策略
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
-                3, // 最多重启次数
+                100, // 最多重启次数
                 Time.of(10, TimeUnit.SECONDS) // 每次重启的时间间隔
         ));
 
@@ -66,7 +66,7 @@ public class KafkaEndToEndExactlyOnceExample {
                     @Override
                     public void flatMap(String value, Collector out) {
                         for (String word : value.split("\\s")) {
-                            int num = random.nextInt(5);
+                            int num = random.nextInt(10);
                             if (num == 3) {
                                 System.out.println("[word] " + word + " 异常");
                                 throw new RuntimeException("模拟随机异常");
