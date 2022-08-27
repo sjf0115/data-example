@@ -1,36 +1,38 @@
-package com.flink.example.stream.assigner;
+package com.flink.example.stream.window.assigner;
 
+import com.flink.example.stream.source.custom.WordSource;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 功能：基于事件时间的窗口
+ * 功能：基于处理时间的窗口
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2022/8/27 下午5:12
  */
-public class EventTimeWindowExample {
-    private static final Logger LOG = LoggerFactory.getLogger(EventTimeWindowExample.class);
+public class ProcessingTimeWindowExample {
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessingTimeWindowExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // 设置Checkpoint
         env.enableCheckpointing(1000L);
-        // 设置事件时间特性 事件时间
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        // 设置事件时间特性 处理时间
+        env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
 
-        DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
+        // Source 每30s输出单词 每次都递增1个 第一次输出1个单词 第二次输出两个单词 以此类推
+        DataStream<String> source = env.addSource(new WordSource(30*1000, 4));
 
         // Stream of (word, count)
         DataStream<Tuple2<String, Long>> words = source
@@ -68,7 +70,7 @@ public class EventTimeWindowExample {
                     }
                 })
                 // 窗口大小为1分钟的滚动窗口
-                .window(TumblingEventTimeWindows.of(Time.minutes(1)))
+                .window(TumblingProcessingTimeWindows.of(Time.minutes(1)))
                 // 求和
                 .sum(1);
 
@@ -96,7 +98,7 @@ public class EventTimeWindowExample {
                     }
                 })
                 // 窗口大小为1分钟、滑动步长为30秒的滑动窗口
-                .window(SlidingEventTimeWindows.of(Time.minutes(1), Time.seconds(30)))
+                .window(SlidingProcessingTimeWindows.of(Time.minutes(1), Time.seconds(30)))
                 // 求和
                 .sum(1);
 
@@ -106,6 +108,6 @@ public class EventTimeWindowExample {
         slidingTimeWindowStream.print("SlidingTimeWindow");
         slidingWindowStream.print("SlidingWindow");
 
-        env.execute("EventTimeWindowExample");
+        env.execute("ProcessingTimeWindowExample");
     }
 }
