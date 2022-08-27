@@ -1,4 +1,4 @@
-package com.flink.example.stream.window;
+package com.flink.example.stream.window.assigner;
 
 import com.flink.example.stream.watermark.CustomPeriodicWatermarkDeprecatedExample;
 import org.apache.flink.api.common.functions.MapFunction;
