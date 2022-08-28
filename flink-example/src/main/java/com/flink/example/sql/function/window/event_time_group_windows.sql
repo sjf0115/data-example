@@ -4,9 +4,9 @@ CREATE TABLE user_behavior (
   pid BIGINT COMMENT '商品Id',
   cid BIGINT COMMENT '商品类目Id',
   type STRING COMMENT '行为类型',
-  ts BIGINT COMMENT '行为时间',
+  timestamp BIGINT COMMENT '行为时间',
   `time` STRING COMMENT '行为时间',
-  ts_ltz AS TO_TIMESTAMP_LTZ(ts, 3), -- 事件时间
+  ts_ltz AS TO_TIMESTAMP_LTZ(timestamp, 3), -- 事件时间
   WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '1' MINUTE -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列
 ) WITH (
   'connector' = 'kafka',

@@ -4,7 +4,7 @@ CREATE TABLE user_behavior (
   pid BIGINT COMMENT '商品Id',
   cid BIGINT COMMENT '商品类目Id',
   type STRING COMMENT '行为类型',
-  ts BIGINT COMMENT '行为时间',
+  timestamp BIGINT COMMENT '行为时间',
   `time` STRING COMMENT '行为时间',
   process_time AS PROCTIME() -- 处理时间
 ) WITH (

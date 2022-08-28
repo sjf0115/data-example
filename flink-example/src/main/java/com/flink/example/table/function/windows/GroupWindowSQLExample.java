@@ -74,7 +74,7 @@ public class GroupWindowSQLExample {
                         .withTimestampAssigner(new SerializableTimestampAssigner<UserBehavior>() {
                             @Override
                             public long extractTimestamp(UserBehavior behavior, long recordTimestamp) {
-                                return behavior.getTs();
+                                return behavior.getTimestamp();
                             }
                         })
         );

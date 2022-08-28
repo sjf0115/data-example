@@ -4,7 +4,7 @@ CREATE TABLE kafka_meta_source_table (
   `topic` STRING METADATA VIRTUAL, -- 不指定 FROM
   `partition_id` STRING METADATA FROM 'partition' VIRTUAL, -- 指定 FROM
   `offset` BIGINT METADATA VIRTUAL,  -- 不指定 FROM
-  `ts` TIMESTAMP(3) METADATA FROM 'timestamp' VIRTUAL, -- 指定 FROM
+  `timestamp` TIMESTAMP(3) METADATA FROM 'timestamp' VIRTUAL, -- 指定 FROM
   -- 业务字段
   `uid` STRING COMMENT '用户Id',
   `wid` STRING COMMENT '微博Id',
@@ -25,7 +25,7 @@ CREATE TABLE print_table (
   `topic` STRING COMMENT 'Kafka 记录的 Topic 名',
   `partition_id` STRING COMMENT 'Kafka 记录的 partition ID',
   `offset` BIGINT COMMENT 'Kafka 记录在 partition 中的 offset',
-  `ts` TIMESTAMP(3) COMMENT 'Kafka 记录的时间戳',
+  `timestamp` TIMESTAMP(3) COMMENT 'Kafka 记录的时间戳',
   `uid` STRING COMMENT '用户Id',
   `wid` STRING COMMENT '微博Id',
   `tm` STRING COMMENT '发微博时间'
@@ -40,6 +40,6 @@ SET pipeline.name = 'kafka-connector-meta';
 -- ETL
 INSERT INTO print_table
 SELECT
-  `topic`, `partition_id`, `offset`, `ts`,
+  `topic`, `partition_id`, `offset`, `timestamp`,
   `uid`, `wid`, `tm`
 FROM kafka_meta_source_table;

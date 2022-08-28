@@ -11,18 +11,18 @@ public class UserBehavior {
     private Long pid;
     private Long cid;
     private String type;
-    private Long ts;
+    private Long timestamp;
     private String time;
 
     public UserBehavior() {
     }
 
-    public UserBehavior(Long uid, Long pid, Long cid, String type, Long ts, String time) {
+    public UserBehavior(Long uid, Long pid, Long cid, String type, Long timestamp, String time) {
         this.uid = uid;
         this.pid = pid;
         this.cid = cid;
         this.type = type;
-        this.ts = ts;
+        this.timestamp = timestamp;
         this.time = time;
     }
 
@@ -58,12 +58,12 @@ public class UserBehavior {
         this.type = type;
     }
 
-    public Long getTs() {
-        return ts;
+    public Long getTimestamp() {
+        return timestamp;
     }
 
-    public void setTs(Long ts) {
-        this.ts = ts;
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getTime() {
@@ -81,7 +81,7 @@ public class UserBehavior {
                 ", pid=" + pid +
                 ", cid=" + cid +
                 ", type='" + type + '\'' +
-                ", ts=" + ts +
+                ", timestamp=" + timestamp +
                 ", time='" + time + '\'' +
                 '}';
     }
