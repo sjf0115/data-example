@@ -15,7 +15,7 @@ public class SimpleWordSource extends RichParallelSourceFunction<String> {
     private Long sleepInterval = 1000L;
     private Random random = new Random();
     private volatile boolean cancel;
-    private List<String> words = Lists.newArrayList("flink", "spark");
+    private List<String> words = Lists.newArrayList("a");
 
     public SimpleWordSource() {
     }
