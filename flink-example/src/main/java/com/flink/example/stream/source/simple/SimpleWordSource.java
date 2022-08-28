@@ -29,7 +29,7 @@ public class SimpleWordSource extends RichParallelSourceFunction<String> {
         while (!cancel) {
             synchronized (ctx.getCheckpointLock()) {
                 // [0, words个数减一]
-                int index = random.nextInt(words.size()-1);
+                int index = random.nextInt(words.size());
                 ctx.collect(words.get(index));
             }
             Thread.sleep(sleepInterval);

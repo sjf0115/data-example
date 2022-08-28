@@ -7,6 +7,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
+import org.apache.flink.streaming.api.windowing.triggers.CountTrigger;
 import org.apache.flink.util.Collector;
 
 /**
@@ -49,9 +50,10 @@ public class GlobalWindowExample {
                 })
                 // 全局窗口
                 .window(GlobalWindows.create())
+                // 分组内每两个元素触发一次输出
+                .trigger(CountTrigger.of(2))
                 // 求和
                 .sum(1);
-
 
         // 输出
         stream.print();
