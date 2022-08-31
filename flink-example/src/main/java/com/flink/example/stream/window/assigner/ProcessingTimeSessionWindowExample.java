@@ -1,5 +1,6 @@
 package com.flink.example.stream.window.assigner;
 
+import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -40,7 +41,12 @@ public class ProcessingTimeSessionWindowExample {
                 // 会话窗口
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(30)))
                 // 求和
-                .sum(1);
+                .reduce(new ReduceFunction<String>() {
+                    @Override
+                    public String reduce(String value1, String value2) throws Exception {
+                        return null;
+                    }
+                });
         // 输出
         sessionStream.print();
         env.execute("ProcessingTimeSessionWindowExample");
