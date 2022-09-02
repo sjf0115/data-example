@@ -56,6 +56,7 @@
         <commons.compress>1.21</commons.compress>
         <redis.version>4.0.1</redis.version>
         <geohash.version>1.4.0</geohash.version>
+        <joda.version>2.10.14</joda.version>
     </properties>
 
     <dependencyManagement>
@@ -384,6 +385,13 @@
                 <groupId>ch.hsr</groupId>
                 <artifactId>geohash</artifactId>
                 <version>${geohash.version}</version>
+            </dependency>
+
+            <!-- Joda -->
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${joda.version}</version>
             </dependency>
 
             <!-- log4j -->

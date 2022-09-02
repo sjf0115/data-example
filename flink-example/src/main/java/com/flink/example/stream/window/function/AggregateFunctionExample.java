@@ -1,17 +1,12 @@
-package com.flink.example.stream.window;
+package com.flink.example.stream.window.function;
 
 import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
-import org.apache.flink.runtime.state.StateBackend;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -23,22 +18,24 @@ import org.slf4j.LoggerFactory;
  * 实现功能：分组求平均值
  * Created by wy on 2021/2/12.
  */
+/**
+ * 功能：窗口 AverageAggregateFunction 示例 计算平均温度
+ * 作者：SmartSi
+ * CSDN博客：https://smartsi.blog.csdn.net/
+ * 公众号：大数据生态
+ * 日期：2022/8/28 下午4:20
+ */
 public class AggregateFunctionExample {
     private static final Logger LOG = LoggerFactory.getLogger(AggregateFunctionExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStateBackend((StateBackend) new FsStateBackend("hdfs://localhost:9000/flink/checkpoints"));
-        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3,1000));
         env.enableCheckpointing(1000L);
-        env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
         // 设置事件时间特性
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
-        // Stream of (key, timestamp, count)
+        // Stream of (dt, temperature)
         DataStream<Tuple3<String, Long, Integer>> stream = source.map(new MapFunction<String, Tuple3<String, Long, Integer>>() {
             @Override
             public Tuple3<String, Long, Integer> map(String str) throws Exception {
