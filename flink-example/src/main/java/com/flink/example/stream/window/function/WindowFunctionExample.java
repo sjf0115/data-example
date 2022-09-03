@@ -1,20 +1,16 @@
 package com.flink.example.stream.window.function;
 
 import com.common.example.utils.DateUtil;
+import com.flink.example.stream.source.simple.SimpleTemperatureSource;
 import com.google.common.collect.Lists;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
-import org.apache.flink.runtime.state.StateBackend;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
-import org.apache.flink.streaming.api.TimeCharacteristic;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
@@ -23,58 +19,40 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+
 /**
- * WindowFunction Example
- * 实现功能：分组求和
- * Created by wy on 2021/2/16.
+ * 功能：WindowFunction 示例
+ *      计算平均温度
+ * 作者：SmartSi
+ * CSDN博客：https://smartsi.blog.csdn.net/
+ * 公众号：大数据生态
+ * 日期：2021/2/16 下午4:20
  */
 public class WindowFunctionExample {
     private static final Logger LOG = LoggerFactory.getLogger(WindowFunctionExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStateBackend((StateBackend) new FsStateBackend("hdfs://localhost:9000/flink/checkpoints"));
-        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3,1000));
         env.enableCheckpointing(1000L);
-        env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
-        // 设置事件时间特性
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        // Stream of (id, temperature)
+        DataStreamSource<Tuple2<String, Integer>> source = env.addSource(new SimpleTemperatureSource());
 
-        DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
-
-        // Stream of (key, timestamp)
-        DataStream<Tuple3<String, Long, Integer>> stream = source.map(new MapFunction<String, Tuple3<String, Long, Integer>>() {
-            @Override
-            public Tuple3<String, Long, Integer> map(String str) throws Exception {
-                String[] params = str.split(",");
-                String key = params[0];
-                String time = params[1];
-                Long timeStamp = DateUtil.date2TimeStamp(time, "yyyy-MM-dd HH:mm:ss");
-                LOG.info("[Element] Key: " + key + ", timeStamp: [" + timeStamp + "|" + time + "]");
-                return new Tuple3(key, timeStamp, 1);
-            }
-        });
-
-        // 滚动窗口
-        DataStream<Tuple2<String, Integer>> result = stream
-                // 提取时间戳与设置Watermark
-                .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Tuple3<String, Long, Integer>>(Time.minutes(10)) {
-                    @Override
-                    public long extractTimestamp(Tuple3<String, Long, Integer> element) {
-                        return element.f1;
-                    }
-                })
+        // 最低温度和最高温度
+        SingleOutputStreamOperator<Tuple3<String, Integer, Integer>> result = source
                 // 分组
-                .keyBy(new KeySelector<Tuple3<String, Long, Integer>, String>() {
+                .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
+
                     @Override
-                    public String getKey(Tuple3<String, Long, Integer> value) throws Exception {
+                    public String getKey(Tuple2<String, Integer> value) throws Exception {
+                        LOG.info("[Source] id: {}, temperature: {}", value.f0, value.f1);
                         return value.f0;
                     }
                 })
-                // 窗口大小为10分钟、滑动步长为5分钟的滑动窗口
-                .timeWindow(Time.minutes(10), Time.minutes(5))
-                .apply(new MyWindowFunction());
+                // 窗口大小为1分钟的滚动窗口
+                .window(TumblingProcessingTimeWindows.of(Time.minutes(1)))
+                // 使用 WindowFunction
+                .apply(new HighLowTemperatureWindowFunction());
 
         result.print();
         env.execute("WindowFunctionExample");
@@ -82,45 +60,41 @@ public class WindowFunctionExample {
 
     /**
      * 自定义实现WindowFunction
+     *      计算最低温度和最高问温度
      */
-    private static class MyWindowFunction implements WindowFunction<Tuple3<String, Long, Integer>, Tuple2<String, Integer>, String, TimeWindow> {
+    private static class HighLowTemperatureWindowFunction implements WindowFunction<
+            Tuple2<String, Integer>, // 输入类型
+            Tuple3<String, Integer, Integer>, // 输出类型
+            String, // key 类型
+            TimeWindow> {
         @Override
-        public void apply(String key, TimeWindow window, Iterable<Tuple3<String, Long, Integer>> input, Collector<Tuple2<String, Integer>> out) throws Exception {
-            int count = 0;
-            List<String> list = Lists.newArrayList();
-            for (Tuple3<String, Long, Integer> element : input) {
-                list.add(element.f0 + "|" + element.f1 + "|" + DateUtil.timeStamp2Date(element.f1, "yyyy-MM-dd HH:mm:ss"));
-                Integer value = element.f2;
-                count += value;
+        public void apply(String key, TimeWindow window, Iterable<Tuple2<String, Integer>> elements, Collector<Tuple3<String, Integer, Integer>> out) throws Exception {
+            int lowTemperature = Integer.MAX_VALUE;
+            int highTemperature = Integer.MIN_VALUE;
+            List<Integer> temperatures = Lists.newArrayList();
+            for (Tuple2<String, Integer> element : elements) {
+                // 温度列表
+                temperatures.add(element.f1);
+                Integer temperature = element.f1;
+                // 计算最低温度
+                if (temperature < lowTemperature) {
+                    lowTemperature = temperature;
+                }
+                // 计算最高温度
+                if (temperature > highTemperature) {
+                    highTemperature = temperature;
+                }
             }
-
-            // 窗口元信息相对ProcessWindowFunction较少
+            // 时间窗口元数据
             long start = window.getStart();
             long end = window.getEnd();
             String startTime = DateUtil.timeStamp2Date(start, "yyyy-MM-dd HH:mm:ss");
             String endTime = DateUtil.timeStamp2Date(end, "yyyy-MM-dd HH:mm:ss");
-
-            StringBuilder sb = new StringBuilder();
-            sb.append("[Window] Key: " + list.toString());
-            sb.append(", Window：[" + startTime + ", " + endTime + "]");
-            sb.append(", Count: " + count);
-            LOG.info(sb.toString());
-
-            out.collect(new Tuple2<>(key, count));
+            LOG.info("[WindowFunction] sensorId: {}, temperatures: {}, low: {}, high: {}, window: {}",
+                    key, temperatures, lowTemperature, highTemperature,
+                    "[" + startTime + ", " + endTime + "]"
+            );
+            out.collect(Tuple3.of(temperatures.toString(), lowTemperature, highTemperature));
         }
     }
-//    // 输入样例
-//    A,2021-02-14 12:07:01
-//    B,2021-02-14 12:08:01
-//    A,2021-02-14 12:14:01
-//    C,2021-02-14 12:09:01
-//    C,2021-02-14 12:15:01
-//    A,2021-02-14 12:08:01
-//    B,2021-02-14 12:13:01
-//    B,2021-02-14 12:21:01
-//    D,2021-02-14 12:04:01
-//    B,2021-02-14 12:26:01
-//    B,2021-02-14 12:17:01
-//    D,2021-02-14 12:09:01
-//    C,2021-02-14 12:30:01
 }

@@ -48,7 +48,7 @@ public class ReduceFunctionExample {
                 .keyBy(new KeySelector<Tuple2<String,Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
-                        LOG.info("word: {}", value.f0);
+                        LOG.info("[Source] word: {}", value.f0);
                         return value.f0;
                     }
                 })
@@ -58,7 +58,9 @@ public class ReduceFunctionExample {
                 .reduce(new ReduceFunction<Tuple2<String, Integer>>() {
                     @Override
                     public Tuple2<String, Integer> reduce(Tuple2<String, Integer> value1, Tuple2<String, Integer> value2) throws Exception {
-                        return new Tuple2(value1.f0, value1.f1 + value2.f1);
+                        int count = value1.f1 + value2.f1;
+                        LOG.info("[ReduceFunction] word: {}, count: {}", value1.f0, count);
+                        return new Tuple2(value1.f0, count);
                     }
                 });
 

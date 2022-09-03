@@ -52,7 +52,7 @@ public class ReduceProcessWindowFunctionExample {
                 .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
-                        LOG.info("word: {}", value.f0);
+                        LOG.info("[Source] word: {}", value.f0);
                         return value.f0;
                     }
                 })
@@ -71,7 +71,9 @@ public class ReduceProcessWindowFunctionExample {
      */
     private static class CountReduceFunction implements ReduceFunction<Tuple2<String, Integer>> {
         public Tuple2<String, Integer> reduce(Tuple2<String, Integer> wordCount1, Tuple2<String, Integer> wordCount2) {
-            return new Tuple2(wordCount1.f0, wordCount1.f1 + wordCount2.f1);
+            int count = wordCount1.f1 + wordCount2.f1;
+            LOG.info("[ReduceFunction] word: {}, count: {}", wordCount1.f0, count);
+            return new Tuple2(wordCount1.f0, count);
         }
     }
 
@@ -99,7 +101,7 @@ public class ReduceProcessWindowFunctionExample {
             // 当前处理时间
             long currentProcessingTimeStamp = context.currentProcessingTime();
             String currentProcessingTime = DateUtil.timeStamp2Date(currentProcessingTimeStamp, "yyyy-MM-dd HH:mm:ss");
-            LOG.info("word: {}, count: {}, window: {}, processingTime: {}",
+            LOG.info("[ProcessWindowFunction] word: {}, count: {}, window: {}, processingTime: {}",
                     word, count,
                     "[" + startTime + ", " + endTime + "]", currentProcessingTime
             );

@@ -37,7 +37,7 @@ public class AggregateFunctionExample {
                 .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
-                        LOG.info("id: {}, temperature: {}", value.f0, value.f1);
+                        LOG.info("[Source] id: {}, temperature: {}", value.f0, value.f1);
                         return value.f0;
                     }
                 })
@@ -74,7 +74,9 @@ public class AggregateFunctionExample {
         @Override
         public Tuple2<String, Double> getResult(Tuple3<String, Integer, Integer> accumulator) {
             // 从累加器中获取总和和个数计算平均值
-            return new Tuple2<String, Double>(accumulator.f0, ((double) accumulator.f1) / accumulator.f2);
+            double avgTemperature = ((double) accumulator.f1) / accumulator.f2;
+            LOG.info("[AggregateFunction] id: {}, avgTemperature: {}", accumulator.f0, avgTemperature);
+            return new Tuple2<String, Double>(accumulator.f0, avgTemperature);
         }
 
         @Override
@@ -83,18 +85,4 @@ public class AggregateFunctionExample {
             return new Tuple3<String, Integer, Integer>(a.f0, a.f1 + b.f1, a.f2 + b.f2);
         }
     }
-    // 输入样例
-//    A,2021-02-14 12:07:01,9
-//    B,2021-02-14 12:08:01,5
-//    A,2021-02-14 12:14:01,3
-//    C,2021-02-14 12:09:01,2
-//    C,2021-02-14 12:15:01,5
-//    A,2021-02-14 12:08:01,4
-//    B,2021-02-14 12:13:01,6
-//    B,2021-02-14 12:21:01,1
-//    D,2021-02-14 12:04:01,3
-//    B,2021-02-14 12:26:01,2
-//    B,2021-02-14 12:17:01,7
-//    D,2021-02-14 12:09:01,8
-//    C,2021-02-14 12:30:01,1
 }
