@@ -38,7 +38,7 @@ public class PrintLogSinkFunction<IN> extends RichSinkFunction<IN> {
 
     @Override
     public void invoke(IN record) {
-        LOG.info("[PrintLogSinkFunction] {}", record);
+        LOG.info("{}", record);
         writer.write(record);
     }
 
