@@ -31,6 +31,11 @@ public class SimpleTemperatureSource extends RichParallelSourceFunction<Tuple2<S
         this.sleepInterval = sleepInterval;
     }
 
+    public SimpleTemperatureSource(Long sleepInterval, int count) {
+        this.sleepInterval = sleepInterval;
+        this.count = count;
+    }
+
     public SimpleTemperatureSource(int minTemperature, int maxTemperature) {
         this.minTemperature = minTemperature;
         this.maxTemperature = maxTemperature;

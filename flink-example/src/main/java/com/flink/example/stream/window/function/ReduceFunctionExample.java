@@ -29,8 +29,8 @@ public class ReduceFunctionExample {
         // 设置 Checkpoint
         env.enableCheckpointing(1000L);
 
-        // Stream of (word)
-        DataStream<String> source = env.addSource(new SimpleWordSource());
+        // Stream of (word) 每10s输出一个单词 最多输出20次
+        DataStream<String> source = env.addSource(new SimpleWordSource(10*1000L, 20));
 
         // Stream of (word, 1)
         DataStream<Tuple2<String, Integer>> wordsCount = source.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {

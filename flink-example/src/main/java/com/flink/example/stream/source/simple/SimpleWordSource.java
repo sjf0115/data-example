@@ -25,6 +25,11 @@ public class SimpleWordSource extends RichParallelSourceFunction<String> {
         this.sleepInterval = sleepInterval;
     }
 
+    public SimpleWordSource(Long sleepInterval, int count) {
+        this.sleepInterval = sleepInterval;
+        this.count = count;
+    }
+
     @Override
     public void run(SourceContext<String> ctx) throws Exception {
         int index = 0;
