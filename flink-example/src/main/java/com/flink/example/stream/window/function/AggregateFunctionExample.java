@@ -14,12 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * AggregateFunction Example
- * 实现功能：分组求平均值
- * Created by wy on 2021/2/12.
- */
-/**
- * 功能：窗口 AverageAggregateFunction 示例 计算平均温度
+ * 功能：窗口 AverageAggregateFunction 示例
+ *      计算平均温度
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
