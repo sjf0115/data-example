@@ -32,7 +32,7 @@ public class AggregateFunctionExample {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(1000L);
 
-        // Stream of (dt, temperature)
+        // Stream of (id, temperature)
         DataStreamSource<Tuple2<String, Integer>> source = env.addSource(new SimpleTemperatureSource());
 
         // 计算分钟内的平均温度
