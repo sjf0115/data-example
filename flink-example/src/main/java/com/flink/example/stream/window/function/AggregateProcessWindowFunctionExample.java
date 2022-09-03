@@ -68,27 +68,27 @@ public class AggregateProcessWindowFunctionExample {
         @Override
         public Tuple3<String, Integer, Integer> createAccumulator() {
             // 累加器 Key, Sum, Count
-            return new Tuple3<String, Integer, Integer>("", 0, 0);
+            return Tuple3.of("", 0, 0);
         }
 
         @Override
         public Tuple3<String, Integer, Integer> add(Tuple2<String, Integer> value, Tuple3<String, Integer, Integer> accumulator) {
             // 输入一个元素 更新累加器
-            return new Tuple3<String, Integer, Integer>(value.f0, accumulator.f1 + value.f1, accumulator.f2 + 1);
+            return Tuple3.of(value.f0, accumulator.f1 + value.f1, accumulator.f2 + 1);
         }
 
         @Override
         public Tuple2<String, Double> getResult(Tuple3<String, Integer, Integer> accumulator) {
             // 从累加器中获取总和和个数计算平均值
             double avgTemperature = ((double) accumulator.f1) / accumulator.f2;
-            LOG.info("id: {}, avgTemperature: {}", accumulator.f0, avgTemperature);
-            return new Tuple2<String, Double>(accumulator.f0, avgTemperature);
+            LOG.info("id: {}, sum: {}, count: {}, avg: {}", accumulator.f0, accumulator.f1, accumulator.f2, avgTemperature);
+            return Tuple2.of(accumulator.f0, avgTemperature);
         }
 
         @Override
         public Tuple3<String, Integer, Integer> merge(Tuple3<String, Integer, Integer> a, Tuple3<String, Integer, Integer> b) {
             // 累加器合并
-            return new Tuple3<String, Integer, Integer>(a.f0, a.f1 + b.f1, a.f2 + b.f2);
+            return Tuple3.of(a.f0, a.f1 + b.f1, a.f2 + b.f2);
         }
     }
 
