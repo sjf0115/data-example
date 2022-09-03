@@ -15,7 +15,8 @@ public class SimpleWordSource extends RichParallelSourceFunction<String> {
     private Long sleepInterval = 1000L;
     private Random random = new Random();
     private volatile boolean cancel;
-    private List<String> words = Lists.newArrayList("a");
+    private int count = 20;
+    private List<String> words = Lists.newArrayList("a", "b");
 
     public SimpleWordSource() {
     }
@@ -26,11 +27,15 @@ public class SimpleWordSource extends RichParallelSourceFunction<String> {
 
     @Override
     public void run(SourceContext<String> ctx) throws Exception {
+        int index = 0;
         while (!cancel) {
             synchronized (ctx.getCheckpointLock()) {
                 // [0, words个数减一]
-                int index = random.nextInt(words.size());
-                ctx.collect(words.get(index));
+                int wordIndex = random.nextInt(words.size());
+                ctx.collect(words.get(wordIndex));
+            }
+            if (index++ > count) {
+                cancel();
             }
             Thread.sleep(sleepInterval);
         }

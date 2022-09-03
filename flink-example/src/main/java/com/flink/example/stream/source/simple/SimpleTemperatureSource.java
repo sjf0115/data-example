@@ -52,7 +52,7 @@ public class SimpleTemperatureSource extends RichParallelSourceFunction<Tuple2<S
                 int sensorIndex = random.nextInt(sensors.size());
                 ctx.collect(Tuple2.of(sensors.get(sensorIndex), temperature));
             }
-            if (index > count) {
+            if (index++ > count) {
                 cancel();
             }
             Thread.sleep(sleepInterval);

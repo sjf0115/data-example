@@ -1,4 +1,4 @@
-package com.flink.example.stream.window;
+package com.flink.example.stream.window.function;
 
 import com.common.example.utils.DateUtil;
 import com.common.example.bean.ContextInfo;

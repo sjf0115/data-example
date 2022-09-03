@@ -1,5 +1,6 @@
 package com.flink.example.stream.window.function;
 
+import com.flink.example.stream.source.simple.SimpleWordSource;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 功能：窗口 ReduceFunction 示例
+ *      实现单词求和
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
@@ -27,7 +29,8 @@ public class ReduceFunctionExample {
         // 设置 Checkpoint
         env.enableCheckpointing(1000L);
 
-        DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
+        // Stream of (word)
+        DataStream<String> source = env.addSource(new SimpleWordSource());
 
         // Stream of (word, 1)
         DataStream<Tuple2<String, Integer>> wordsCount = source.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
@@ -45,11 +48,12 @@ public class ReduceFunctionExample {
                 .keyBy(new KeySelector<Tuple2<String,Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
+                        LOG.info("word: {}", value.f0);
                         return value.f0;
                     }
                 })
-                // 窗口大小为1秒的滚动窗口
-                .window(TumblingProcessingTimeWindows.of(Time.seconds(1)))
+                // 窗口大小为1分钟的滚动窗口
+                .window(TumblingProcessingTimeWindows.of(Time.minutes(1)))
                 // ReduceFunction 相同单词求和
                 .reduce(new ReduceFunction<Tuple2<String, Integer>>() {
                     @Override
