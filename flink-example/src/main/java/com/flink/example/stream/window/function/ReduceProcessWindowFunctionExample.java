@@ -1,6 +1,7 @@
 package com.flink.example.stream.window.function;
 
 import com.common.example.utils.DateUtil;
+import com.flink.example.stream.sink.print.PrintLogSinkFunction;
 import com.flink.example.stream.source.simple.SimpleWordSource;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
@@ -47,12 +48,11 @@ public class ReduceProcessWindowFunctionExample {
         });
 
         // 滚动窗口
-        SingleOutputStreamOperator<Tuple4<String, Integer, String, String>> result = wordsCount
+        SingleOutputStreamOperator<Tuple4<String, Integer, String, String>> stream = wordsCount
                 // 根据单词分组
                 .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
-                        LOG.info("[Source] word: {}", value.f0);
                         return value.f0;
                     }
                 })
@@ -61,7 +61,9 @@ public class ReduceProcessWindowFunctionExample {
                 // ReduceFunction 和 ProcessWindowFunction 组合使用
                 .reduce(new CountReduceFunction(), new WordsCountProcessWindowFunction());
 
-        result.print();
+        // stream.print();
+        // 代替 print() 方法 输出到控制台并打印日志
+        stream.addSink(new PrintLogSinkFunction());
         env.execute("ReduceProcessWindowFunctionExample");
     }
 
@@ -72,7 +74,7 @@ public class ReduceProcessWindowFunctionExample {
     private static class CountReduceFunction implements ReduceFunction<Tuple2<String, Integer>> {
         public Tuple2<String, Integer> reduce(Tuple2<String, Integer> wordCount1, Tuple2<String, Integer> wordCount2) {
             int count = wordCount1.f1 + wordCount2.f1;
-            LOG.info("[ReduceFunction] word: {}, count: {}", wordCount1.f0, count);
+            LOG.info("word: {}, count: {}", wordCount1.f0, count);
             return new Tuple2(wordCount1.f0, count);
         }
     }
@@ -101,7 +103,7 @@ public class ReduceProcessWindowFunctionExample {
             // 当前处理时间
             long currentProcessingTimeStamp = context.currentProcessingTime();
             String currentProcessingTime = DateUtil.timeStamp2Date(currentProcessingTimeStamp, "yyyy-MM-dd HH:mm:ss");
-            LOG.info("[ProcessWindowFunction] word: {}, count: {}, window: {}, processingTime: {}",
+            LOG.info("word: {}, count: {}, window: {}, processingTime: {}",
                     word, count,
                     "[" + startTime + ", " + endTime + "]", currentProcessingTime
             );

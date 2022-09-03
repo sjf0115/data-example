@@ -1,5 +1,6 @@
 package com.flink.example.stream.window.function;
 
+import com.flink.example.stream.sink.print.PrintLogSinkFunction;
 import com.flink.example.stream.source.simple.SimpleWordSource;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
@@ -43,12 +44,11 @@ public class ReduceFunctionExample {
         });
 
         // 滚动窗口
-        DataStream<Tuple2<String, Integer>> result = wordsCount
+        DataStream<Tuple2<String, Integer>> stream = wordsCount
                 // 根据单词分组
                 .keyBy(new KeySelector<Tuple2<String,Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
-                        LOG.info("[Source] word: {}", value.f0);
                         return value.f0;
                     }
                 })
@@ -59,12 +59,13 @@ public class ReduceFunctionExample {
                     @Override
                     public Tuple2<String, Integer> reduce(Tuple2<String, Integer> value1, Tuple2<String, Integer> value2) throws Exception {
                         int count = value1.f1 + value2.f1;
-                        LOG.info("[ReduceFunction] word: {}, count: {}", value1.f0, count);
+                        LOG.info("word: {}, count: {}", value1.f0, count);
                         return new Tuple2(value1.f0, count);
                     }
                 });
-
-        result.print();
+        // stream.print();
+        // 代替 print() 方法 输出到控制台并打印日志
+        stream.addSink(new PrintLogSinkFunction());
         env.execute("ReduceFunctionExample");
     }
 }

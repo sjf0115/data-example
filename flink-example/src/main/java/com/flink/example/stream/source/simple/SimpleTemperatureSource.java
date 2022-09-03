@@ -3,6 +3,8 @@ package com.flink.example.stream.source.simple;
 import com.google.common.collect.Lists;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Random;
@@ -15,6 +17,7 @@ import java.util.Random;
  * 日期：2022/9/2 下午10:35
  */
 public class SimpleTemperatureSource extends RichParallelSourceFunction<Tuple2<String, Integer>> {
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleTemperatureSource.class);
     // Sleep 时间间隔 默认 1s
     private Long sleepInterval = 1000L;
     private Random random = new Random();
@@ -55,7 +58,9 @@ public class SimpleTemperatureSource extends RichParallelSourceFunction<Tuple2<S
                 // 随机温度
                 int temperature = random.nextInt(maxTemperature - minTemperature + 1) + minTemperature;
                 int sensorIndex = random.nextInt(sensors.size());
-                ctx.collect(Tuple2.of(sensors.get(sensorIndex), temperature));
+                String sensorId = sensors.get(sensorIndex);
+                LOG.info("sensorId: {}, temperature: {}", sensorId, temperature);
+                ctx.collect(Tuple2.of(sensorId, temperature));
             }
             if (index++ > count) {
                 cancel();

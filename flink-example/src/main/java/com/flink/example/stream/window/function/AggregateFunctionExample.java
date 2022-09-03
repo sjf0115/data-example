@@ -1,5 +1,6 @@
 package com.flink.example.stream.window.function;
 
+import com.flink.example.stream.sink.print.PrintLogSinkFunction;
 import com.flink.example.stream.source.simple.SimpleTemperatureSource;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -37,7 +38,6 @@ public class AggregateFunctionExample {
                 .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
-                        LOG.info("[Source] id: {}, temperature: {}", value.f0, value.f1);
                         return value.f0;
                     }
                 })
@@ -45,7 +45,9 @@ public class AggregateFunctionExample {
                 .window(TumblingProcessingTimeWindows.of(Time.minutes(1)))
                 .aggregate(new AvgTemperatureAggregateFunction());
 
-        stream.print();
+        // stream.print();
+        // 代替 print() 方法 输出到控制台并打印日志
+        stream.addSink(new PrintLogSinkFunction());
         env.execute("AggregateFunctionExample");
     }
 
@@ -75,7 +77,7 @@ public class AggregateFunctionExample {
         public Tuple2<String, Double> getResult(Tuple3<String, Integer, Integer> accumulator) {
             // 从累加器中获取总和和个数计算平均值
             double avgTemperature = ((double) accumulator.f1) / accumulator.f2;
-            LOG.info("[AggregateFunction] id: {}, avgTemperature: {}", accumulator.f0, avgTemperature);
+            LOG.info("id: {}, avgTemperature: {}", accumulator.f0, avgTemperature);
             return new Tuple2<String, Double>(accumulator.f0, avgTemperature);
         }
 

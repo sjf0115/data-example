@@ -1,6 +1,7 @@
 package com.flink.example.stream.window.function;
 
 import com.common.example.utils.DateUtil;
+import com.flink.example.stream.sink.print.PrintLogSinkFunction;
 import com.flink.example.stream.source.simple.SimpleTemperatureSource;
 import com.google.common.collect.Lists;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -39,13 +40,12 @@ public class WindowFunctionExample {
         DataStreamSource<Tuple2<String, Integer>> source = env.addSource(new SimpleTemperatureSource(10*1000L, 20));
 
         // 最低温度和最高温度
-        SingleOutputStreamOperator<Tuple3<String, Integer, Integer>> result = source
+        SingleOutputStreamOperator<Tuple3<String, Integer, Integer>> stream = source
                 // 分组
                 .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
 
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {
-                        LOG.info("[Source] id: {}, temperature: {}", value.f0, value.f1);
                         return value.f0;
                     }
                 })
@@ -54,7 +54,9 @@ public class WindowFunctionExample {
                 // 使用 WindowFunction
                 .apply(new HighLowTemperatureWindowFunction());
 
-        result.print();
+        // stream.print();
+        // 代替 print() 方法 输出到控制台并打印日志
+        stream.addSink(new PrintLogSinkFunction());
         env.execute("WindowFunctionExample");
     }
 
@@ -90,7 +92,7 @@ public class WindowFunctionExample {
             long end = window.getEnd();
             String startTime = DateUtil.timeStamp2Date(start, "yyyy-MM-dd HH:mm:ss");
             String endTime = DateUtil.timeStamp2Date(end, "yyyy-MM-dd HH:mm:ss");
-            LOG.info("[WindowFunction] sensorId: {}, temperatures: {}, low: {}, high: {}, window: {}",
+            LOG.info("sensorId: {}, temperatures: {}, low: {}, high: {}, window: {}",
                     key, temperatures, lowTemperature, highTemperature,
                     "[" + startTime + ", " + endTime + "]"
             );

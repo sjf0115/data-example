@@ -24,7 +24,7 @@ public class FsStateBackendExample {
         env.getCheckpointConfig().setCheckpointTimeout(60000);
         env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
-        DataStream<Tuple2<String, Integer>> source = env.addSource(new SimpleCustomSource()).uid("simple-custom-source");
+        DataStream<Tuple2<String, Integer>> source = env.addSource(new SimpleCustomSource()).uid("print-custom-source");
         source.keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> value) throws Exception {

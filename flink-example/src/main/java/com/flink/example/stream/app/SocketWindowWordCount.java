@@ -29,7 +29,7 @@ public class SocketWindowWordCount {
             System.err.println("No port specified. Please run 'SocketWindowWordCount " +
                     "--hostname <hostname> --port <port>', where hostname (localhost by default) " +
                     "and port is the address of the text server");
-            System.err.println("To start a simple text server, run 'netcat -l <port>' and " +
+            System.err.println("To start a print text server, run 'netcat -l <port>' and " +
                     "type the input text into the command line");
             return;
         }
