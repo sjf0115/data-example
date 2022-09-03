@@ -1,12 +1,11 @@
 package com.flink.example.stream.source.simple;
 
+import com.google.common.collect.Lists;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
-import org.joda.time.DateTime;
 
+import java.util.List;
 import java.util.Random;
-
-import static com.common.example.utils.TimeUtil.DATE_FORMAT;
 
 /**
  * 功能：随机输出温度 Source
@@ -22,8 +21,8 @@ public class SimpleTemperatureSource extends RichParallelSourceFunction<Tuple2<S
     private volatile boolean cancel;
     private int minTemperature = 20;
     private int maxTemperature = 30;
-    private int days = 10;
-    private DateTime startDay = new DateTime();
+    private int count = 20;
+    private List<String> sensors = Lists.newArrayList("a", "b", "c");
 
     public SimpleTemperatureSource() {
     }
@@ -32,10 +31,9 @@ public class SimpleTemperatureSource extends RichParallelSourceFunction<Tuple2<S
         this.sleepInterval = sleepInterval;
     }
 
-    public SimpleTemperatureSource(int minTemperature, int maxTemperature, int days) {
+    public SimpleTemperatureSource(int minTemperature, int maxTemperature) {
         this.minTemperature = minTemperature;
         this.maxTemperature = maxTemperature;
-        this.days = days;
     }
 
     public SimpleTemperatureSource(int minTemperature, int maxTemperature, Long sleepInterval) {
@@ -51,10 +49,10 @@ public class SimpleTemperatureSource extends RichParallelSourceFunction<Tuple2<S
             synchronized (ctx.getCheckpointLock()) {
                 // 随机温度
                 int temperature = random.nextInt(maxTemperature - minTemperature + 1) + minTemperature;
-                String nextDay = startDay.plusDays(index++).toString(DATE_FORMAT);
-                ctx.collect(Tuple2.of(nextDay, temperature));
+                int sensorIndex = random.nextInt(sensors.size());
+                ctx.collect(Tuple2.of(sensors.get(sensorIndex), temperature));
             }
-            if (index > days) {
+            if (index > count) {
                 cancel();
             }
             Thread.sleep(sleepInterval);
