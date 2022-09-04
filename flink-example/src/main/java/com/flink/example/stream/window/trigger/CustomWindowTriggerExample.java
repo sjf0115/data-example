@@ -1,4 +1,4 @@
-package com.flink.example.stream.window;
+package com.flink.example.stream.window.trigger;
 
 import com.google.common.collect.Lists;
 import org.apache.flink.api.common.functions.AggregateFunction;

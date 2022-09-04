@@ -1,4 +1,4 @@
-package com.flink.example.stream.window;
+package com.flink.example.stream.window.trigger;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;

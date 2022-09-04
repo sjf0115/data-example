@@ -1,4 +1,4 @@
-package com.flink.example.stream.window;
+package com.flink.example.stream.window.trigger;
 
 import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
