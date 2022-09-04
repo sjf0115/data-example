@@ -1,15 +1,20 @@
-package com.flink.example.stream.watermark;
+package com.flink.example.stream.watermark.extractor;
 
 import com.common.example.utils.DateUtil;
 import com.flink.example.stream.source.simple.AscendingTimestampSource;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +37,11 @@ public class AscendingTimestampWatermarkExample {
         // 每5s输出一次 Watermark
         env.getConfig().setAutoWatermarkInterval(5000);
 
-        // 输入源 每2s输出一个单词
-        DataStream<Tuple2<String, Long>> source = env.addSource(new AscendingTimestampSource(2000L));
+        // 输入源 每1s输出一个单词
+        DataStream<Tuple2<String, Long>> source = env.addSource(new AscendingTimestampSource());
 
-        DataStream<Tuple2<String, Long>> stream = source
+        // 计算单词出现的次数
+        SingleOutputStreamOperator<Tuple4<String, Long, String, String>> stream = source
                 .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<Tuple2<String, Long>>() {
                     @Override
                     public long extractAscendingTimestamp(Tuple2<String, Long> tuple) {
@@ -43,11 +49,9 @@ public class AscendingTimestampWatermarkExample {
                         return tuple.f1;
                     }
                 })
-                .map(new MapFunction<Tuple2<String,Long>, Tuple2<String,Long>>() {
-
+                .map(new MapFunction<Tuple2<String, Long>, Tuple2<String, Long>>() {
                     @Override
                     public Tuple2<String, Long> map(Tuple2<String, Long> tuple2) throws Exception {
-                        LOG.info("word: {}, timestamp: {}, time: {}", tuple2.f0, tuple2.f1, DateUtil.timeStamp2Date(tuple2.f1));
                         return Tuple2.of(tuple2.f0, 1L);
                     }
                 })
@@ -61,9 +65,42 @@ public class AscendingTimestampWatermarkExample {
                 // 每10s一个窗口
                 .timeWindow(Time.seconds(10))
                 // 求和
-                .sum(1);
+                .process(new WordsCountProcessWindowFunction());
 
         stream.print();
         env.execute("AscendingTimestampWatermarkExample");
+    }
+
+    /**
+     * 自定义ProcessWindowFunction：
+     *      获取窗口元信息
+     */
+    private static class WordsCountProcessWindowFunction extends ProcessWindowFunction<
+            Tuple2<String, Long>,
+            Tuple4<String, Long, String, String>,
+            String,
+            TimeWindow> {
+        @Override
+        public void process(String word, Context context, Iterable<Tuple2<String, Long>> elements, Collector<Tuple4<String, Long, String, String>> out) throws Exception {
+            // 计算出现次数
+            long count = 0;
+            for (Tuple2<String, Long> element : elements) {
+                count ++;
+            }
+            // 当前 Watermark
+            long currentWatermark = context.currentWatermark();
+            // 时间窗口元数据
+            TimeWindow window = context.window();
+            long start = window.getStart();
+            long end = window.getEnd();
+            String startTime = DateUtil.timeStamp2Date(start, "yyyy-MM-dd HH:mm:ss");
+            String endTime = DateUtil.timeStamp2Date(end, "yyyy-MM-dd HH:mm:ss");
+            LOG.info("word: {}, count: {}, watermark: {}, windowStart: {}, windowEnd: {}",
+                    word, count, currentWatermark,
+                    start + "|" + startTime, end + "|" + endTime
+            );
+            // 输出
+            out.collect(Tuple4.of(word, count, startTime, endTime));
+        }
     }
 }

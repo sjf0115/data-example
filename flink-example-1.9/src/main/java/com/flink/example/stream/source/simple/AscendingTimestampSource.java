@@ -1,8 +1,11 @@
 package com.flink.example.stream.source.simple;
 
+import com.common.example.utils.DateUtil;
 import com.google.common.collect.Lists;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Random;
@@ -15,9 +18,10 @@ import java.util.Random;
  * 日期：2022/8/31 下午11:35
  */
 public class AscendingTimestampSource extends RichParallelSourceFunction<Tuple2<String, Long>> {
+    private static final Logger LOG = LoggerFactory.getLogger(AscendingTimestampSource.class);
     // Sleep 时间间隔 默认 1s
     private Long sleepInterval = 1000L;
-    private int sleepMax = 5;
+    private int sleepMax = 20;
     private Random random = new Random();
     private volatile boolean cancel;
     private List<String> words = Lists.newArrayList("a");
@@ -42,6 +46,7 @@ public class AscendingTimestampSource extends RichParallelSourceFunction<Tuple2<
                 String word = words.get(wordIndex);
                 // 单调递增的时间戳
                 Long timestamp = System.currentTimeMillis();
+                LOG.info("word: {}, timestamp: {}, time: {}", word, timestamp, DateUtil.timeStamp2Date(timestamp));
                 ctx.collect(Tuple2.of(word, timestamp));
             }
             Thread.sleep(sleepInterval);
