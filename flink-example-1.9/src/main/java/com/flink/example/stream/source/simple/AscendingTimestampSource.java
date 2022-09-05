@@ -24,7 +24,7 @@ public class AscendingTimestampSource extends RichParallelSourceFunction<Tuple2<
     private int sleepMax = 20;
     private Random random = new Random();
     private volatile boolean cancel;
-    private List<String> words = Lists.newArrayList("a");
+    private List<String> words = Lists.newArrayList("a", "b", "c");
 
     public AscendingTimestampSource() {
     }

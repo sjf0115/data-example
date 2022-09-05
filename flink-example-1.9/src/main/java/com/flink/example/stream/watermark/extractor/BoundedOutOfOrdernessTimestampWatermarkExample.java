@@ -1,16 +1,25 @@
 package com.flink.example.stream.watermark.extractor;
 
 import com.common.example.utils.DateUtil;
-import org.apache.flink.api.common.functions.MapFunction;
+import com.flink.example.stream.sink.PrintLogSinkFunction;
+import com.flink.example.stream.source.simple.OutOfOrderSource;
+import com.flink.example.stream.watermark.custom.CustomBoundedOutOfOrdernessTimestampExtractor;
+import com.google.common.collect.Lists;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * 功能：周期性 Watermark 分配器 BoundedOutOfOrdernessTimestampExtractor 使用示例
@@ -25,47 +34,56 @@ public class BoundedOutOfOrdernessTimestampWatermarkExample {
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(1000L);
-
         // 设置事件时间特性
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        // 每5s输出一次 Watermark
-        env.getConfig().setAutoWatermarkInterval(5000);
-
-        DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
-
-        DataStream<Tuple3<String, Long, Integer>> input = source
-                .map(new MapFunction<String, Tuple3<String, Long, Integer>>() {
+        // 每1s输出一次单词
+        DataStreamSource<Tuple4<Integer, String, Integer, Long>> source = env.addSource(new OutOfOrderSource());
+        // 计算每1分钟内每个单词出现的次数
+        DataStream<Tuple3<String, Integer, String>> result = source
+                .assignTimestampsAndWatermarks(new CustomBoundedOutOfOrdernessTimestampExtractor<Tuple4<Integer, String, Integer, Long>>(Time.seconds(5)) {
                     @Override
-                    public Tuple3<String, Long, Integer> map(String str) throws Exception {
-                        LOG.info("[INFO] element: {}", str);
-                        String[] params = str.split(",");
-                        String key = params[0];
-                        String time = params[1];
-                        Long timeStamp = DateUtil.date2TimeStamp(time, "yyyy-MM-dd HH:mm:ss");
-                        return new Tuple3(key, timeStamp, 1);
-                    }
-                });
-
-        DataStream<Tuple3<String, Long, Integer>> result = input
-                .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Tuple3<String, Long, Integer>>(Time.minutes(10)) {
-                    @Override
-                    public long extractTimestamp(Tuple3<String, Long, Integer> element) {
-                        return element.f1;
+                    public long extractTimestamp(Tuple4<Integer, String, Integer, Long> element) {
+                        return element.f3;
                     }
                 })
                 // 分组
-                .keyBy(new KeySelector<Tuple3<String, Long, Integer>, String>() {
+                .keyBy(new KeySelector<Tuple4<Integer, String, Integer, Long>, String>() {
                     @Override
-                    public String getKey(Tuple3<String, Long, Integer> event) throws Exception {
-                        return event.f0;
+                    public String getKey(Tuple4<Integer, String, Integer, Long> element) throws Exception {
+                        return element.f1;
                     }
                 })
-                // 窗口
-                .timeWindow(Time.minutes(10), Time.minutes(5))
+                // 每1分钟的滚动窗口
+                .timeWindow(Time.minutes(1))
                 // 求和
-                .sum(2);
+                .process(new ProcessWindowFunction<Tuple4<Integer, String, Integer, Long>, Tuple3<String, Integer, String>, String, TimeWindow>() {
+                    @Override
+                    public void process(String key, Context context, Iterable<Tuple4<Integer, String, Integer, Long>> elements, Collector<Tuple3<String, Integer, String>> out) throws Exception {
+                        // 计算出现次数
+                        int count = 0;
+                        List<Integer> ids = Lists.newArrayList();
+                        for (Tuple4<Integer, String, Integer, Long> element : elements) {
+                            count += element.f2;
+                            ids.add(element.f0);
+                        }
+                        // 当前 Watermark
+                        long currentWatermark = context.currentWatermark();
+                        // 时间窗口元数据
+                        TimeWindow window = context.window();
+                        long start = window.getStart();
+                        long end = window.getEnd();
+                        String startTime = DateUtil.timeStamp2Date(start, "yyyy-MM-dd HH:mm:ss");
+                        String endTime = DateUtil.timeStamp2Date(end, "yyyy-MM-dd HH:mm:ss");
+                        LOG.info("word: {}, count: {}, ids: {}, watermark: {}, windowStart: {}, windowEnd: {}",
+                                key, count, ids.toString(), currentWatermark,
+                                start + "|" + startTime, end + "|" + endTime
+                        );
+                        out.collect(Tuple3.of(key, count, ids.toString()));
+                    }
+                });
 
-        result.print();
+        // 输出并打印日志
+        result.addSink(new PrintLogSinkFunction());
         env.execute("BoundedOutOfOrdernessTimestampWatermarkExample");
     }
 }

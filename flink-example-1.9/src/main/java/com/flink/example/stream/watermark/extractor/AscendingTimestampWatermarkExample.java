@@ -38,7 +38,7 @@ public class AscendingTimestampWatermarkExample {
         env.getConfig().setAutoWatermarkInterval(5000);
 
         // 输入源 每1s输出一个单词
-        DataStream<Tuple2<String, Long>> source = env.addSource(new AscendingTimestampSource());
+        DataStream<Tuple2<String, Long>> source = env.addSource(new AscendingTimestampSource(10*1000L));
 
         // 计算单词出现的次数
         SingleOutputStreamOperator<Tuple4<String, Long, String, String>> stream = source
@@ -62,8 +62,8 @@ public class AscendingTimestampWatermarkExample {
                         return element.f0;
                     }
                 })
-                // 每10s一个窗口
-                .timeWindow(Time.seconds(10))
+                // 每1分钟一个窗口
+                .timeWindow(Time.minutes(1))
                 // 求和
                 .process(new WordsCountProcessWindowFunction());
 
