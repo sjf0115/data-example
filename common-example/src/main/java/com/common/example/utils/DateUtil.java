@@ -15,7 +15,7 @@ import java.util.Objects;
 public class DateUtil {
 
     public static String DATE_FORMAT = "yyyy-MM-dd";
-    private static String FULL_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static String FULL_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     /**
      * 获取当前时间
