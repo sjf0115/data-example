@@ -1,7 +1,7 @@
 package com.flink.example.stream.function;
 
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -19,57 +19,43 @@ import org.slf4j.LoggerFactory;
  */
 public class SideOutputExample {
     private static final Logger LOG = LoggerFactory.getLogger(SideOutputExample.class);
-    // 奇数
-    private static final OutputTag<Integer> oddOutputTag = new OutputTag<Integer>("odd-side-output"){};
-    // 偶数
-    private static final OutputTag<Integer> evenOutputTag = new OutputTag<Integer>("even-side-output"){};
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
 
-        // 设置事件时间特性
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        // OutputTag 这里类型不一致 主要是为了验证不同侧输出流可以输出不同的类型
+        OutputTag<String> oddOutputTag = new OutputTag<String>("ODD"){};
+        OutputTag<Long> evenOutputTag = new OutputTag<Long>("EVEN"){};
 
-        DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
-        SingleOutputStreamOperator<String> mainStream = source.process(new MyProcessFunction());
-        mainStream.print("MainStream");
+        //输入数据源
+        DataStreamSource<Integer> source = env.fromElements(1, 2, 3, 4, 5, 6, 7, 8);
+        // 拆分偶数流和奇数流
+        SingleOutputStreamOperator<Integer> mainStream = source.process(new ProcessFunction<Integer, Integer>() {
+            @Override
+            public void processElement(Integer num, Context ctx, Collector<Integer> out) throws Exception {
+                // 主输出
+                out.collect(num);
+                // 旁路输出 可以输出不同的数据类型
+                if (num % 2 != 0) {
+                    // 奇数输出
+                    ctx.output(oddOutputTag, "O-" + num);
+                } else {
+                    // 偶数输出
+                    ctx.output(evenOutputTag, Long.valueOf(num));
+                }
+            }
+        });
 
+        // 主链路
+        mainStream.print("ALL");
         // 旁路输出 奇数
-        DataStream<Integer> oddSideOutputStream = mainStream.getSideOutput(oddOutputTag);
-        oddSideOutputStream.print("OddSideOutputStream");
-
+        DataStream<String> oddStream = mainStream.getSideOutput(oddOutputTag);
+        oddStream.print("ODD");
         // 旁路输出 偶数
-        DataStream<Integer> evenSideOutputStream = mainStream.getSideOutput(evenOutputTag);
-        evenSideOutputStream.print("EvenSideOutputStream");
+        DataStream<Long> evenStream = mainStream.getSideOutput(evenOutputTag);
+        evenStream.print("EVEN");
 
         env.execute("SideOutputExample");
     }
-
-    /**
-     * 自定义ProcessFunction
-     */
-    private static class MyProcessFunction extends ProcessFunction<String, String> {
-
-        @Override
-        public void processElement(String value, Context ctx, Collector<String> out) throws Exception {
-            // 主输出
-            out.collect(value);
-            // 旁路输出 可以输出不同的数据类型
-            Integer val = Integer.parseInt(value);
-            if (val % 2 != 0) {
-                // 奇数输出
-                ctx.output(oddOutputTag, val);
-            } else {
-                // 偶数输出
-                ctx.output(evenOutputTag, val);
-            }
-        }
-    }
 }
-// 输入数据示例
-// 1
-// 2
-// 3
-// 4
-// 5
-// 6
