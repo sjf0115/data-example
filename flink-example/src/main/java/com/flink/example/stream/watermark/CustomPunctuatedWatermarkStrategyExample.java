@@ -3,24 +3,24 @@ package com.flink.example.stream.watermark;
 import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.eventtime.*;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * PunctuatedWatermarkGenerator Example 1.11版本
- * Created by wy on 2021/2/21.
+ * 功能：自定义实现 断点式 Punctuated WatermarkStrategy
+ * 作者：SmartSi
+ * CSDN博客：https://smartsi.blog.csdn.net/
+ * 公众号：大数据生态
+ * 日期：2022/9/8 下午11:16
  */
-public class PunctuatedWatermarkGeneratorExample {
-    private static final Logger LOG = LoggerFactory.getLogger(PeriodicWatermarkGeneratorExample.class);
+public class CustomPunctuatedWatermarkStrategyExample {
+    private static final Logger LOG = LoggerFactory.getLogger(CustomPunctuatedWatermarkStrategyExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        // 设置事件时间特性
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
         DataStream<MyEvent> input = source.map(new MapFunction<String, MyEvent>() {
             @Override
@@ -38,29 +38,28 @@ public class PunctuatedWatermarkGeneratorExample {
         });
 
         // 提取时间戳、生成Watermark
-        DataStream<MyEvent> watermarkStream = input.assignTimestampsAndWatermarks(
-                new WatermarkStrategy<MyEvent>() {
-                    @Override
-                    public WatermarkGenerator<MyEvent> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
-                        return new MyPunctuatedWatermarkGenerator();
-                    }
-                }
-                .withTimestampAssigner(new SerializableTimestampAssigner<MyEvent>() {
-                    @Override
-                    public long extractTimestamp(MyEvent element, long recordTimestamp) {
-                        return element.getTimestamp();
-                    }
-                })
-        );
+        DataStream<MyEvent> watermarkStream = input.assignTimestampsAndWatermarks(new CustomWatermarkStrategy());
+        watermarkStream.print();
 
-        env.execute("PunctuatedWatermarkGeneratorExample");
+        env.execute("CustomPunctuatedWatermarkStrategyExample");
     }
 
-    /**
-     * 自定义 Punctuated WatermarkGenerator
-     */
-    public static class MyPunctuatedWatermarkGenerator implements WatermarkGenerator<MyEvent> {
+    // 自定义 WatermarkStrategy
+    public static class CustomWatermarkStrategy implements WatermarkStrategy<MyEvent> {
+        // 创建 Watermark 生成器
+        @Override
+        public WatermarkGenerator<MyEvent> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
+            return new CustomPunctuatedGenerator();
+        }
+        // 创建时间戳分配器
+        @Override
+        public TimestampAssigner<MyEvent> createTimestampAssigner(TimestampAssignerSupplier.Context context) {
+            return new CustomTimestampAssigner();
+        }
+    }
 
+    // 自定义断点式 Watermark 生成器
+    public static class CustomPunctuatedGenerator implements WatermarkGenerator<MyEvent> {
         @Override
         public void onEvent(MyEvent event, long eventTimestamp, WatermarkOutput output) {
             // 遇到特殊标记的元素就输出Watermark
@@ -73,10 +72,18 @@ public class PunctuatedWatermarkGeneratorExample {
                 output.emitWatermark(watermark);
             }
         }
-
+        // 周期性生成 Watermark
         @Override
         public void onPeriodicEmit(WatermarkOutput output) {
-            // 不使用该函数
+            // 不需要
+        }
+    }
+
+    // 自定义时间戳分配器
+    public static class CustomTimestampAssigner implements TimestampAssigner<MyEvent> {
+        @Override
+        public long extractTimestamp(MyEvent element, long recordTimestamp) {
+            return element.getTimestamp();
         }
     }
 

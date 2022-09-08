@@ -29,7 +29,7 @@ import java.util.List;
  * 日期：2022/9/8 下午11:16
  */
 public class WatermarkStrategyGeneratorExample {
-    private static final Logger LOG = LoggerFactory.getLogger(WatermarkStrategyExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(WatermarkStrategyGeneratorExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -88,7 +88,7 @@ public class WatermarkStrategyGeneratorExample {
                 });
 
         result.print();
-        env.execute("CustomWatermarkStrategyExample");
+        env.execute("WatermarkStrategyGeneratorExample");
     }
 
     // 自定义 WatermarkGeneratorSupplier

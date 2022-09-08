@@ -22,14 +22,14 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * 功能：自定义实现 WatermarkStrategy
+ * 功能：自定义实现 周期性 Periodic WatermarkStrategy
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2022/9/8 下午11:16
  */
-public class CustomWatermarkStrategyExample {
-    private static final Logger LOG = LoggerFactory.getLogger(WatermarkStrategyExample.class);
+public class CustomPeriodicWatermarkStrategyExample {
+    private static final Logger LOG = LoggerFactory.getLogger(CustomPeriodicWatermarkStrategyExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -80,7 +80,7 @@ public class CustomWatermarkStrategyExample {
                 });
 
         result.print();
-        env.execute("CustomWatermarkStrategyExample");
+        env.execute("CustomPeriodicWatermarkStrategyExample");
     }
 
     // 自定义 WatermarkStrategy
