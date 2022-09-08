@@ -3,8 +3,7 @@ package com.flink.example.stream.watermark;
 import com.common.example.utils.DateUtil;
 import com.flink.example.stream.source.simple.OutOfOrderSource;
 import com.google.common.collect.Lists;
-import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.eventtime.*;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple4;
@@ -23,31 +22,24 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * WatermarkStrategy Example
- * Created by wy on 2020/12/15.
+ * 功能：自定义实现 WatermarkStrategy
+ * 作者：SmartSi
+ * CSDN博客：https://smartsi.blog.csdn.net/
+ * 公众号：大数据生态
+ * 日期：2022/9/8 下午11:16
  */
-public class WatermarkStrategyExample {
-
+public class CustomWatermarkStrategyExample {
     private static final Logger LOG = LoggerFactory.getLogger(WatermarkStrategyExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
-
         // 输入流
         DataStreamSource<Tuple4<Integer, String, Integer, Long>> source = env.addSource(new OutOfOrderSource());
-        DataStream<Tuple4<Integer, String, Integer, Long>> watermarkStream = source.assignTimestampsAndWatermarks(
-                WatermarkStrategy.<Tuple4<Integer, String, Integer, Long>>forBoundedOutOfOrderness(Duration.ofSeconds(5))
-                        .withTimestampAssigner(new SerializableTimestampAssigner<Tuple4<Integer, String, Integer, Long>>() {
-                            @Override
-                            public long extractTimestamp(Tuple4<Integer, String, Integer, Long> element, long recordTimestamp) {
-                                return element.f3;
-                            }
-                        })
-        );
-
         // 分组求和
-        DataStream<Tuple2<String, Integer>> result = watermarkStream
+        DataStream<Tuple2<String, Integer>> result = source
+                // 使用自定义 WatermarkStrategy
+                .assignTimestampsAndWatermarks(new CustomWatermarkStrategy(Duration.ofSeconds(5)))
                 // 分组
                 .keyBy(new KeySelector<Tuple4<Integer,String,Integer,Long>, String>() {
                     @Override
@@ -88,6 +80,55 @@ public class WatermarkStrategyExample {
                 });
 
         result.print();
-        env.execute("WatermarkStrategyExample");
+        env.execute("CustomWatermarkStrategyExample");
+    }
+
+    // 自定义 WatermarkStrategy
+    public static class CustomWatermarkStrategy implements WatermarkStrategy<Tuple4<Integer, String, Integer, Long>> {
+        private final Duration maxOutOfOrderMillis;
+        public CustomWatermarkStrategy(Duration maxOutOfOrderMillis) {
+            this.maxOutOfOrderMillis = maxOutOfOrderMillis;
+        }
+        // 创建 Watermark 生成器
+        @Override
+        public WatermarkGenerator<Tuple4<Integer, String, Integer, Long>> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
+            return new CustomPeriodicGenerator(maxOutOfOrderMillis);
+        }
+        // 创建时间戳分配器
+        @Override
+        public TimestampAssigner<Tuple4<Integer, String, Integer, Long>> createTimestampAssigner(TimestampAssignerSupplier.Context context) {
+            return new CustomTimestampAssigner();
+        }
+    }
+
+    // 自定义周期性 Watermark 生成器
+    public static class CustomPeriodicGenerator implements WatermarkGenerator<Tuple4<Integer, String, Integer, Long>> {
+        // 最大时间戳
+        private long maxTimestamp;
+        // 最大乱序时间
+        private final long outOfOrderMillis;
+        public CustomPeriodicGenerator(Duration maxOutOfOrderMillis) {
+            this.outOfOrderMillis = maxOutOfOrderMillis.toMillis();
+            // 起始最小 Watermark 为 Long.MIN_VALUE.
+            this.maxTimestamp = Long.MIN_VALUE + outOfOrderMillis + 1;
+        }
+        // 最大时间戳
+        @Override
+        public void onEvent(Tuple4<Integer, String, Integer, Long> event, long eventTimestamp, WatermarkOutput output) {
+            maxTimestamp = Math.max(maxTimestamp, event.f3);
+        }
+        // 周期性生成 Watermark
+        @Override
+        public void onPeriodicEmit(WatermarkOutput output) {
+            output.emitWatermark(new Watermark(maxTimestamp - outOfOrderMillis - 1));
+        }
+    }
+
+    // 自定义时间戳分配器
+    public static class CustomTimestampAssigner implements TimestampAssigner<Tuple4<Integer, String, Integer, Long>> {
+        @Override
+        public long extractTimestamp(Tuple4<Integer, String, Integer, Long> element, long recordTimestamp) {
+            return element.f3;
+        }
     }
 }
