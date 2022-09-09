@@ -23,12 +23,15 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * WatermarkStrategy Example
- * Created by wy on 2020/12/15.
+ * 功能：针对乱序流使用 BoundedOutOfOrderness WatermarkStrategy 策略
+ * 作者：SmartSi
+ * CSDN博客：https://smartsi.blog.csdn.net/
+ * 公众号：大数据生态
+ * 日期：2022/9/8 下午11:16
  */
-public class WatermarkStrategyExample {
+public class BoundedWatermarkStrategyExample {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WatermarkStrategyExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BoundedWatermarkStrategyExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -88,6 +91,6 @@ public class WatermarkStrategyExample {
                 });
 
         result.print();
-        env.execute("WatermarkStrategyExample");
+        env.execute("BoundedWatermarkStrategyExample");
     }
 }
