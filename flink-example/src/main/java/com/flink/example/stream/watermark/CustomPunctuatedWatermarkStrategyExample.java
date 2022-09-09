@@ -30,7 +30,7 @@ public class CustomPunctuatedWatermarkStrategyExample {
                 Boolean hasWatermarkMarker = Boolean.parseBoolean(params[1]);
                 String time = params[2];
                 Long timestamp = DateUtil.date2TimeStamp(time, "yyyy-MM-dd HH:mm:ss");
-                LOG.info("[Element] Key: {}, HashWatermark: {}, Timestamp: [{}|{}]",
+                LOG.info("Key: {}, HashWatermark: {}, Timestamp: [{}|{}]",
                         key, hasWatermarkMarker, time, timestamp
                 );
                 return new MyEvent(key, hasWatermarkMarker, time, timestamp);
@@ -39,6 +39,19 @@ public class CustomPunctuatedWatermarkStrategyExample {
 
         // 提取时间戳、生成Watermark
         DataStream<MyEvent> watermarkStream = input.assignTimestampsAndWatermarks(new CustomWatermarkStrategy());
+        // 也可以使用如下方式
+        /*input.assignTimestampsAndWatermarks(new WatermarkStrategy<MyEvent>() {
+            @Override
+            public WatermarkGenerator<MyEvent> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
+                return new CustomPunctuatedGenerator();
+            }
+        }.withTimestampAssigner(new SerializableTimestampAssigner<MyEvent>() {
+            @Override
+            public long extractTimestamp(MyEvent element, long recordTimestamp) {
+                return element.timestamp;
+            }
+        }));*/
+
         watermarkStream.print();
 
         env.execute("CustomPunctuatedWatermarkStrategyExample");
@@ -65,7 +78,7 @@ public class CustomPunctuatedWatermarkStrategyExample {
             // 遇到特殊标记的元素就输出Watermark
             if (event.hasWatermarkMarker()) {
                 Watermark watermark = new Watermark(eventTimestamp);
-                LOG.info("[Watermark] Key: {}, HasWatermarkMarker: {}, EventTimestamp: [{}|{}], Watermark: [{}|{}]",
+                LOG.info("Key: {}, HasWatermarkMarker: {}, EventTimestamp: [{}|{}], Watermark: [{}|{}]",
                         event.getKey(), event.hasWatermarkMarker(), event.getEventTime(), event.getTimestamp(),
                         watermark.getFormattedTimestamp(), watermark.getTimestamp()
                 );
@@ -131,5 +144,21 @@ public class CustomPunctuatedWatermarkStrategyExample {
         public void setTimestamp(Long timestamp) {
             this.timestamp = timestamp;
         }
+
+        @Override
+        public String toString() {
+            return "MyEvent{" +
+                    "key='" + key + '\'' +
+                    ", eventTime='" + eventTime + '\'' +
+                    ", timestamp=" + timestamp +
+                    ", hasWatermarkMarker=" + hasWatermarkMarker +
+                    '}';
+        }
     }
 }
+//A,false,2021-02-19 12:07:01
+//B,true,2021-02-19 12:08:01
+//A,false,2021-02-19 12:14:01
+//C,false,2021-02-19 12:09:01
+//C,true,2021-02-19 12:15:01
+//A,true,2021-02-19 12:08:01
