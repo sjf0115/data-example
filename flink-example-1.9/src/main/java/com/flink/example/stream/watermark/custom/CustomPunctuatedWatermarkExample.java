@@ -22,9 +22,9 @@ import java.util.Objects;
  * PunctuatedWatermark @Deprecated from 1.11
  * Created by wy on 2021/1/4.
  */
-public class CustomPunctuatedWatermarkDeprecatedExample {
+public class CustomPunctuatedWatermarkExample {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CustomPunctuatedWatermarkDeprecatedExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CustomPunctuatedWatermarkExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -56,7 +56,7 @@ public class CustomPunctuatedWatermarkDeprecatedExample {
         );
 
         result.print();
-        env.execute("CustomPunctuatedWatermarkDeprecatedExample");
+        env.execute("CustomPunctuatedWatermarkExample");
     }
 
     /**
