@@ -3,7 +3,6 @@ package com.flink.example.stream.watermark.extractor;
 import com.common.example.utils.DateUtil;
 import com.flink.example.stream.sink.PrintLogSinkFunction;
 import com.flink.example.stream.source.simple.OutOfOrderSource;
-import com.flink.example.stream.watermark.custom.CustomBoundedOutOfOrdernessTimestampExtractor;
 import com.google.common.collect.Lists;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -12,6 +11,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
@@ -28,8 +28,8 @@ import java.util.List;
  * 公众号：大数据生态
  * 日期：2022/8/31 下午11:30
  */
-public class BoundedOutOfOrdernessTimestampWatermarkExample {
-    private static final Logger LOG = LoggerFactory.getLogger(BoundedOutOfOrdernessTimestampWatermarkExample.class);
+public class BoundedOutOfOrderWatermarkExample {
+    private static final Logger LOG = LoggerFactory.getLogger(BoundedOutOfOrderWatermarkExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -40,7 +40,7 @@ public class BoundedOutOfOrdernessTimestampWatermarkExample {
         DataStreamSource<Tuple4<Integer, String, Integer, Long>> source = env.addSource(new OutOfOrderSource());
         // 计算每1分钟内每个单词出现的次数
         DataStream<Tuple3<String, Integer, String>> result = source
-                .assignTimestampsAndWatermarks(new CustomBoundedOutOfOrdernessTimestampExtractor<Tuple4<Integer, String, Integer, Long>>(Time.seconds(5)) {
+                .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Tuple4<Integer, String, Integer, Long>>(Time.seconds(5)) {
                     @Override
                     public long extractTimestamp(Tuple4<Integer, String, Integer, Long> element) {
                         return element.f3;
@@ -84,6 +84,6 @@ public class BoundedOutOfOrdernessTimestampWatermarkExample {
 
         // 输出并打印日志
         result.addSink(new PrintLogSinkFunction());
-        env.execute("BoundedOutOfOrdernessTimestampWatermarkExample");
+        env.execute("BoundedOutOfOrderWatermarkExample");
     }
 }

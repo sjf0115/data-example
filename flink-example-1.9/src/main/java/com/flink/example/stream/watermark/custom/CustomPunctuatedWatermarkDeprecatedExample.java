@@ -1,4 +1,4 @@
-package com.flink.example.stream.watermark;
+package com.flink.example.stream.watermark.custom;
 
 import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.functions.MapFunction;

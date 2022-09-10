@@ -25,11 +25,12 @@ import org.slf4j.LoggerFactory;
  * 公众号：大数据生态
  * 日期：2022/8/31 下午11:32
  */
-public class AscendingTimestampWatermarkExample {
-    private static final Logger LOG = LoggerFactory.getLogger(AscendingTimestampWatermarkExample.class);
+public class AscendingWatermarkExample {
+    private static final Logger LOG = LoggerFactory.getLogger(AscendingWatermarkExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
         // 设置 Checkpoint
         env.enableCheckpointing(1000L);
         // 设置事件时间特性
@@ -65,42 +66,32 @@ public class AscendingTimestampWatermarkExample {
                 // 每1分钟一个窗口
                 .timeWindow(Time.minutes(1))
                 // 求和
-                .process(new WordsCountProcessWindowFunction());
+                .process(new ProcessWindowFunction<Tuple2<String, Long>, Tuple4<String, Long, String, String>, String, TimeWindow>() {
+                    @Override
+                    public void process(String word, Context context, Iterable<Tuple2<String, Long>> elements, Collector<Tuple4<String, Long, String, String>> out) throws Exception {
+                        // 计算出现次数
+                        long count = 0;
+                        for (Tuple2<String, Long> element : elements) {
+                            count ++;
+                        }
+                        // 当前 Watermark
+                        long currentWatermark = context.currentWatermark();
+                        // 时间窗口元数据
+                        TimeWindow window = context.window();
+                        long start = window.getStart();
+                        long end = window.getEnd();
+                        String startTime = DateUtil.timeStamp2Date(start, "yyyy-MM-dd HH:mm:ss");
+                        String endTime = DateUtil.timeStamp2Date(end, "yyyy-MM-dd HH:mm:ss");
+                        LOG.info("word: {}, count: {}, watermark: {}, windowStart: {}, windowEnd: {}",
+                                word, count, currentWatermark,
+                                start + "|" + startTime, end + "|" + endTime
+                        );
+                        // 输出
+                        out.collect(Tuple4.of(word, count, startTime, endTime));
+                    }
+                });
 
         stream.print();
-        env.execute("AscendingTimestampWatermarkExample");
-    }
-
-    /**
-     * 自定义ProcessWindowFunction：
-     *      获取窗口元信息
-     */
-    private static class WordsCountProcessWindowFunction extends ProcessWindowFunction<
-            Tuple2<String, Long>,
-            Tuple4<String, Long, String, String>,
-            String,
-            TimeWindow> {
-        @Override
-        public void process(String word, Context context, Iterable<Tuple2<String, Long>> elements, Collector<Tuple4<String, Long, String, String>> out) throws Exception {
-            // 计算出现次数
-            long count = 0;
-            for (Tuple2<String, Long> element : elements) {
-                count ++;
-            }
-            // 当前 Watermark
-            long currentWatermark = context.currentWatermark();
-            // 时间窗口元数据
-            TimeWindow window = context.window();
-            long start = window.getStart();
-            long end = window.getEnd();
-            String startTime = DateUtil.timeStamp2Date(start, "yyyy-MM-dd HH:mm:ss");
-            String endTime = DateUtil.timeStamp2Date(end, "yyyy-MM-dd HH:mm:ss");
-            LOG.info("word: {}, count: {}, watermark: {}, windowStart: {}, windowEnd: {}",
-                    word, count, currentWatermark,
-                    start + "|" + startTime, end + "|" + endTime
-            );
-            // 输出
-            out.collect(Tuple4.of(word, count, startTime, endTime));
-        }
+        env.execute("AscendingWatermarkExample");
     }
 }
