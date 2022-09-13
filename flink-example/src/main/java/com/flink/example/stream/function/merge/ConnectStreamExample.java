@@ -1,4 +1,4 @@
-package com.flink.example.stream.function;
+package com.flink.example.stream.function.merge;
 
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;

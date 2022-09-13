@@ -1,5 +1,6 @@
-package com.flink.example.stream.function;
+package com.flink.example.stream.function.split;
 
+import com.flink.example.stream.function.SideOutputExample;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
