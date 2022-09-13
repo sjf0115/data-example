@@ -40,14 +40,14 @@ public class CustomPunctuatedWatermarkStrategyExample {
         // 提取时间戳、生成Watermark
         DataStream<MyEvent> watermarkStream = input.assignTimestampsAndWatermarks(new CustomWatermarkStrategy());
         // 也可以使用如下方式
-        /*input.assignTimestampsAndWatermarks(new WatermarkStrategy<MyEvent>() {
+        /*input.assignTimestampsAndWatermarks(new WatermarkStrategy<EventState>() {
             @Override
-            public WatermarkGenerator<MyEvent> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
+            public WatermarkGenerator<EventState> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
                 return new CustomPunctuatedGenerator();
             }
-        }.withTimestampAssigner(new SerializableTimestampAssigner<MyEvent>() {
+        }.withTimestampAssigner(new SerializableTimestampAssigner<EventState>() {
             @Override
-            public long extractTimestamp(MyEvent element, long recordTimestamp) {
+            public long extractTimestamp(EventState element, long recordTimestamp) {
                 return element.timestamp;
             }
         }));*/
@@ -147,7 +147,7 @@ public class CustomPunctuatedWatermarkStrategyExample {
 
         @Override
         public String toString() {
-            return "MyEvent{" +
+            return "EventState{" +
                     "key='" + key + '\'' +
                     ", eventTime='" + eventTime + '\'' +
                     ", timestamp=" + timestamp +

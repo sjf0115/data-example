@@ -1,11 +1,10 @@
-package com.flink.example.stream.function;
+package com.flink.example.stream.function.process;
 
 import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -17,16 +16,18 @@ import java.text.ParseException;
 import java.time.Duration;
 
 /**
- * ProcessFunction Simple Example
- * Created by wy on 2021/2/28.
+ * 功能：使用 ProcessFunction 示例
+ * 作者：SmartSi
+ * CSDN博客：https://smartsi.blog.csdn.net/
+ * 公众号：大数据生态
+ * 日期：2022/9/13 上午9:33
  */
 public class ProcessFunctionSimpleExample {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessFunctionSimpleExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        // 设置事件时间特性
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        // 输入源
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
         DataStream<Tuple2<String, String>> stream = source.map(new MapFunction<String, Tuple2<String, String>>() {
@@ -54,22 +55,17 @@ public class ProcessFunctionSimpleExample {
                                 return timeStamp;
                             }
                         })
-        ).process(new MyProcessFunction());
+        ).process(new ProcessFunction<Tuple2<String, String>, Long>() {
+            @Override
+            public void processElement(Tuple2<String, String> value, Context ctx, Collector<Long> out) throws Exception {
+                String key = value.f0;
+                String eventTime = value.f1;
+                Long timestamp = ctx.timestamp();
+                LOG.info("[ProcessElement] Key: {}, EventTime: {}, Timestamp: {}", key, eventTime, timestamp);
+            }
+        });
 
         result.print();
         env.execute("ProcessFunctionSimpleExample");
-    }
-
-    /**
-     * 自定义ProcessFunction
-     */
-    private static class MyProcessFunction extends ProcessFunction<Tuple2<String, String>, Long> {
-        @Override
-        public void processElement(Tuple2<String, String> value, Context ctx, Collector<Long> out) throws Exception {
-            String key = value.f0;
-            String eventTime = value.f1;
-            Long timestamp = ctx.timestamp();
-            LOG.info("[ProcessElement] Key: {}, EventTime: {}, Timestamp: {}", key, eventTime, timestamp);
-        }
     }
 }

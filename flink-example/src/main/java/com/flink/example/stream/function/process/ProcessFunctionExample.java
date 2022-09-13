@@ -1,4 +1,4 @@
-package com.flink.example.stream.function;
+package com.flink.example.stream.function.process;
 
 import com.common.example.utils.DateUtil;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
@@ -8,7 +8,6 @@ import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -29,8 +28,7 @@ public class ProcessFunctionExample {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        // 设置事件时间特性
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        // 输入源
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
         DataStream<Tuple2<String, String>> stream = source.map(new MapFunction<String, Tuple2<String, String>>() {
@@ -45,6 +43,7 @@ public class ProcessFunctionExample {
 
         // 事件时间戳以及watermark
         DataStream<Tuple2<String, Long>> result = stream.assignTimestampsAndWatermarks(
+                // 最大乱序时间为5秒
                 WatermarkStrategy.<Tuple2<String, String>>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                         .withTimestampAssigner(new SerializableTimestampAssigner<Tuple2<String, String>>() {
                             @Override
