@@ -61,16 +61,16 @@ public class KeyedProcessFunctionExample {
                         return tuple.f0;
                     }
                 })
-                .process(new MyKeyedProcessFunction());
+                .process(new CounterKeyedProcessFunction());
 
         result.print();
         env.execute("KeyedProcessFunctionExample");
     }
 
     /**
-     * 自定义 KeyedProcessFunction
+     * 计数器 KeyedProcessFunction
      */
-    private static class MyKeyedProcessFunction extends KeyedProcessFunction<String, Tuple2<String, Long>, Tuple2<String, Long>> {
+    private static class CounterKeyedProcessFunction extends KeyedProcessFunction<String, Tuple2<String, Long>, Tuple2<String, Long>> {
         // 状态
         private ValueState<EventState> state;
         @Override
