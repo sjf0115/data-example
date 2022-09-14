@@ -66,7 +66,7 @@ public class UnionStreamExample {
                                     }
                                 })
                 )
-                // 添加 ProcessFunction 用于输出 A 流的 Watermark
+                // 添加 ProcessFunction 用于输出 B 流的 Watermark
                 .process(new ProcessFunction<String, Tuple3<String, String, Long>>() {
                     @Override
                     public void processElement(String element, Context ctx, Collector<Tuple3<String, String, Long>> out) throws Exception {
@@ -79,33 +79,8 @@ public class UnionStreamExample {
                     }
                 });
 
-        // C 输入流
-        SingleOutputStreamOperator<Tuple3<String, String, Long>> cStream = env.socketTextStream("localhost", 9102, "\n")
-                .assignTimestampsAndWatermarks(
-                        WatermarkStrategy.<String>forBoundedOutOfOrderness(Duration.ofSeconds(5))
-                                .withTimestampAssigner(new SerializableTimestampAssigner<String>() {
-                                    @Override
-                                    public long extractTimestamp(String element, long recordTimestamp) {
-                                        String[] params = element.split(",");
-                                        return Long.parseLong(params[1]);
-                                    }
-                                })
-                )
-                // 添加 ProcessFunction 用于输出 A 流的 Watermark
-                .process(new ProcessFunction<String, Tuple3<String, String, Long>>() {
-                    @Override
-                    public void processElement(String element, Context ctx, Collector<Tuple3<String, String, Long>> out) throws Exception {
-                        String[] params = element.split(",");
-                        String word = params[0];
-                        Long timestamp = Long.parseLong(params[1]);
-                        Long watermark = ctx.timerService().currentWatermark();
-                        LOG.info("CStream word: {}, timestamp: {}, watermark: {}", word, timestamp, watermark);
-                        out.collect(Tuple3.of("CStream", word, timestamp));
-                    }
-                });
-
         // 合并流
-        DataStream<Tuple3<String, String, Long>> unionStream = aStream.union(bStream, cStream);
+        DataStream<Tuple3<String, String, Long>> unionStream = aStream.union(bStream);
         SingleOutputStreamOperator<Tuple3<String, String, Long>> processStream = unionStream.keyBy(new KeySelector<Tuple3<String,String,Long>, String>() {
             @Override
             public String getKey(Tuple3<String, String, Long> element) throws Exception {

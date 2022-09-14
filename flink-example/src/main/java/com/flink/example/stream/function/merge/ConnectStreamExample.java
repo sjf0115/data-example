@@ -1,17 +1,19 @@
 package com.flink.example.stream.function.merge;
 
-import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.ConnectedStreams;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.CoMapFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Connect 流合并 示例
- * Created by wy on 2021/3/24.
+ * 功能：使用 Connect 连接流
+ * 作者：SmartSi
+ * CSDN博客：https://smartsi.blog.csdn.net/
+ * 公众号：大数据生态
+ * 日期：2022/9/13 上午9:33
  */
 public class ConnectStreamExample {
     private static final Logger LOG = LoggerFactory.getLogger(ConnectStreamExample.class);
@@ -19,40 +21,32 @@ public class ConnectStreamExample {
     public static void main(String[] args) throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
 
         // A输入流
-        DataStream<String> aStream = env.socketTextStream("localhost", 9100, "\n");
+        DataStream<String> aStream = env.fromElements("1", "3", "5");
         // B输入流
-        DataStream<String> bStream = env.socketTextStream("localhost", 9101, "\n");
+        DataStream<Integer> bStream = env.fromElements(2, 4, 6);
 
-        KeySelector<Tuple2<String, String>, String> keySelector = new KeySelector<Tuple2<String, String>, String>() {
-            @Override
-            public String getKey(Tuple2<String, String> tuple2) throws Exception {
-                return tuple2.f0;
-            }
-        };
-
-        // 合并流
-        ConnectedStreams<String, String> connectStream = aStream.connect(bStream);
-        DataStream<Tuple2<String, String>> result = connectStream
-                .map(new CoMapFunction<String, String, Tuple2<String, String>>() {
+        // 使用 Connect 连接两个流
+        ConnectedStreams<String, Integer> connectStream = aStream.connect(bStream);
+        // 处理连接流
+        SingleOutputStreamOperator<Long> mapStream = connectStream
+                .map(new CoMapFunction<String, Integer, Long>() {
                     @Override
-                    public Tuple2<String, String> map1(String s) throws Exception {
-                        LOG.info("[A流] Value: {}", s);
-                        String[] split = s.split(",");
-                        return Tuple2.of(split[0], split[1]);
+                    public Long map1(String value) throws Exception {
+                        LOG.info("[A流] Value: {}", value);
+                        return Long.parseLong(value);
                     }
 
                     @Override
-                    public Tuple2<String, String> map2(String s) throws Exception {
-                        LOG.info("[B流] Value: {}", s);
-                        String[] split = s.split(",");
-                        return Tuple2.of(split[0], split[1]);
+                    public Long map2(Integer value) throws Exception {
+                        LOG.info("[B流] Value: {}", value);
+                        return value.longValue();
                     }
-                })
-                .keyBy(keySelector);
-
-        result.print();
+                });
+        // 输出
+        mapStream.print();
 
         env.execute("ConnectStreamExample");
     }
