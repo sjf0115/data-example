@@ -23,14 +23,14 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * 功能：迟到数据处理 (2) AllowedLateness
+ * 功能：迟到数据处理 (1) 直接丢弃
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2022/9/4 上午9:55
  */
-public class AllowedLatenessExample {
-    private static final Logger LOG = LoggerFactory.getLogger(AllowedLatenessExample.class);
+public class LatenessDiscordExample {
+    private static final Logger LOG = LoggerFactory.getLogger(LatenessDiscordExample.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -61,8 +61,6 @@ public class AllowedLatenessExample {
                 })
                 // 1分钟的滚动窗口
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
-                // 最大允许延迟10s
-                .allowedLateness(Time.seconds(10))
                 // 窗口计算
                 .process(new ProcessWindowFunction<Tuple4<Integer, String, Integer, Long>, Tuple2<String, Integer>, String, TimeWindow>() {
                     @Override
@@ -95,6 +93,6 @@ public class AllowedLatenessExample {
 
         // 输出并打印日志
         stream.print();
-        env.execute("AllowedLatenessExample");
+        env.execute("LatenessDiscordExample");
     }
 }

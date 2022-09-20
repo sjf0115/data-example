@@ -28,6 +28,7 @@
         <module>flink-example-1.11</module>
         <module>redis-example</module>
         <module>hadoop-example</module>
+        <module>flink-example-1.15</module>
     </modules>
 
     <properties>

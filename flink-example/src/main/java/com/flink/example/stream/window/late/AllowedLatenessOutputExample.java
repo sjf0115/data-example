@@ -16,6 +16,7 @@ import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindo
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
+import org.apache.flink.util.OutputTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,19 +24,22 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * 功能：迟到数据处理 (2) AllowedLateness
+ * 功能：迟到数据处理 (3) AllowedLateness + Output
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2022/9/4 上午9:55
  */
-public class AllowedLatenessExample {
-    private static final Logger LOG = LoggerFactory.getLogger(AllowedLatenessExample.class);
+public class AllowedLatenessOutputExample {
+    private static final Logger LOG = LoggerFactory.getLogger(AllowedLatenessOutputExample.class);
 
     public static void main(String[] args) throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
+
+        // 侧输出
+        OutputTag<Tuple4<Integer, String, Integer, Long>> lateOutputTag = new OutputTag<Tuple4<Integer, String, Integer, Long>>("LATE"){};
 
         // 每1s输出一次单词
         DataStreamSource<Tuple4<Integer, String, Integer, Long>> source = env.addSource(new OutOfOrderSource());
@@ -63,6 +67,8 @@ public class AllowedLatenessExample {
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 // 最大允许延迟10s
                 .allowedLateness(Time.seconds(10))
+                // 迟到数据收集
+                .sideOutputLateData(lateOutputTag)
                 // 窗口计算
                 .process(new ProcessWindowFunction<Tuple4<Integer, String, Integer, Long>, Tuple2<String, Integer>, String, TimeWindow>() {
                     @Override
@@ -94,7 +100,9 @@ public class AllowedLatenessExample {
                 });
 
         // 输出并打印日志
-        stream.print();
+        stream.print("主链路");
+        // 侧输出
+        stream.getSideOutput(lateOutputTag).print("延迟链路");
         env.execute("AllowedLatenessExample");
     }
 }
