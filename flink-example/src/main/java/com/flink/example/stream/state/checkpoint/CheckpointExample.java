@@ -27,9 +27,10 @@ public class CheckpointExample {
         FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(), props);
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        // 显示启动 Checkpoint 每1s触发(启动)一个新的 Checkpoint
         env.enableCheckpointing(1000);
 
-        // set mode to exactly-once (this is the default)
+        // Checkpoint 模式 默认为 EXACTLY_ONCE
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
 
         // make sure 500 ms of progress happen between checkpoints

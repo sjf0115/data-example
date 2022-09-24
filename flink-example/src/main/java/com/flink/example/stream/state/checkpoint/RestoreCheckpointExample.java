@@ -9,14 +9,20 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.Properties;
 
 /**
- * 从Checkpoint中恢复作业
+ * 从 Checkpoint 中恢复作业
  * Created by wy on 2020/12/26.
  */
 public class RestoreCheckpointExample {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RestoreCheckpointExample.class);
+
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // 配置Checkpoint
@@ -28,17 +34,25 @@ public class RestoreCheckpointExample {
         // 配置失败重启策略：失败后最多重启3次 每次重启间隔10s
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, 10000));
 
-        DataStream<String> source = env.socketTextStream("localhost", 9100, "\n")
-                .name("MySourceFunction");
+        // Kafka Consumer 配置
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("group.id", "word-count");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("auto.offset.reset", "latest");
+
+        DataStream<String> source = env.socketTextStream("localhost", 9100, "\n").name("MySourceFunction");
         DataStream<Tuple2<String, Integer>> wordsCount = source.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
             @Override
             public void flatMap(String value, Collector out) {
-                // 失败信号
-                if (Objects.equals(value, "ERROR")) {
-                    throw new RuntimeException("custom error flag, restart application");
-                }
                 // 拆分单词
                 for (String word : value.split("\\s")) {
+                    LOG.info("word: {}", word);
+                    // 失败信号
+                    if (Objects.equals(word, "ERROR")) {
+                        throw new RuntimeException("custom error flag, restart application");
+                    }
                     out.collect(Tuple2.of(word, 1));
                 }
             }
