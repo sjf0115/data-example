@@ -1,31 +1,20 @@
 package com.flink.example.stream.state.checkpoint;
 
 import com.flink.example.stream.function.BehaviorParseMapFunction;
-import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
-
-import java.util.Properties;
 
 /**
- * Checkpoint Demo
- * Created by wy on 2020/11/22.
+ * 功能：Checkpoint 参数示例
+ * 作者：SmartSi
+ * CSDN博客：https://smartsi.blog.csdn.net/
+ * 公众号：大数据生态
+ * 日期：2022/9/8 下午11:16
  */
 public class CheckpointExample {
     public static void main(String[] args) throws Exception{
-        Properties props = new Properties();
-        props.put("bootstrap.servers", "localhost:9092");
-        props.put("group.id", "metric-group");
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("auto.offset.reset", "latest");
-
-        String topic = "weibo_behavior";
-        FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(), props);
-
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // 显示启动 Checkpoint 每1s触发(启动)一个新的 Checkpoint
         env.enableCheckpointing(1000);
@@ -33,27 +22,26 @@ public class CheckpointExample {
         // Checkpoint 模式 默认为 EXACTLY_ONCE
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
 
-        // make sure 500 ms of progress happen between checkpoints
+        // 最小时间间隔
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(500);
 
-        // checkpoints have to complete within one minute, or are discarded
+        // Checkpoint 超时时间
         env.getCheckpointConfig().setCheckpointTimeout(60000);
 
-        // allow only one checkpoint to be in progress at the same time
+        // 最多同时执行的 Checkpoint 个数
         env.getCheckpointConfig().setMaxConcurrentCheckpoints(1);
 
-        // enable externalized checkpoints which are retained after job cancellation
+        // 外部持久化 Checkpoint 即使作业取消也可以保留 Checkpoint
         env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
-        // allow job recovery fallback to checkpoint when there is a more recent savepoint
-        env.getCheckpointConfig().setPreferCheckpointForRecovery(true);
-
-        // enables the experimental unaligned checkpoints
-        env.getCheckpointConfig().enableUnalignedCheckpoints();
-
+        // 可容忍的 Checkpoint 失败次数
         env.getCheckpointConfig().setTolerableCheckpointFailureNumber(1);
 
-        DataStreamSource<String> source = env.addSource(consumer).setParallelism(1);
+        // 启用非对齐 Checkpoint
+        env.getCheckpointConfig().enableUnalignedCheckpoints();
+
+        DataStreamSource<String> source = env.socketTextStream("localhost", 9100, "\n")
+                .setParallelism(1);
         source.map(new BehaviorParseMapFunction())
                 .setParallelism(1)
                 .uid("behavior-parse-map-function");
