@@ -7,7 +7,7 @@ import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
-import org.apache.flink.runtime.state.storage.FileSystemCheckpointStorage;
+import org.apache.flink.runtime.state.storage.JobManagerCheckpointStorage;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
@@ -36,8 +36,7 @@ public class HashMapStateBackendExample {
 
         // 设置Checkpoint存储
         env.enableCheckpointing(1000L);
-        FileSystemCheckpointStorage checkpointStorage = new FileSystemCheckpointStorage("hdfs://localhost:9000/flink/checkpoint");
-        env.getCheckpointConfig().setCheckpointStorage(checkpointStorage);
+        env.getCheckpointConfig().setCheckpointStorage(new JobManagerCheckpointStorage());
 
         DataStream<String> source = env.socketTextStream("localhost", 9100, "\n");
 
