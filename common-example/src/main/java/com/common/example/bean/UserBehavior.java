@@ -7,11 +7,17 @@ package com.common.example.bean;
  * 日期：2022/5/3 下午10:48
  */
 public class UserBehavior {
+    // 用户Id
     private Long uid;
+    // 商品Id
     private Long pid;
+    // 类别Id
     private Long cid;
+    // 行为类型
     private String type;
+    // 行为时间戳
     private Long timestamp;
+    // 行为
     private String time;
 
     public UserBehavior() {

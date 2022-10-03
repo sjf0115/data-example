@@ -1,6 +1,7 @@
 package com.kafka.example.producer;
 
 import com.common.example.bean.UserBehavior;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.kafka.example.consumer.AsyncSendCallback;
@@ -8,6 +9,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -20,51 +22,62 @@ import java.util.Properties;
 public class UserBehaviorSimpleProducer {
     private static final Gson gson = new GsonBuilder().create();
     private static final String TOPIC = "user_behavior";
+    private static final Long SLEEP_TIME = 5*1000L;
 
     public static void main(String[] args) {
+        // 配置
         Properties props = new Properties();
         props.put("bootstrap.servers", "localhost:9092");
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        Producer<String, String> producer = new KafkaProducer<>(props);
-
-//        String line = "1001,3827899,2920476,pv,1511713473000,2017-11-27 00:24:33";
-//        String line = "1001,3745169,2891509,pv,1511714671000,2017-11-27 00:44:31";
-//        String line = "1002,266784,2520771,pv,1511715653000,2017-11-27 01:00:53";
-//        String line = "1002,2286574,2465336,pv,1511716407000,2017-11-27 01:13:27";
-//        String line = "1001,1531036,2920476,pv,1511718252000,2017-11-27 01:44:12";
-//        String line = "1001,2266567,4145813,pv,1511741471000,2017-11-27 08:11:11";
-        String line = "1001,2951368,1080785,pv,1511750828000,2017-11-27 10:47:08";
-
-        // CSV 格式
-//        String[] params = line.split(",");
-//        String key = params[0];
-//        String value = line;
-
-        // Json 格式
-        String[] params = line.split(",");
-        Long uid = Long.parseLong(params[0]);
-        Long pid = Long.parseLong(params[1]);
-        Long cid = Long.parseLong(params[2]);
-        String type = params[3];
-        Long ts = Long.parseLong(params[4]);
-        String time = params[5];
-        UserBehavior userBehavior = new UserBehavior(uid, pid, cid, type, ts, time);
-        String key = String.valueOf(uid);
-        String value = gson.toJson(userBehavior);
+        // 输入数据
+        List<String> elements = Lists.newArrayList(
+                "1001,3827899,2920476,pv,1664636572000,2022-10-01 23:02:52",
+                "1001,3745169,2891509,pv,1664636570000,2022-10-01 23:02:50",
+                "1001,266784,2520771,pv,1664636573000,2022-10-01 23:02:53",
+                "1001,2286574,2465336,pv,1664636574000,2022-10-01 23:02:54",
+                "1001,1531036,2920476,pv,1664636577000,2022-10-01 23:02:57",
+                "1001,2266567,4145813,pv,1664636584000,2022-10-01 23:03:04",
+                "1001,2951368,1080785,pv,1664636576000,2022-10-01 23:02:56",
+                "1001,3658601,2342116,pv,1664636586000,2022-10-01 23:03:06",
+                "1001,5153036,2342116,pv,1664636578000,2022-10-01 23:02:58",
+                "1001,598929,2429887,pv,1664636591000,2022-10-01 23:03:11",
+                "1001,3245421,2881542,pv,1664636595000,2022-10-01 23:03:15",
+                "1001,1046201,3002561,pv,1664636579000,2022-10-01 23:02:59",
+                "1001,2971043,4869428,pv,1664636646000,2022-10-01 23:04:06"
+        );
 
         // 发送
-        ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC, key, value);
-        producer.send(record, new AsyncSendCallback());
+        Producer<String, String> producer = new KafkaProducer<>(props);
+        for (String element : elements) {
+            // CSV 格式
+            //        String[] params = element.split(",");
+            //        String key = params[0];
+            //        String value = line;
+            // Json 格式
+            String[] params = element.split(",");
+            Long uid = Long.parseLong(params[0]);
+            Long pid = Long.parseLong(params[1]);
+            Long cid = Long.parseLong(params[2]);
+            String type = params[3];
+            Long ts = Long.parseLong(params[4]);
+            String time = params[5];
+            UserBehavior userBehavior = new UserBehavior(uid, pid, cid, type, ts, time);
+            String key = String.valueOf(uid);
+            String value = gson.toJson(userBehavior);
+
+            // 发送
+            ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC, key, value);
+            producer.send(record, new AsyncSendCallback());
+            try {
+                // 每5s输出一次
+                Thread.sleep(SLEEP_TIME);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         producer.close();
     }
 }
-//1001,3827899,2920476,pv,1511713473000,2017-11-27 00:24:33
-//1001,3745169,2891509,pv,1511714671000,2017-11-27 00:44:31
-//1002,266784,2520771,pv,1511715653000,2017-11-27 01:00:53
-//1002,2286574,2465336,pv,1511716407000,2017-11-27 01:13:27
-//1001,1531036,2920476,pv,1511718252000,2017-11-27 01:44:12
-//1001,2266567,4145813,pv,1511741471000,2017-11-27 08:11:11
-//1001,2951368,1080785,pv,1511750828000,2017-11-27 10:47:08
 
