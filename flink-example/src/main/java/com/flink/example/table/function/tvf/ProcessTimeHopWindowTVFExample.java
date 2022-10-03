@@ -1,17 +1,17 @@
-package com.flink.example.table.function.windows;
+package com.flink.example.table.function.tvf;
 
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 
 /**
- * 功能：窗口 TVF 基于处理时间的滚动窗口 10秒一个窗口
+ * 功能：窗口 TVF 基于处理时间的跳跃窗口 1分钟一个窗口 10s滑动一次
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2022/10/3 上午8:55
  */
-public class ProcessTimeTumbleWindowTVFExample {
+public class ProcessTimeHopWindowTVFExample {
     public static void main(String[] args) {
         // 执行环境
         EnvironmentSettings settings = EnvironmentSettings
@@ -21,7 +21,7 @@ public class ProcessTimeTumbleWindowTVFExample {
         TableEnvironment tEnv = TableEnvironment.create(settings);
         // 设置作业名称
         Configuration configuration = tEnv.getConfig().getConfiguration();
-        configuration.setString("pipeline.name", ProcessTimeTumbleWindowTVFExample.class.getSimpleName());
+        configuration.setString("pipeline.name", ProcessTimeHopWindowTVFExample.class.getSimpleName());
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE user_behavior (\n" +
@@ -64,7 +64,7 @@ public class ProcessTimeTumbleWindowTVFExample {
                 "  MAX(`time`) AS max_time,\n" +
                 "  COLLECT(DISTINCT pid) AS pid_set\n" +
                 "FROM TABLE(\n" +
-                "    TUMBLE(TABLE user_behavior, DESCRIPTOR(process_time), INTERVAL '1' MINUTES)\n" +
+                "    HOP(TABLE user_behavior, DESCRIPTOR(process_time), INTERVAL '30' SECONDS, INTERVAL '1' MINUTES)\n" +
                 ")\n" +
                 "GROUP BY window_start, window_end");
     }

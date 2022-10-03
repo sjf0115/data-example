@@ -1,4 +1,4 @@
-package com.flink.example.table.function.windows;
+package com.flink.example.table.function.tvf;
 
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.api.EnvironmentSettings;
@@ -11,7 +11,7 @@ import org.apache.flink.table.api.TableEnvironment;
  * 公众号：大数据生态
  * 日期：2022/10/3 上午8:55
  */
-public class EventTimeTumbleWindowTVFExample {
+public class EventTimeHopWindowTVFExample {
     public static void main(String[] args) {
         // 执行环境
         EnvironmentSettings settings = EnvironmentSettings
@@ -21,7 +21,7 @@ public class EventTimeTumbleWindowTVFExample {
         TableEnvironment tEnv = TableEnvironment.create(settings);
         // 设置作业名称
         Configuration configuration = tEnv.getConfig().getConfiguration();
-        configuration.setString("pipeline.name", EventTimeTumbleWindowTVFExample.class.getSimpleName());
+        configuration.setString("pipeline.name", EventTimeHopWindowTVFExample.class.getSimpleName());
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE user_behavior (\n" +
@@ -65,7 +65,7 @@ public class EventTimeTumbleWindowTVFExample {
                 "  MAX(`time`) AS max_time,\n" +
                 "  COLLECT(DISTINCT pid) AS pid_set\n" +
                 "FROM TABLE(\n" +
-                "    TUMBLE(TABLE user_behavior, DESCRIPTOR(ts_ltz), INTERVAL '1' MINUTES)\n" +
+                "    HOP(TABLE user_behavior, DESCRIPTOR(ts_ltz), INTERVAL '30' SECONDS, INTERVAL '1' MINUTES)\n" +
                 ")\n" +
                 "GROUP BY window_start, window_end");
     }
