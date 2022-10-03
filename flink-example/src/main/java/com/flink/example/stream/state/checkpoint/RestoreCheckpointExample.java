@@ -1,14 +1,18 @@
 package com.flink.example.stream.state.checkpoint;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
+import com.common.example.bean.WordCount;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
+import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
+import org.apache.flink.runtime.state.storage.JobManagerCheckpointStorage;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.util.Collector;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,52 +26,64 @@ import java.util.Properties;
 public class RestoreCheckpointExample {
 
     private static final Logger LOG = LoggerFactory.getLogger(RestoreCheckpointExample.class);
+    private static Gson gson = new GsonBuilder().create();
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        // 配置Checkpoint
-        env.enableCheckpointing(1000);
-        env.setStateBackend(new FsStateBackend("hdfs://localhost:9000/flink/checkpoint"));
-        env.getCheckpointConfig().setMinPauseBetweenCheckpoints(500);
-        env.getCheckpointConfig().setCheckpointTimeout(60000);
-        env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
+        env.setParallelism(1);
+
+        // 配置 状态后端
+        env.setStateBackend(new HashMapStateBackend());
+        // 配置 Checkpoint 每30s触发一次Checkpoint 实际不用设置的这么大
+        env.enableCheckpointing(30*1000);
+        env.getCheckpointConfig().setCheckpointStorage(new JobManagerCheckpointStorage());
+
         // 配置失败重启策略：失败后最多重启3次 每次重启间隔10s
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, 10000));
 
-        // Kafka Consumer 配置
+        // 配置 Kafka Consumer
         Properties props = new Properties();
         props.put("bootstrap.servers", "localhost:9092");
         props.put("group.id", "word-count");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("auto.offset.reset", "latest");
+        String topic = "word";
+        FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(), props);
+        // Kafka Source
+        DataStream<String> source = env.addSource(consumer).uid("KafkaSource");
 
-        DataStream<String> source = env.socketTextStream("localhost", 9100, "\n").name("MySourceFunction");
-        DataStream<Tuple2<String, Integer>> wordsCount = source.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
-            @Override
-            public void flatMap(String value, Collector out) {
-                // 拆分单词
-                for (String word : value.split("\\s")) {
-                    LOG.info("word: {}", word);
-                    // 失败信号
-                    if (Objects.equals(word, "ERROR")) {
-                        throw new RuntimeException("custom error flag, restart application");
-                    }
-                    out.collect(Tuple2.of(word, 1));
-                }
-            }
-        }).name("MyFlatMapFunction");
-
-        DataStream<Tuple2<String, Integer>> windowCount = wordsCount
-                .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
+        // 计算单词个数
+        SingleOutputStreamOperator<WordCount> result = source
+                .map(new MapFunction<String, WordCount>() {
                     @Override
-                    public String getKey(Tuple2<String, Integer> tuple) throws Exception {
-                        return tuple.f0;
+                    public WordCount map(String element) throws Exception {
+                        WordCount wordCount = gson.fromJson(element, WordCount.class);
+                        String word = wordCount.getWord();
+                        LOG.info("word: {}, frequency: {}", word, wordCount.getFrequency());
+                        // 失败信号 模拟作业遇到脏数据
+                        if (Objects.equals(word, "ERROR")) {
+                            throw new RuntimeException("custom error flag, restart application");
+                        }
+                        return wordCount;
+                    }
+                }).uid("Map")
+                .keyBy(new KeySelector<WordCount, String>() {
+                    @Override
+                    public String getKey(WordCount element) throws Exception {
+                        return element.getWord();
                     }
                 })
-                .sum(1).name("MySumFunction");
+                .sum("frequency").uid("Sum");
 
-        windowCount.print().setParallelism(1).name("MyPrintFunction");
+        result.print().uid("Print");
         env.execute("RestoreCheckpointExample");
     }
 }
+// a
+// b
+// a
+// Checkpoint
+// a
+// c
+// ERROR

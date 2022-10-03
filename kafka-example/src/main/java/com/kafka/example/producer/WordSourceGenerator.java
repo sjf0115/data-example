@@ -24,26 +24,18 @@ public class WordSourceGenerator {
     // 最多发送条数
     private static final long THRESHOLD = 20;
     private static final String TOPIC = "word";
-    private static List<String> words = Lists.newArrayList("hello", "word", "flink", "spark", "storm");
 
     /**
      * 异步发送Kafka
      */
-    public static void asyncSend() throws InterruptedException {
-        Properties props = new Properties();
-        props.put("bootstrap.servers", "localhost:9092");
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
-        Producer<String, String> producer = new KafkaProducer<>(props);
-
+    public static void asyncSend(Producer<String, String> producer, List<String> words) throws InterruptedException {
         // 每条耗时多少毫秒 = 1s(1000000ns) / 1000
         long delay = 1000_000 / SPEED;
         long start = System.nanoTime();
         int index = 1;
         Random random = new Random();
         while (true) {
-            int wordIndex = random.nextInt(4);
+            int wordIndex = random.nextInt(words.size());
             String word = words.get(wordIndex);
             WordCount wordCount = new WordCount(word, 1L);
             String value = gson.toJson(wordCount);
@@ -66,11 +58,23 @@ public class WordSourceGenerator {
                 break;
             }
         }
-
-        producer.close();
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        asyncSend();
+    public static void main(String[] args) {
+        List<String> words = Lists.newArrayList("hello", "word", "flink", "spark", "storm");
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        Producer<String, String> producer = null;
+
+        try {
+            producer = new KafkaProducer<>(props);
+            asyncSend(producer, words);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            producer.close();
+        }
     }
 }
