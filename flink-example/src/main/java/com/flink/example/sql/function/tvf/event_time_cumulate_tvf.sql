@@ -1,4 +1,4 @@
---  基于事件时间的跳跃窗口
+--  基于事件时间的累积窗口
 CREATE TABLE user_behavior (
   uid BIGINT COMMENT '用户Id',
   pid BIGINT COMMENT '商品Id',
@@ -38,6 +38,6 @@ SELECT
   MAX(`time`) AS max_time,
   COLLECT(DISTINCT pid) AS pid_set
 FROM TABLE(
-    HOP(TABLE user_behavior, DESCRIPTOR(ts_ltz), INTERVAL '30' SECONDS, INTERVAL '1' MINUTES)
+    CUMULATE(TABLE user_behavior, DESCRIPTOR(ts_ltz), INTERVAL '10' SECONDS, INTERVAL '1' MINUTES)
 )
 GROUP BY window_start, window_end

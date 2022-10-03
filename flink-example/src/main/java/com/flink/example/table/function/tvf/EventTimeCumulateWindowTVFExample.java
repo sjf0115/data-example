@@ -5,13 +5,13 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 
 /**
- * 功能：窗口 TVF 基于事件时间的滚动窗口 1分钟内一个窗口
+ * 功能：窗口 TVF 基于事件时间的累积窗口 1分钟一个窗口 每10s输出一次
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2022/10/3 上午8:55
  */
-public class EventTimeTumbleWindowTVFExample {
+public class EventTimeCumulateWindowTVFExample {
     public static void main(String[] args) {
         // 执行环境
         EnvironmentSettings settings = EnvironmentSettings
@@ -21,7 +21,7 @@ public class EventTimeTumbleWindowTVFExample {
         TableEnvironment tEnv = TableEnvironment.create(settings);
         // 设置作业名称
         Configuration configuration = tEnv.getConfig().getConfiguration();
-        configuration.setString("pipeline.name", EventTimeTumbleWindowTVFExample.class.getSimpleName());
+        configuration.setString("pipeline.name", EventTimeCumulateWindowTVFExample.class.getSimpleName());
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE user_behavior (\n" +
@@ -65,7 +65,7 @@ public class EventTimeTumbleWindowTVFExample {
                 "  MAX(`time`) AS max_time,\n" +
                 "  COLLECT(DISTINCT pid) AS pid_set\n" +
                 "FROM TABLE(\n" +
-                "    TUMBLE(TABLE user_behavior, DESCRIPTOR(ts_ltz), INTERVAL '1' MINUTES)\n" +
+                "    CUMULATE(TABLE user_behavior, DESCRIPTOR(ts_ltz), INTERVAL '10' SECONDS, INTERVAL '1' MINUTES)\n" +
                 ")\n" +
                 "GROUP BY window_start, window_end");
     }

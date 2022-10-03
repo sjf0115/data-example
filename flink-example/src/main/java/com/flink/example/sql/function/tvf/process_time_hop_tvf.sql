@@ -1,4 +1,4 @@
---  基于处理时间的滚动窗口
+--  基于处理时间的跳跃窗口
 CREATE TABLE user_behavior (
   uid BIGINT COMMENT '用户Id',
   pid BIGINT COMMENT '商品Id',

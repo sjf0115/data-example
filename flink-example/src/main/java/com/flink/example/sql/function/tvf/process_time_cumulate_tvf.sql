@@ -1,4 +1,4 @@
---  基于事件时间的跳跃窗口
+--  基于处理时间的累积窗口
 CREATE TABLE user_behavior (
   uid BIGINT COMMENT '用户Id',
   pid BIGINT COMMENT '商品Id',
@@ -6,8 +6,7 @@ CREATE TABLE user_behavior (
   type STRING COMMENT '行为类型',
   `timestamp` BIGINT COMMENT '行为时间',
   `time` STRING COMMENT '行为时间',
-  ts_ltz AS TO_TIMESTAMP_LTZ(`timestamp`, 3), -- 事件时间
-  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '5' SECOND -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列
+  process_time AS PROCTIME() -- 处理时间
 ) WITH (
   'connector' = 'kafka',
   'topic' = 'user_behavior',
@@ -38,6 +37,6 @@ SELECT
   MAX(`time`) AS max_time,
   COLLECT(DISTINCT pid) AS pid_set
 FROM TABLE(
-    HOP(TABLE user_behavior, DESCRIPTOR(ts_ltz), INTERVAL '30' SECONDS, INTERVAL '1' MINUTES)
+    CUMULATE(TABLE user_behavior, DESCRIPTOR(process_time), INTERVAL '10' SECONDS, INTERVAL '1' MINUTES)
 )
 GROUP BY window_start, window_end
