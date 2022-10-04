@@ -1,4 +1,4 @@
-package com.flink.example.table.function.windows;
+package com.flink.example.table.function.window;
 
 import com.common.example.bean.UserBehavior;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;

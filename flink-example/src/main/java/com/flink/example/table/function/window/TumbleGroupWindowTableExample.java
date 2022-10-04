@@ -1,4 +1,4 @@
-package com.flink.example.table.function.windows;
+package com.flink.example.table.function.window;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
