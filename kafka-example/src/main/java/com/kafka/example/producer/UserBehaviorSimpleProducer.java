@@ -23,8 +23,9 @@ public class UserBehaviorSimpleProducer {
     private static final Gson gson = new GsonBuilder().create();
     private static final String TOPIC = "user_behavior";
     private static final Long SLEEP_TIME = 5*1000L;
+    private static final Long SESSION_SLEEP_TIME = 6*1000L;
 
-    public static void main(String[] args) {
+    public static void send(boolean isSessionWindow) {
         // 配置
         Properties props = new Properties();
         props.put("bootstrap.servers", "localhost:9092");
@@ -50,6 +51,7 @@ public class UserBehaviorSimpleProducer {
 
         // 发送
         Producer<String, String> producer = new KafkaProducer<>(props);
+        int index = 1;
         for (String element : elements) {
             // CSV 格式
             //        String[] params = element.split(",");
@@ -71,13 +73,27 @@ public class UserBehaviorSimpleProducer {
             ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC, key, value);
             producer.send(record, new AsyncSendCallback());
             try {
-                // 每5s输出一次
-                Thread.sleep(SLEEP_TIME);
+                // SessionWindow 场景下 第二个和第6个数据记录后增加1s休眠时间
+                if(isSessionWindow && (index == 2 || index == 6)) {
+                    // 每6s输出一次
+                    Thread.sleep(SESSION_SLEEP_TIME);
+                } else {
+                    // 每5s输出一次
+                    Thread.sleep(SLEEP_TIME);
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            index ++;
         }
         producer.close();
+    }
+
+    public static void main(String[] args) {
+        // 用于会话窗口
+        send(true);
+        // 用于滚动,滑动窗口
+        //send(false);
     }
 }
 

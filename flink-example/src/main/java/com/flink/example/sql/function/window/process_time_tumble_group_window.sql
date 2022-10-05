@@ -39,6 +39,3 @@ SELECT
   COLLECT(DISTINCT pid) AS pid_set
 FROM user_behavior
 GROUP BY TUMBLE(process_time, INTERVAL '1' MINUTE)
-
--- DATE_FORMAT(TUMBLE_START(process_time, INTERVAL '1' HOUR), 'yyyy-MM-dd HH:mm:ss') AS window_start,
--- DATE_FORMAT(TUMBLE_END(process_time, INTERVAL '1' HOUR), 'yyyy-MM-dd HH:mm:ss') AS window_end,

@@ -1,4 +1,4 @@
---  基于处理时间的滑动窗口
+--  基于处理时间的会话窗口
 CREATE TABLE user_behavior (
   uid BIGINT COMMENT '用户Id',
   pid BIGINT COMMENT '商品Id',
@@ -31,11 +31,11 @@ CREATE TABLE user_behavior_cnt (
 
 INSERT INTO user_behavior_cnt
 SELECT
-  HOP_START(process_time, INTERVAL '30' SECOND, INTERVAL '1' MINUTE) AS window_start,
-  HOP_END(process_time, INTERVAL '30' SECOND, INTERVAL '1' MINUTE) AS window_end,
+  SESSION_START(process_time, INTERVAL '6' SECOND) AS window_start,
+  SESSION_END(process_time, INTERVAL '6' SECOND) AS window_end,
   COUNT(*) AS cnt,
   MIN(`time`) AS min_time,
   MAX(`time`) AS max_time,
   COLLECT(DISTINCT pid) AS pid_set
 FROM user_behavior
-GROUP BY HOP(process_time, INTERVAL '30' SECOND, INTERVAL '1' MINUTE)
+GROUP BY SESSION(process_time, INTERVAL '6' SECOND)

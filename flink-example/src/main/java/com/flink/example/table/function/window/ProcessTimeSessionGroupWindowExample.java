@@ -5,13 +5,13 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 
 /**
- * 功能：基于事件时间 滚动分组窗口函数 SQL 示例
+ * 功能：基于处理时间 会话分组窗口函数 SQL 示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
  * 日期：2022/5/16 下午10:02
  */
-public class EventTimeTumbleGroupWindowExample {
+public class ProcessTimeSessionGroupWindowExample {
     public static void main(String[] args) {
         // 执行环境
         EnvironmentSettings settings = EnvironmentSettings
@@ -21,7 +21,7 @@ public class EventTimeTumbleGroupWindowExample {
         TableEnvironment tEnv = TableEnvironment.create(settings);
         // 设置作业名称
         Configuration configuration = tEnv.getConfig().getConfiguration();
-        configuration.setString("pipeline.name", EventTimeTumbleGroupWindowExample.class.getSimpleName());
+        configuration.setString("pipeline.name", ProcessTimeSessionGroupWindowExample.class.getSimpleName());
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE user_behavior (\n" +
@@ -31,8 +31,7 @@ public class EventTimeTumbleGroupWindowExample {
                 "  type STRING COMMENT '行为类型',\n" +
                 "  `timestamp` BIGINT COMMENT '行为时间',\n" +
                 "  `time` STRING COMMENT '行为时间',\n" +
-                "  ts_ltz AS TO_TIMESTAMP_LTZ(`timestamp`, 3), -- 事件时间\n" +
-                "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '5' SECOND -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列\n" +
+                "  process_time AS PROCTIME() -- 处理时间\n" +
                 ") WITH (\n" +
                 "  'connector' = 'kafka',\n" +
                 "  'topic' = 'user_behavior',\n" +
@@ -59,13 +58,13 @@ public class EventTimeTumbleGroupWindowExample {
         // 执行计算并输出
         tEnv.executeSql("INSERT INTO user_behavior_cnt\n" +
                 "SELECT\n" +
-                "  TUMBLE_START(ts_ltz, INTERVAL '1' MINUTE) AS window_start,\n" +
-                "  TUMBLE_END(ts_ltz, INTERVAL '1' MINUTE) AS window_end,\n" +
+                "  SESSION_START(process_time, INTERVAL '6' SECOND) AS window_start,\n" +
+                "  SESSION_END(process_time, INTERVAL '6' SECOND) AS window_end,\n" +
                 "  COUNT(*) AS cnt,\n" +
                 "  MIN(`time`) AS min_time,\n" +
                 "  MAX(`time`) AS max_time,\n" +
                 "  COLLECT(DISTINCT pid) AS pid_set\n" +
                 "FROM user_behavior\n" +
-                "GROUP BY TUMBLE(ts_ltz, INTERVAL '1' MINUTE)");
+                "GROUP BY SESSION(process_time, INTERVAL '6' SECOND)");
     }
 }

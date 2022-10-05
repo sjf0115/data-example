@@ -5,13 +5,13 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 
 /**
- * 功能：基于事件时间 滚动分组窗口函数 SQL 示例
+ * 功能：基于事件时间 会话分组窗口函数 SQL 示例
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
  * 日期：2022/5/16 下午10:02
  */
-public class EventTimeTumbleGroupWindowExample {
+public class EventTimeSessionGroupWindowExample {
     public static void main(String[] args) {
         // 执行环境
         EnvironmentSettings settings = EnvironmentSettings
@@ -21,7 +21,7 @@ public class EventTimeTumbleGroupWindowExample {
         TableEnvironment tEnv = TableEnvironment.create(settings);
         // 设置作业名称
         Configuration configuration = tEnv.getConfig().getConfiguration();
-        configuration.setString("pipeline.name", EventTimeTumbleGroupWindowExample.class.getSimpleName());
+        configuration.setString("pipeline.name", EventTimeSessionGroupWindowExample.class.getSimpleName());
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE user_behavior (\n" +

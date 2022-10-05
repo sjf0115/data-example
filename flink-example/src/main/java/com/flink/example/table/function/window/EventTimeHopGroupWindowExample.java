@@ -59,13 +59,13 @@ public class EventTimeHopGroupWindowExample {
         // 执行计算并输出
         tEnv.executeSql("INSERT INTO user_behavior_cnt\n" +
                 "SELECT\n" +
-                "  HOP_START(ts_ltz, INTERVAL '30' SECONDS, INTERVAL '1' MINUTE) AS window_start,\n" +
-                "  HOP_END(ts_ltz, INTERVAL '30' SECONDS, INTERVAL '1' MINUTE) AS window_end,\n" +
+                "  HOP_START(ts_ltz, INTERVAL '30' SECOND, INTERVAL '1' MINUTE) AS window_start,\n" +
+                "  HOP_END(ts_ltz, INTERVAL '30' SECOND, INTERVAL '1' MINUTE) AS window_end,\n" +
                 "  COUNT(*) AS cnt,\n" +
                 "  MIN(`time`) AS min_time,\n" +
                 "  MAX(`time`) AS max_time,\n" +
                 "  COLLECT(DISTINCT pid) AS pid_set\n" +
                 "FROM user_behavior\n" +
-                "GROUP BY HOP(ts_ltz, INTERVAL '30' SECONDS, INTERVAL '1' MINUTE)");
+                "GROUP BY HOP(ts_ltz, INTERVAL '30' SECOND, INTERVAL '1' MINUTE)");
     }
 }

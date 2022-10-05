@@ -1,4 +1,4 @@
--- 1. 基于事件时间的滚动窗口
+-- 1. 基于事件时间的滑动窗口
 CREATE TABLE user_behavior (
   uid BIGINT COMMENT '用户Id',
   pid BIGINT COMMENT '商品Id',
@@ -32,11 +32,11 @@ CREATE TABLE user_behavior_cnt (
 
 INSERT INTO user_behavior_cnt
 SELECT
-  HOP_START(ts_ltz, INTERVAL '30' SECONDS, INTERVAL '1' MINUTE) AS window_start,
-  HOP_END(ts_ltz, INTERVAL '30' SECONDS, INTERVAL '1' MINUTE) AS window_end,
+  HOP_START(ts_ltz, INTERVAL '30' SECOND, INTERVAL '1' MINUTE) AS window_start,
+  HOP_END(ts_ltz, INTERVAL '30' SECOND, INTERVAL '1' MINUTE) AS window_end,
   COUNT(*) AS cnt,
   MIN(`time`) AS min_time,
   MAX(`time`) AS max_time,
   COLLECT(DISTINCT pid) AS pid_set
 FROM user_behavior
-GROUP BY HOP(ts_ltz, INTERVAL '30' SECONDS, INTERVAL '1' MINUTE)
+GROUP BY HOP(ts_ltz, INTERVAL '30' SECOND, INTERVAL '1' MINUTE)
