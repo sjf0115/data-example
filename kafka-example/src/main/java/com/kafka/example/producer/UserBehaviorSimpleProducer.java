@@ -91,9 +91,9 @@ public class UserBehaviorSimpleProducer {
 
     public static void main(String[] args) {
         // 用于会话窗口
-        send(true);
+        //send(true);
         // 用于滚动,滑动窗口
-        //send(false);
+        send(false);
     }
 }
 
