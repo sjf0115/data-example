@@ -5,7 +5,7 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 
 /**
- * 功能：
+ * 功能：基于处理时间滚动窗口 迟到触发输出
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态

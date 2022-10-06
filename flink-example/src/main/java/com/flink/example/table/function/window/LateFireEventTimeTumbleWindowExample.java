@@ -5,7 +5,7 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 
 /**
- * 功能：
+ * 功能：基于事件时间滚动窗口 迟到触发输出
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
@@ -25,6 +25,8 @@ public class LateFireEventTimeTumbleWindowExample {
         // 窗口提前触发
         config.setBoolean("table.exec.emit.late-fire.enabled", true);
         config.setString("table.exec.emit.late-fire.delay", "10s");
+        // 状态保留 10分钟
+        config.setString("table.exec.state.ttl", "600000");
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE user_behavior (\n" +
