@@ -18,6 +18,7 @@ CREATE TABLE user_behavior (
 )
 
 CREATE TABLE user_behavior_cnt (
+  `current_time` STRING COMMENT '当前处理时间',
   window_start STRING COMMENT '窗口开始时间',
   window_end STRING COMMENT '窗口结束时间',
   cnt BIGINT COMMENT '次数'
@@ -27,6 +28,7 @@ CREATE TABLE user_behavior_cnt (
 
 INSERT INTO user_behavior_cnt
 SELECT
+  DATE_FORMAT(now(), 'yyyy-MM-dd HH:mm:ss') AS `current_time`,
   DATE_FORMAT(TUMBLE_START(ts_ltz, INTERVAL '1' MINUTE), 'yyyy-MM-dd HH:mm:ss') AS window_start,
   DATE_FORMAT(TUMBLE_END(ts_ltz, INTERVAL '1' MINUTE), 'yyyy-MM-dd HH:mm:ss') AS window_end,
   COUNT(*) AS cnt

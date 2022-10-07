@@ -24,9 +24,9 @@ public class LateFireEventTimeTumbleWindowExample {
         config.setString("pipeline.name", LateFireEventTimeTumbleWindowExample.class.getSimpleName());
         // 窗口提前触发
         config.setBoolean("table.exec.emit.late-fire.enabled", true);
-        config.setString("table.exec.emit.late-fire.delay", "5s");
-        // 状态保留 10分钟
-        config.setString("table.exec.state.ttl", "600000");
+        config.setString("table.exec.emit.late-fire.delay", "10s");
+        // 可允许延迟10s
+        config.setString("table.exec.emit.allow-lateness", "10s");
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE user_behavior (\n" +
@@ -49,7 +49,6 @@ public class LateFireEventTimeTumbleWindowExample {
 
         // 创建输出表
         tEnv.executeSql("CREATE TABLE user_behavior_cnt (\n" +
-                "  `current_time` STRING COMMENT '当前处理时间',\n" +
                 "  window_start STRING COMMENT '窗口开始时间',\n" +
                 "  window_end STRING COMMENT '窗口结束时间',\n" +
                 "  cnt BIGINT COMMENT '次数'\n" +
@@ -60,7 +59,6 @@ public class LateFireEventTimeTumbleWindowExample {
         // 执行计算并输出
         tEnv.executeSql("INSERT INTO user_behavior_cnt\n" +
                 "SELECT\n" +
-                "  DATE_FORMAT(now(), 'yyyy-MM-dd HH:mm:ss') AS `current_time`,\n" +
                 "  DATE_FORMAT(TUMBLE_START(ts_ltz, INTERVAL '1' MINUTE), 'yyyy-MM-dd HH:mm:ss') AS window_start,\n" +
                 "  DATE_FORMAT(TUMBLE_END(ts_ltz, INTERVAL '1' MINUTE), 'yyyy-MM-dd HH:mm:ss') AS window_end,\n" +
                 "  COUNT(*) AS cnt\n" +
