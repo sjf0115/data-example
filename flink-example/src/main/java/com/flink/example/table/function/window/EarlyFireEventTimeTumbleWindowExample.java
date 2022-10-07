@@ -20,11 +20,12 @@ public class EarlyFireEventTimeTumbleWindowExample {
                 .build();
         TableEnvironment tEnv = TableEnvironment.create(settings);
         Configuration config = tEnv.getConfig().getConfiguration();
+
         // 设置作业名称
         config.setString("pipeline.name", EarlyFireEventTimeTumbleWindowExample.class.getSimpleName());
         // 窗口提前触发
         config.setBoolean("table.exec.emit.early-fire.enabled", true);
-        config.setString("table.exec.emit.early-fire.delay", "10s");
+        config.setString("table.exec.emit.early-fire.delay", "0s");
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE user_behavior (\n" +
