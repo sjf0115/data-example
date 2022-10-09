@@ -46,8 +46,8 @@ public class IdleStateRetentionTimeExample {
                 "  'connector' = 'datagen',\n" +
                 "  'rows-per-second' = '100',\n" +
                 "  'fields.session_id.kind' = 'sequence',\n" +
-                "  'fields.session_id.start' = '10001',\n" +
-                "  'fields.session_id.end' = '99999',\n" +
+                "  'fields.session_id.start' = '100001',\n" +
+                "  'fields.session_id.end' = '999999',\n" +
                 "  'fields.uid.kind' = 'random',\n" +
                 "  'fields.uid.min' = '1001',\n" +
                 "  'fields.uid.max' = '9999'\n" +

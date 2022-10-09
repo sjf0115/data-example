@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * 功能：WordCount Lambda
+ * 功能：SocketWordCount Lambda
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
