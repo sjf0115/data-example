@@ -29,6 +29,7 @@
         <module>redis-example</module>
         <module>hadoop-example</module>
         <module>flink-example-1.15</module>
+        <module>spark-example-2.2</module>
     </modules>
 
     <properties>
@@ -254,17 +255,32 @@
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-core_${scala.212.version}</artifactId>
                 <version>${spark.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-sql_${scala.212.version}</artifactId>
                 <version>${spark.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-streaming_${scala.212.version}</artifactId>
+                <version>${spark.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-streaming-kafka-0-8_${scala.binary.version}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql-kafka-0-10_${scala.binary.version}</artifactId>
                 <version>${spark.version}</version>
             </dependency>
 

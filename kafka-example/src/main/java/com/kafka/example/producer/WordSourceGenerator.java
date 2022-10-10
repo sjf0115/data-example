@@ -22,7 +22,7 @@ public class WordSourceGenerator {
     // 每秒1条
     private static final long SPEED = 1;
     // 最多发送条数
-    private static final long THRESHOLD = 20;
+    private static final long THRESHOLD = 100;
     private static final String TOPIC = "word";
 
     /**
