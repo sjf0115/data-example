@@ -24,19 +24,18 @@ public class KafkaDirectExample {
     private static final Pattern SPACE = Pattern.compile("\\s+");
 
     public static void main(String[] args) throws Exception {
-        SparkConf sparkConf = new SparkConf().setAppName("KafkaReceiverExample");
-        JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, new Duration(2000));
+        SparkConf sparkConf = new SparkConf().setAppName("KafkaDirectExample");
+        JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, new Duration(10000));
 
         // Kafka 配置参数
         Map<String, String> kafkaParams = new HashMap<>();
-//        kafkaParams.put("metadata.broker.list", "localhost:9092");
         kafkaParams.put("bootstrap.servers", "localhost:9092");
-        kafkaParams.put("group.id", "user_behavior");
-        kafkaParams.put("auto.offset.reset", "latest");
+        kafkaParams.put("group.id", "word");
+        kafkaParams.put("auto.offset.reset", "largest");
 
         // Topic
         Set<String> topics = new HashSet<>();
-        topics.add("user_behavior");
+        topics.add("word");
 
         JavaPairInputDStream<String, String> source = KafkaUtils.createDirectStream(ssc,
                 String.class, String.class, StringDecoder.class, StringDecoder.class,
