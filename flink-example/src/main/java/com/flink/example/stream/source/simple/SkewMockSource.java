@@ -21,7 +21,7 @@ public class SkewMockSource extends RichParallelSourceFunction<Tuple2<String, In
     // 速度 每秒多少条
     private long speed = 1000;
     // 阈值 最多发送多条跳
-    private int threshold = 500000;
+    private int threshold = 50000;
     private volatile boolean cancel = false;
     // flink 是其他单词的3倍
     private List<String> words = Lists.newArrayList("flink", "storm", "flink", "spark", "flink");
