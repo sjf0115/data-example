@@ -29,8 +29,8 @@ public class WordSourceGenerator {
      * 异步发送Kafka
      */
     public static void asyncSend(Producer<String, String> producer, List<String> words) throws InterruptedException {
-        // 每条耗时多少毫秒 = 1s(1000000ns) / 1000
-        long delay = 1000_000 / SPEED;
+        // 每条耗时多少纳秒 = 1s(1000000000ns)
+        long delay = 1000_000_000 / SPEED;
         long start = System.nanoTime();
         int index = 1;
         Random random = new Random();
@@ -45,9 +45,9 @@ public class WordSourceGenerator {
             producer.send(record, new AsyncSendCallback());
             System.out.println(value);
 
-            long end = System.nanoTime();
+            long end = System.nanoTime(); // 纳秒
             long diff = end - start;
-            while (diff < (delay*1000)) {
+            while (diff < delay) {
                 Thread.sleep(1);
                 end = System.nanoTime();
                 diff = end - start;
