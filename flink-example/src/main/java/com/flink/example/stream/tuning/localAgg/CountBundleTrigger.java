@@ -16,21 +16,26 @@ public class CountBundleTrigger<T> implements BundleTrigger<T> {
         this.maxCount = maxCount;
     }
 
+    // 注册触发器回调
     @Override
     public void registerCallback(BundleTriggerCallback callback) {
         this.callback = callback;
     }
 
+    // 处理每个数据记录元素
     @Override
     public void onElement(T element) throws Exception {
         count++;
+        // 数据记录元素个数到达指定阈值
         if (count >= maxCount) {
             // 调用回调函数
             callback.finishBundle();
+            // 重置触发器
             reset();
         }
     }
 
+    // 重置触发器
     @Override
     public void reset() {
         count = 0;

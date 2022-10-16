@@ -1,27 +1,29 @@
-package com.flink.example.stream.tuning.localAgg;
+package com.flink.example.stream.tuning.skew;
 
 import com.flink.example.stream.source.simple.SkewMockSource;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
 import org.apache.flink.runtime.state.storage.FileSystemCheckpointStorage;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 
-import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 功能：通用化实现本地聚合 LocalAgg 函数
+ * 功能：数据倾斜版本 WordCount 实现本地聚合优化 可故障恢复
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
- * 日期：2022/10/15 下午9:43
+ * 日期：2022/10/14 下午11:30
  */
-public class LocalAggProcessExample {
+public class SkewLocalAggCheckpointWordCount {
     public static void main(String[] args) throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -40,18 +42,16 @@ public class LocalAggProcessExample {
 
         // 统计单词出现个数
         DataStream<Tuple2<String, Integer>> windowCount = source
-                .process(new LocalAggProcessFunction<String, Integer, Tuple2<String, Integer>, Tuple2<String, Integer>>(new CountBundleTrigger<>(5), new CountBundleFunction()) {
-                    @Override
-                    protected String getKey(Tuple2<String, Integer> element) throws Exception {
-                        return element.f0;
-                    }
-                })
+                // 实现本地攒批聚合 每5个数据记录一个批次
+                .process(new LocalAggProcessFunction(5))
+                // 分组
                 .keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
                     @Override
                     public String getKey(Tuple2<String, Integer> tuple) throws Exception {
                         return tuple.f0;
                     }
                 })
+                // 求和
                 .reduce(new ReduceFunction<Tuple2<String, Integer>>() {
                     @Override
                     public Tuple2 reduce(Tuple2<String, Integer> a, Tuple2<String, Integer> b) {
@@ -61,26 +61,49 @@ public class LocalAggProcessExample {
 
         // 输出
         windowCount.print();
-        env.execute("LocalAggProcessExample");
+        env.execute("SkewLocalAggWordCount");
     }
 
-    // 批次聚合函数实现
-    private static class CountBundleFunction extends BundleFunction<String,Integer,Tuple2<String,Integer>,Tuple2<String,Integer>> {
-        // 往批次中新添加一个数据记录元素
-        @Override
-        public Integer addElement(@Nullable Integer count, Tuple2<String, Integer> element) throws Exception {
-            if (count == null) {
-                count = 0;
-            }
-            return element.f1 + count;
+    // 本地攒批聚合
+    private static class LocalAggProcessFunction extends ProcessFunction<Tuple2<String, Integer>, Tuple2<String, Integer>> {
+        // 批次大小
+        private int batchSize = 10;
+        // 本地批次
+        private transient Map<String, Integer> bundle;
+        // 数据记录个数
+        private transient int elements = 0;
+
+        public LocalAggProcessFunction() {
         }
 
-        // 批次结束时输出
+        public LocalAggProcessFunction(int batchSize) {
+            this.batchSize = batchSize;
+        }
+
         @Override
-        public void finishBundle(Map<String, Integer> bundle, Collector<Tuple2<String, Integer>> out) throws Exception {
-            // 依次输出批次中的数据记录
-            for (String bundleKey : bundle.keySet()) {
-                out.collect(Tuple2.of(bundleKey, bundle.get(bundleKey)));
+        public void open(Configuration parameters) throws Exception {
+            super.open(parameters);
+            this.bundle = new HashMap<>();
+        }
+
+        @Override
+        public void processElement(Tuple2<String, Integer> element, Context ctx, Collector<Tuple2<String, Integer>> out) throws Exception {
+            // 1. 将新到达的数据记录添加到批次中
+            String word = element.f0;
+            int count = element.f1;
+            Integer bundleCount = bundle.getOrDefault(word, 0);
+            bundle.put(word, bundleCount + count);
+            // 处理的数据记录数
+            elements ++;
+            // 2. 当批次中的数据记录数达到批次大小则输出
+            if (elements >= batchSize) {
+                // 依次输出批次中的数据记录
+                for (String bundleKey : bundle.keySet()) {
+                    out.collect(Tuple2.of(bundleKey, bundle.get(bundleKey)));
+                }
+                // 批次清空
+                bundle.clear();
+                elements = 0;
             }
         }
     }
