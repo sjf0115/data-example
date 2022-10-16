@@ -1,6 +1,6 @@
 package com.flink.example.stream.tuning.skew;
 
-import com.flink.example.stream.source.simple.SkewMockSource;
+import com.flink.example.stream.source.simple.SkewWordMockSource;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
@@ -53,7 +53,7 @@ public class SkewLocalAggCheckpointWordCount {
         env.getCheckpointConfig().setCheckpointStorage(new FileSystemCheckpointStorage(checkpointPath));
 
         // 单词流 (word, 1)
-        DataStreamSource<Tuple2<String, Integer>> source = env.addSource(new SkewMockSource(1, 40));
+        DataStreamSource<Tuple2<String, Integer>> source = env.addSource(new SkewWordMockSource(1, 40));
 
         // 统计单词出现个数
         DataStream<Tuple2<String, Integer>> windowCount = source

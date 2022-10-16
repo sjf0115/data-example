@@ -17,7 +17,7 @@ public class KeyGroupExample {
 
     public static void main(String[] args) throws Exception {
         // 算子并发：3
-        int parallelism = 4;
+        int parallelism = 3;
 
         // 最大并：128 对应有 128 个 KeyGroup
         int maxParallelism = KeyGroupRangeAssignment.computeDefaultMaxParallelism(parallelism);

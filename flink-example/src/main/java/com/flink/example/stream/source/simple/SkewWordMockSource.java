@@ -15,9 +15,9 @@ import java.util.List;
  * 公众号：大数据生态
  * 日期：2022/10/14 下午10:57
  */
-public class SkewMockSource extends RichParallelSourceFunction<Tuple2<String, Integer>> {
+public class SkewWordMockSource extends RichParallelSourceFunction<Tuple2<String, Integer>> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SkewMockSource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SkewWordMockSource.class);
     // 速度 每秒多少条
     private long speed = 1000;
     // 阈值 最多发送多条跳
@@ -26,14 +26,14 @@ public class SkewMockSource extends RichParallelSourceFunction<Tuple2<String, In
     // flink 是其他单词的3倍
     private List<String> words = Lists.newArrayList("flink", "storm", "flink", "spark", "flink");
 
-    public SkewMockSource() {
+    public SkewWordMockSource() {
     }
 
-    public SkewMockSource(int threshold) {
+    public SkewWordMockSource(int threshold) {
         this.threshold = threshold;
     }
 
-    public SkewMockSource(int speed, int threshold) {
+    public SkewWordMockSource(int speed, int threshold) {
         this.speed = speed;
         this.threshold = threshold;
     }
@@ -62,7 +62,7 @@ public class SkewMockSource extends RichParallelSourceFunction<Tuple2<String, In
             start = end;
             if(index++ >= threshold) {
                 long end1 = System.currentTimeMillis();
-                System.out.println((end1-stat1) / 1000);
+                LOG.info("Source 输出总耗时: {}s", (end1-stat1) / 1000);
                 break;
             }
         }
