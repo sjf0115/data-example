@@ -14,11 +14,12 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
  * 公众号：大数据生态
  * 日期：2022/10/18 上午8:20
  */
-public class TopNExample {
+public class TopExample {
     public static void main(String[] args) {
         // 执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(2);
+        env.disableOperatorChaining();
         // 状态后端
         env.setStateBackend(new HashMapStateBackend());
         // 开启 Checkpoint
@@ -34,7 +35,7 @@ public class TopNExample {
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
         Configuration config = tEnv.getConfig().getConfiguration();
         // 设置作业名称
-        config.setString("pipeline.name", TopNExample.class.getSimpleName());
+        config.setString("pipeline.name", TopExample.class.getSimpleName());
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE shop_sales (\n" +
