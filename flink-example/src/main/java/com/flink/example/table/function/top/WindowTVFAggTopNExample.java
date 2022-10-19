@@ -40,7 +40,7 @@ public class WindowTVFAggTopNExample {
         tEnv.executeSql("CREATE TABLE shop_sales (\n" +
                 "  product_id BIGINT COMMENT '商品Id',\n" +
                 "  category STRING COMMENT '商品类目',\n" +
-                "  price STRING COMMENT '行为类型',\n" +
+                "  price BIGINT COMMENT '行为类型',\n" +
                 "  `timestamp` BIGINT COMMENT '行为时间',\n" +
                 "  ts_ltz AS TO_TIMESTAMP_LTZ(`timestamp`, 3), -- 事件时间\n" +
                 "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '5' SECOND -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列\n" +

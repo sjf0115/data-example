@@ -39,14 +39,16 @@ public class TopNExample {
         // 创建输入表
         tEnv.executeSql("CREATE TABLE shop_sales (\n" +
                 "  product_id BIGINT COMMENT '商品Id',\n" +
-                "  category_id BIGINT COMMENT '商品类目Id',\n" +
-                "  sales BIGINT COMMENT '下单量',\n" +
-                "  process_time AS PROCTIME() -- 处理时间\n" +
+                "  category STRING COMMENT '商品类目',\n" +
+                "  price BIGINT COMMENT '行为类型',\n" +
+                "  `timestamp` BIGINT COMMENT '行为时间',\n" +
+                "  ts_ltz AS TO_TIMESTAMP_LTZ(`timestamp`, 3), -- 事件时间\n" +
+                "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '5' SECOND -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列\n" +
                 ") WITH (\n" +
                 "  'connector' = 'kafka',\n" +
                 "  'topic' = 'shop_sales',\n" +
                 "  'properties.bootstrap.servers' = 'localhost:9092',\n" +
-                "  'properties.group.id' = 'user_behavior',\n" +
+                "  'properties.group.id' = 'shop_sales',\n" +
                 "  'scan.startup.mode' = 'latest-offset',\n" +
                 "  'format' = 'json',\n" +
                 "  'json.ignore-parse-errors' = 'false',\n" +
@@ -54,25 +56,26 @@ public class TopNExample {
                 ")");
 
         // 创建输出表
-        tEnv.executeSql("CREATE TABLE shop_sales_top (\n" +
-                "  category_id BIGINT COMMENT '商品类目Id',\n" +
+        tEnv.executeSql("CREATE TABLE shop_category_order_top (\n" +
+                "  category STRING COMMENT '商品类目',\n" +
                 "  product_id BIGINT COMMENT '商品Id',\n" +
-                "  sales BIGINT COMMENT '下单量',\n" +
+                "  price BIGINT COMMENT '下单量',\n" +
+                "  `time` TIMESTAMP_LTZ(3) COMMENT '下单时间',\n" +
                 "  row_num BIGINT COMMENT '排名'\n" +
                 ") WITH (\n" +
                 "  'connector' = 'print'\n" +
                 ")");
 
         // 执行计算并输出
-        tEnv.executeSql("INSERT INTO shop_sales_top\n" +
+        tEnv.executeSql("INSERT INTO shop_category_order_top\n" +
                 "SELECT\n" +
-                "  category_id, product_id, sales, row_num\n" +
+                "  category, product_id, price, ts_ltz AS `time`, row_num\n" +
                 "FROM (\n" +
                 "  SELECT\n" +
-                "    category_id, product_id, sales,\n" +
-                "    ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS row_num\n" +
+                "    category, product_id, price, ts_ltz,\n" +
+                "    ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC) AS row_num\n" +
                 "  FROM shop_sales\n" +
                 ")\n" +
-                "WHERE row_num <= 5");
+                "WHERE row_num <= 3");
     }
 }

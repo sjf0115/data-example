@@ -2,7 +2,7 @@
 CREATE TABLE shop_sales (
   product_id BIGINT COMMENT '商品Id',
   category STRING COMMENT '商品类目',
-  price STRING COMMENT '行为类型',
+  price BIGINT COMMENT '行为类型',
   `timestamp` BIGINT COMMENT '行为时间',
   ts_ltz AS TO_TIMESTAMP_LTZ(`timestamp`, 3), -- 事件时间
   WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '5' SECOND -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列

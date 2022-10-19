@@ -46,7 +46,6 @@ public class ShopSalesSimpleProducer {
 
         // 发送
         Producer<String, String> producer = new KafkaProducer<>(props);
-        int index = 1;
         for (String element : elements) {
             // Json 格式
             String[] params = element.split(",");
@@ -68,7 +67,6 @@ public class ShopSalesSimpleProducer {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            index ++;
         }
         producer.close();
     }
