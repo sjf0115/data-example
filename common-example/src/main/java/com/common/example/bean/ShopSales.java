@@ -1,7 +1,9 @@
 package com.common.example.bean;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
- * 功能：下单量
+ * 功能：下单金额
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
@@ -9,19 +11,23 @@ package com.common.example.bean;
  */
 public class ShopSales {
     // 商品Id
+    @SerializedName("product_id")
     private Long productId;
     // 类目类型
     private String category;
-    // 下单量
-    private Long sales;
+    // 下单金额
+    private Long price;
+    // 下单时间
+    private Long timestamp;
 
     public ShopSales() {
     }
 
-    public ShopSales(Long productId, String category, Long sales) {
+    public ShopSales(Long productId, String category, Long price, Long timestamp) {
         this.productId = productId;
         this.category = category;
-        this.sales = sales;
+        this.price = price;
+        this.timestamp = timestamp;
     }
 
     public Long getProductId() {
@@ -40,11 +46,19 @@ public class ShopSales {
         this.category = category;
     }
 
-    public Long getSales() {
-        return sales;
+    public Long getPrice() {
+        return price;
     }
 
-    public void setSales(Long sales) {
-        this.sales = sales;
+    public void setPrice(Long price) {
+        this.price = price;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 }

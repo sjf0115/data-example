@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * 功能：下单 Kafka 简单发送
+ * 功能：下单金额 Kafka 简单发送
  * 作者：SmartSi
  * 博客：http://smartsi.club/
  * 公众号：大数据生态
@@ -21,7 +21,7 @@ import java.util.Properties;
  */
 public class ShopSalesSimpleProducer {
     private static final Gson gson = new GsonBuilder().create();
-    private static final String TOPIC = "user_behavior";
+    private static final String TOPIC = "shop_sales";
     private static final Long SLEEP_TIME = 5*1000L;
 
     public static void send() {
@@ -33,19 +33,15 @@ public class ShopSalesSimpleProducer {
 
         // 输入数据
         List<String> elements = Lists.newArrayList(
-                "1001,3827899,2920476,pv,1664636572000,2022-10-01 23:02:52",
-                "1001,3745169,2891509,pv,1664636570000,2022-10-01 23:02:50",
-                "1001,266784,2520771,pv,1664636573000,2022-10-01 23:02:53",
-                "1001,2286574,2465336,pv,1664636574000,2022-10-01 23:02:54",
-                "1001,1531036,2920476,pv,1664636577000,2022-10-01 23:02:57",
-                "1001,2266567,4145813,pv,1664636584000,2022-10-01 23:03:04",
-                "1001,2951368,1080785,pv,1664636576000,2022-10-01 23:02:56",
-                "1001,3658601,2342116,pv,1664636586000,2022-10-01 23:03:06",
-                "1001,5153036,2342116,pv,1664636578000,2022-10-01 23:02:58",
-                "1001,598929,2429887,pv,1664636591000,2022-10-01 23:03:11",
-                "1001,3245421,2881542,pv,1664636595000,2022-10-01 23:03:15",
-                "1001,1046201,3002561,pv,1664636579000,2022-10-01 23:02:59",
-                "1001,2971043,4869428,pv,1664636646000,2022-10-01 23:04:06"
+                "1001,图书,40,1665360300000", // 2022-10-10 08:05:00
+                "2001,数码,40,1665360360000", // 2022-10-10 08:06:00
+                "1002,图书,20,1665360420000", // 2022-10-10 08:07:00
+                "3001,生鲜,20,1665360480000", // 2022-10-10 08:08:00
+                "4001,运动,50,1665360540000", // 2022-10-10 08:09:00
+                "3002,生鲜,20,1665360660000", // 2022-10-10 08:11:00
+                "1003,图书,10,1665360780000", // 2022-10-10 08:13:00
+                "2002,数码,30,1665360900000", // 2022-10-10 08:15:00
+                "5001,服装,60,1665361020000" // 2022-10-10 08:17:00
         );
 
         // 发送
@@ -57,8 +53,9 @@ public class ShopSalesSimpleProducer {
             Long productId = Long.parseLong(params[0]);
             String category = params[1];
             Long sales = Long.parseLong(params[2]);
+            Long timestamp = Long.parseLong(params[3]);
 
-            ShopSales shopSales = new ShopSales(productId, category, sales);
+            ShopSales shopSales = new ShopSales(productId, category, sales, timestamp);
             String key = String.valueOf(productId);
             String value = gson.toJson(shopSales);
 
