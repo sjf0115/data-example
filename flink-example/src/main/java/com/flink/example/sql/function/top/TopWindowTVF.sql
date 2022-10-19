@@ -8,7 +8,7 @@ CREATE TABLE shop_sales (
   WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '5' SECOND -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列
 ) WITH (
   'connector' = 'kafka',
-  'topic' = 'user_behavior',
+  'topic' = 'shop_sales',
   'properties.bootstrap.servers' = 'localhost:9092',
   'properties.group.id' = 'shop_sales',
   'scan.startup.mode' = 'latest-offset',
@@ -23,8 +23,8 @@ CREATE TABLE shop_product_order_top (
   product_id BIGINT COMMENT '商品Id',
   category STRING COMMENT '商品类目',
   price BIGINT COMMENT '订单金额',
-  time TIMESTAMP(3) COMMENT '下单时间',
-  row_num BIGINT COMMENT '排名',
+  `time` TIMESTAMP_LTZ(3) COMMENT '下单时间',
+  row_num BIGINT COMMENT '排名'
 ) WITH (
   'connector' = 'print'
 )
@@ -33,10 +33,10 @@ CREATE TABLE shop_product_order_top (
 INSERT INTO shop_product_order_top
 SELECT
   window_start, window_end,
-  product_id, category, ts_ltz, row_num
+  product_id, category, price, ts_ltz AS `time`, row_num
 FROM (
     SELECT
-      window_start, window_end, product_id, category, ts_ltz,
+      window_start, window_end, product_id, category, price, ts_ltz,
       ROW_NUMBER() OVER (PARTITION BY window_start, window_end ORDER BY price DESC) AS row_num
     FROM TABLE(
       TUMBLE(TABLE shop_sales, DESCRIPTOR(ts_ltz), INTERVAL '10' MINUTES)
@@ -49,7 +49,7 @@ CREATE TABLE shop_category_order_top (
   category STRING COMMENT '商品类目',
   price BIGINT COMMENT '订单金额',
   cnt BIGINT COMMENT '订单个数',
-  row_num BIGINT COMMENT '排名',
+  row_num BIGINT COMMENT '排名'
 ) WITH (
   'connector' = 'print'
 )
@@ -66,11 +66,11 @@ FROM (
     ROW_NUMBER() OVER (PARTITION BY window_start, window_end ORDER BY price DESC) AS row_num
   FROM (
     SELECT
-      window_start, window_end, category,
+      window_start, window_end, product_id,
       SUM(price) AS price, COUNT(*) AS cnt
     FROM TABLE(
       TUMBLE(TABLE shop_sales, DESCRIPTOR(ts_ltz), INTERVAL '10' MINUTES)
     )
-    GROUP BY window_start, window_end, category
+    GROUP BY window_start, window_end, product_id
   )
 ) WHERE row_num <= 3

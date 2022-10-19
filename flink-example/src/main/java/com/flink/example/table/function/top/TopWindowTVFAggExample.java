@@ -14,11 +14,13 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
  * 公众号：大数据生态
  * 日期：2022/10/19 上午8:03
  */
-public class WindowTVFAggTopNExample {
+public class TopWindowTVFAggExample {
     public static void main(String[] args) {
         // 执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(2);
+        env.disableOperatorChaining();
+
         // 状态后端
         env.setStateBackend(new HashMapStateBackend());
         // 开启 Checkpoint
@@ -34,7 +36,7 @@ public class WindowTVFAggTopNExample {
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
         Configuration config = tEnv.getConfig().getConfiguration();
         // 设置作业名称
-        config.setString("pipeline.name", WindowTVFAggTopNExample.class.getSimpleName());
+        config.setString("pipeline.name", TopWindowTVFAggExample.class.getSimpleName());
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE shop_sales (\n" +
@@ -46,7 +48,7 @@ public class WindowTVFAggTopNExample {
                 "  WATERMARK FOR ts_ltz AS ts_ltz - INTERVAL '5' SECOND -- 在 ts_ltz 上定义watermark，ts_ltz 成为事件时间列\n" +
                 ") WITH (\n" +
                 "  'connector' = 'kafka',\n" +
-                "  'topic' = 'user_behavior',\n" +
+                "  'topic' = 'shop_sales',\n" +
                 "  'properties.bootstrap.servers' = 'localhost:9092',\n" +
                 "  'properties.group.id' = 'shop_sales',\n" +
                 "  'scan.startup.mode' = 'latest-offset',\n" +
@@ -62,7 +64,7 @@ public class WindowTVFAggTopNExample {
                 "  category STRING COMMENT '商品类目',\n" +
                 "  price BIGINT COMMENT '订单金额',\n" +
                 "  cnt BIGINT COMMENT '订单个数',\n" +
-                "  row_num BIGINT COMMENT '排名',\n" +
+                "  row_num BIGINT COMMENT '排名'\n" +
                 ") WITH (\n" +
                 "  'connector' = 'print'\n" +
                 ")");

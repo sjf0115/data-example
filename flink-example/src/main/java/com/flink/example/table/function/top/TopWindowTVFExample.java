@@ -14,11 +14,13 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
  * 公众号：大数据生态
  * 日期：2022/10/19 上午8:03
  */
-public class WindowTVFTopNExample {
+public class TopWindowTVFExample {
     public static void main(String[] args) {
         // 执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(2);
+        env.disableOperatorChaining();
+
         // 状态后端
         env.setStateBackend(new HashMapStateBackend());
         // 开启 Checkpoint
@@ -34,7 +36,7 @@ public class WindowTVFTopNExample {
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);
         Configuration config = tEnv.getConfig().getConfiguration();
         // 设置作业名称
-        config.setString("pipeline.name", WindowTVFTopNExample.class.getSimpleName());
+        config.setString("pipeline.name", TopWindowTVFExample.class.getSimpleName());
 
         // 创建输入表
         tEnv.executeSql("CREATE TABLE shop_sales (\n" +
@@ -62,8 +64,8 @@ public class WindowTVFTopNExample {
                 "  product_id BIGINT COMMENT '商品Id',\n" +
                 "  category STRING COMMENT '商品类目',\n" +
                 "  price BIGINT COMMENT '订单金额',\n" +
-                "  time TIMESTAMP(3) COMMENT '下单时间',\n" +
-                "  row_num BIGINT COMMENT '排名',\n" +
+                "  `time` TIMESTAMP_LTZ(3) COMMENT '下单时间',\n" +
+                "  row_num BIGINT COMMENT '排名'\n" +
                 ") WITH (\n" +
                 "  'connector' = 'print'\n" +
                 ")");
@@ -72,10 +74,10 @@ public class WindowTVFTopNExample {
         tEnv.executeSql("INSERT INTO shop_product_order_top\n" +
                 "SELECT\n" +
                 "  window_start, window_end,\n" +
-                "  product_id, category, ts_ltz, row_num\n" +
+                "  product_id, category, price, ts_ltz AS `time`, row_num\n" +
                 "FROM (\n" +
                 "    SELECT\n" +
-                "      window_start, window_end, product_id, category, ts_ltz,\n" +
+                "      window_start, window_end, product_id, category, price, ts_ltz,\n" +
                 "      ROW_NUMBER() OVER (PARTITION BY window_start, window_end ORDER BY price DESC) AS row_num\n" +
                 "    FROM TABLE(\n" +
                 "      TUMBLE(TABLE shop_sales, DESCRIPTOR(ts_ltz), INTERVAL '10' MINUTES)\n" +
