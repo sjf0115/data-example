@@ -35,7 +35,6 @@ public class SimpleWordSource extends RichParallelSourceFunction<String> {
 
     @Override
     public void run(SourceContext<String> ctx) throws Exception {
-
         int index = 0;
         while (!cancel) {
             synchronized (ctx.getCheckpointLock()) {
