@@ -68,10 +68,20 @@ public class ShopSalesSimpleProducer {
                 "2007,生鲜,40,1665361260000" // 2022-10-10 08:21:00
         );
 
+        // 用于验证 Deduplication 去重
+        List<String> element3 = Lists.newArrayList(
+                "1002,图书,40,1665360300000", // 2022-10-10 08:05:00
+                "1001,图书,60,1665360299000", // 2022-10-10 08:04:59
+                "2001,生鲜,40,1665360360000", // 2022-10-10 08:06:00
+                "1003,图书,20,1665360420000", // 2022-10-10 08:07:00
+                "2002,生鲜,30,1665360480000", // 2022-10-10 08:08:00
+                "1003,图书,80,1665360600000", // 2022-10-10 08:10:00
+                "2003,生鲜,20,1665360660000" // 2022-10-10 08:11:00
+        );
 
         // 发送
         Producer<String, String> producer = new KafkaProducer<>(props);
-        for (String element : element2) {
+        for (String element : element3) {
             // Json 格式
             String[] params = element.split(",");
             Long productId = Long.parseLong(params[0]);
