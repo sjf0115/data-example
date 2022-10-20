@@ -66,11 +66,11 @@ FROM (
     ROW_NUMBER() OVER (PARTITION BY window_start, window_end ORDER BY price DESC) AS row_num
   FROM (
     SELECT
-      window_start, window_end, product_id,
+      window_start, window_end, category,
       SUM(price) AS price, COUNT(*) AS cnt
     FROM TABLE(
       TUMBLE(TABLE shop_sales, DESCRIPTOR(ts_ltz), INTERVAL '10' MINUTES)
     )
-    GROUP BY window_start, window_end, product_id
+    GROUP BY window_start, window_end, category
   )
-) WHERE row_num <= 3
+) WHERE row_num <= 2

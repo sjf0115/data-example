@@ -88,6 +88,6 @@ public class TopWindowTVFAggExample {
                 "    )\n" +
                 "    GROUP BY window_start, window_end, category\n" +
                 "  )\n" +
-                ") WHERE row_num <= 3");
+                ") WHERE row_num <= 2");
     }
 }
