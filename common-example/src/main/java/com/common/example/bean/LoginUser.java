@@ -8,6 +8,7 @@ package com.common.example.bean;
  * 日期：2022/10/20 下午8:55
  */
 public class LoginUser {
+    private Integer appId;
     private Long uid;
     private String os;
     private Long timestamp;
@@ -15,10 +16,19 @@ public class LoginUser {
     public LoginUser() {
     }
 
-    public LoginUser(Long uid, String os, Long timestamp) {
+    public LoginUser(Integer appId, Long uid, String os, Long timestamp) {
+        this.appId = appId;
         this.uid = uid;
         this.os = os;
         this.timestamp = timestamp;
+    }
+
+    public Integer getAppId() {
+        return appId;
+    }
+
+    public void setAppId(Integer appId) {
+        this.appId = appId;
     }
 
     public Long getUid() {

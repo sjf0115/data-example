@@ -14,7 +14,6 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.api.windowing.triggers.ContinuousEventTimeTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,7 @@ public class ContinuousEventTriggerExample {
 
         DataStreamSource<LoginUser> source = env.addSource(new UserLoginMockSource());
 
-        SingleOutputStreamOperator<Tuple2<Long, Integer>> result = source
+        SingleOutputStreamOperator<Tuple2<Integer, Integer>> result = source
                 // 设置Watermark
                 .assignTimestampsAndWatermarks(
                         WatermarkStrategy.<LoginUser>forBoundedOutOfOrderness(Duration.ofSeconds(5))
@@ -46,28 +45,28 @@ public class ContinuousEventTriggerExample {
                                     }
                                 })
                 )
-                .map(new MapFunction<LoginUser, Tuple2<Long, Integer>>() {
+                .map(new MapFunction<LoginUser, Tuple2<Integer, Integer>>() {
                     @Override
-                    public Tuple2<Long, Integer> map(LoginUser user) throws Exception {
-                        return Tuple2.of(user.getUid(), 1);
+                    public Tuple2<Integer, Integer> map(LoginUser user) throws Exception {
+                        return Tuple2.of(user.getAppId(), 1);
                     }
                 })
-                .keyBy(new KeySelector<Tuple2<Long, Integer>, Long>() {
+                .keyBy(new KeySelector<Tuple2<Integer, Integer>, Integer>() {
                     @Override
-                    public Long getKey(Tuple2<Long, Integer> user) throws Exception {
+                    public Integer getKey(Tuple2<Integer, Integer> user) throws Exception {
                         return user.f0;
                     }
                 })
                 // 事件时间滚动窗口 滚动大小60s
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 // 周期性事件时间触发器 每10s触发一次计算
-                .trigger(ContinuousEventTimeTrigger.of(Time.seconds(10)))
+                .trigger(CustomContinuousEventTimeTrigger.of(Time.seconds(10)))
                 // 求和
-                .reduce(new ReduceFunction<Tuple2<Long, Integer>>() {
+                .reduce(new ReduceFunction<Tuple2<Integer, Integer>>() {
                     @Override
-                    public Tuple2<Long, Integer> reduce(Tuple2<Long, Integer> value1, Tuple2<Long, Integer> value2) throws Exception {
+                    public Tuple2<Integer, Integer> reduce(Tuple2<Integer, Integer> value1, Tuple2<Integer, Integer> value2) throws Exception {
                         Integer result = value1.f1 + value2.f1;
-                        return new Tuple2(value1.f0, result);
+                        return Tuple2.of(value1.f0, result);
                     }
                 });
 

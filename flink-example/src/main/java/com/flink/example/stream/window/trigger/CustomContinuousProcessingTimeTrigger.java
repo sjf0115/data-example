@@ -20,13 +20,10 @@ import org.slf4j.LoggerFactory;
  * 日期：2022/10/20 下午11:31
  */
 public class CustomContinuousProcessingTimeTrigger<W extends Window> extends Trigger<Object, W> {
-
     private static final Logger LOG = LoggerFactory.getLogger(CustomContinuousProcessingTimeTrigger.class);
-
     private static final long serialVersionUID = 1L;
     // 触发周期间隔
     private final long interval;
-
     private final ReducingStateDescriptor<Long> stateDesc = new ReducingStateDescriptor<>(
             "fire-time", new Min(), LongSerializer.INSTANCE
     );
@@ -75,7 +72,6 @@ public class CustomContinuousProcessingTimeTrigger<W extends Window> extends Tri
 
     @Override
     public void clear(W window, TriggerContext ctx) throws Exception {
-        // State could be merged into new window.
         ReducingState<Long> fireTimestamp = ctx.getPartitionedState(stateDesc);
         Long timestamp = fireTimestamp.get();
         if (timestamp != null) {
