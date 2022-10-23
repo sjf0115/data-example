@@ -9,36 +9,33 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * 功能：模拟用户登录数据
+ * 功能：模拟计算 DAU 数据
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2022/10/14 下午10:57
  */
-public class UserLoginMockSource extends RichParallelSourceFunction<LoginUser> {
+public class DAUMockSource extends RichParallelSourceFunction<LoginUser> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(UserLoginMockSource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DAUMockSource.class);
     private volatile boolean cancel = false;
     private List<String> userLogin = Lists.newArrayList(
-            "1,10001,android,1662303772840",  // 23:02:52
-            "1,10002,iOS,1662303770844",      // 23:02:50
-            "1,10003,android,1662303773848",  // 23:02:53
-            "1,10002,android,1662303774866",  // 23:02:54
-            "1,10001,android,1662303777839",  // 23:02:57
-            "1,10004,iOS,1662303784887",      // 23:03:04
-            "1,10007,android,1662303776894",  // 23:02:56
-            "1,10001,android,1662303786891",  // 23:03:06
-            "1,10005,android,1662303778877",  // 23:02:58
-            "1,10004,iOS,1662303790000",      // 23:03:10
-            "1,10003,android,1662303795918",  // 23:03:15
-            "1,10006,iOS,1662303779883",      // 23:02:59
-            "1,10001,android,1662303805000",  // 23:03:25
-            "1,10004,android,1662303816000",  // 23:03:36
-            "1,10001,android,1662303821000",  // 23:03:41
-            "1,10002,iOS,1662303846254"      // 23:04:06
+            "1,10001,android,1665417052000",  // 23:50:52
+            "1,10002,iOS,1665417005000",      // 23:50:05
+            "1,10003,android,1665417076000",  // 23:51:16
+            "1,10002,android,1665417144000",  // 23:52:24
+            "1,10001,android,1665417217000",  // 23:53:37
+            "1,10004,iOS,1665417284000",      // 23:54:44
+            "1,10003,android,1665417356000",  // 23:55:56
+            "1,10005,android,1665417366000",  // 23:56:06
+
+            "1,10006,android,1665417555000",  // 23:59:15
+            "1,10007,iOS,1665417659000",      // 00:00:59
+            "1,10001,android,1665417685000",  // 00:01:25
+            "1,10008,android,1665417756000"   // 00:02:36
     );
 
-    public UserLoginMockSource() {
+    public DAUMockSource() {
     }
 
     @Override
