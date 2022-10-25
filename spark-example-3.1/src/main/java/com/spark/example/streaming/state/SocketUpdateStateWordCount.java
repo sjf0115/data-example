@@ -28,10 +28,13 @@ public class SocketUpdateStateWordCount {
     private static int port = 9100;
 
     public static void main(String[] args) throws InterruptedException {
-        SparkConf conf = new SparkConf().setAppName("socket-spark-stream").setMaster("local[2]");
+        SparkConf conf = new SparkConf().setAppName("SocketUpdateStateWordCount").setMaster("local[2]");
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
 
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
+
+        // 通过 updateStateByKey 实现有状态的应用必须实现 Checkpoint
+        ssc.checkpoint("hdfs://localhost:9000/spark/checkpoint");
 
         // 以端口 9100 作为输入源创建 DStream
         JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
