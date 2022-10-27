@@ -3,14 +3,20 @@ package com.flink.example.stream.app.uv;
 import com.common.example.bean.LoginUser;
 import com.common.example.utils.DateUtil;
 import com.flink.example.stream.connector.print.PrintLogSinkFunction;
-import com.flink.example.stream.source.simple.DAUMockSource;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.state.*;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
+import org.apache.flink.runtime.state.storage.JobManagerCheckpointStorage;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
@@ -19,12 +25,14 @@ import org.apache.flink.streaming.api.windowing.evictors.TimeEvictor;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.triggers.ContinuousEventTimeTrigger;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Properties;
 
 /**
  * 功能：通过滚动窗口计算每天DAU 每1分钟输出一次
@@ -35,11 +43,45 @@ import java.util.Objects;
  */
 public class MapStateDAU {
     private static final Logger LOG = LoggerFactory.getLogger(MapStateDAU.class);
+    private static final Gson gson = new GsonBuilder().create();
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        DataStreamSource<LoginUser> source = env.addSource(new DAUMockSource());
+        // 配置 状态后端
+        env.setStateBackend(new HashMapStateBackend());
+        // 配置 Checkpoint 每40s触发一次Checkpoint 实际不用设置的这么大
+        env.enableCheckpointing(40*1000);
+        env.getCheckpointConfig().setCheckpointStorage(new JobManagerCheckpointStorage());
+        // 配置失败重启策略：失败后最多重启3次 每次重启间隔10s
+        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, 10000));
+
+        // 配置 Kafka Consumer
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("group.id", "user-login");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("auto.offset.reset", "latest");
+        String topic = "user_login";
+        FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(), props);
+        // Kafka Source
+        DataStream<LoginUser> source = env.addSource(consumer).uid("KafkaSource")
+                .map(new MapFunction<String, LoginUser>() {
+            @Override
+            public LoginUser map(String value) throws Exception {
+                LoginUser user = gson.fromJson(value, LoginUser.class);
+                LOG.info("map elements: {}", value);
+                // 模拟脏数据失败
+//                if(Objects.equals(user.getTimestamp(), 1665417356000L)) {
+//                    LOG.error("出现脏数据失败");
+//                    throw new RuntimeException("出现脏数据失败");
+//                }
+                return user;
+            }
+        });
+
+        //DataStreamSource<LoginUser> source = env.addSource(new DAUMockSource());
 
         SingleOutputStreamOperator<Tuple2<String, Long>> result = source
                 // 设置Watermark
@@ -52,10 +94,12 @@ public class MapStateDAU {
                                     }
                                 })
                 )
-                .keyBy(new KeySelector<LoginUser, Integer>() {
+                .keyBy(new KeySelector<LoginUser, String>() {
                     @Override
-                    public Integer getKey(LoginUser user) throws Exception {
-                        return user.getAppId();
+                    public String getKey(LoginUser user) throws Exception {
+                        String date = DateUtil.timeStamp2Date(user.getTimestamp(), "yyyyMMdd");
+                        // 分区 Key 添加上了日期
+                        return user.getAppId() + "#" + date;
                     }
                 })
                 // 事件时间滚动窗口 滚动大小一天
@@ -72,8 +116,7 @@ public class MapStateDAU {
         env.execute("MapStateDAU");
     }
 
-    // 未完
-    private static class UVProcessWindowFunction extends ProcessWindowFunction<LoginUser, Tuple2<String, Long>, Integer, TimeWindow> {
+    private static class UVProcessWindowFunction extends ProcessWindowFunction<LoginUser, Tuple2<String, Long>, String, TimeWindow> {
         // 存储每天的用户明细
         private MapState<Long, Boolean> userSetState;
         // 存储当日截止到当前的UV
@@ -100,7 +143,7 @@ public class MapStateDAU {
         }
 
         @Override
-        public void process(Integer integer, Context context, Iterable<LoginUser> elements, Collector<Tuple2<String, Long>> out) throws Exception {
+        public void process(String key, Context context, Iterable<LoginUser> elements, Collector<Tuple2<String, Long>> out) throws Exception {
             if (Objects.equals(uvState.value(), null)) {
                 uvState.update(0L);
             }
@@ -116,7 +159,7 @@ public class MapStateDAU {
                     userSetState.put(uid, true);
                 }
             }
-            LOG.info("process elements: {}", size);
+            LOG.info("window process elements: {}", size);
             // 更新UV状态
             uvState.update(uv);
             // 窗口开始时间
