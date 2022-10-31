@@ -46,7 +46,14 @@ public class RedisSink extends RichSinkFunction<Tuple2<Long, Integer>> {
         long bitCount = jedisPool.bitcount(bitKey);
         long pfCount = jedisPool.pfcount(hlKey);
 
-        LOG.info("Key: {}, BitCount: {}, PfCount: {}, diff: {}", key, bitCount, pfCount, (bitCount - pfCount));
+        if ((bitCount <= 1000 && bitCount % 10 == 0) ||
+                (bitCount > 1000 && bitCount <= 10000 && bitCount % 100 == 0) ||
+                (bitCount > 10000 && bitCount <= 100000 && bitCount % 1000 == 0) ||
+                (bitCount > 100000 && bitCount <= 1000000 && bitCount % 10000 == 0) ||
+                (bitCount > 1000000 && bitCount <= 10000000 && bitCount % 10000 == 0) ||
+                (bitCount > 10000000 && bitCount <= 100000000 && bitCount % 100000 == 0)) {
+            LOG.info("{},{},{},{}", key, bitCount, pfCount, (bitCount - pfCount));
+        }
     }
 
     @Override

@@ -16,6 +16,11 @@ public class LoginUser {
     public LoginUser() {
     }
 
+    public LoginUser(Integer appId, Long uid) {
+        this.appId = appId;
+        this.uid = uid;
+    }
+
     public LoginUser(Integer appId, Long uid, String os, Long timestamp) {
         this.appId = appId;
         this.uid = uid;

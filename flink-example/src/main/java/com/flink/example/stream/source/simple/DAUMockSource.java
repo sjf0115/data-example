@@ -28,7 +28,6 @@ public class DAUMockSource extends RichParallelSourceFunction<LoginUser> {
             "1,10004,iOS,1665417284000",      // 23:54:44
             "1,10003,android,1665417356000",  // 23:55:56
             "1,10005,android,1665417366000",  // 23:56:06
-
             "1,10006,android,1665417555000",  // 23:59:15
             "1,10007,iOS,1665417659000",      // 00:00:59
             "1,10001,android,1665417685000",  // 00:01:25

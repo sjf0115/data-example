@@ -1,7 +1,7 @@
 package com.flink.example.stream.connector.redis;
 
 import com.common.example.bean.LoginUser;
-import com.flink.example.stream.source.simple.DAUMockSource;
+import com.flink.example.stream.source.simple.UserPressureMockSource;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -22,7 +22,7 @@ public class RedisConnectorExample {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStreamSource<LoginUser> source = env.addSource(new DAUMockSource());
+        DataStreamSource<LoginUser> source = env.addSource(new UserPressureMockSource());
 
         SingleOutputStreamOperator<Tuple2<Long, Integer>> result = source
                 .map(new MapFunction<LoginUser, Tuple2<Long, Integer>>() {
@@ -39,7 +39,7 @@ public class RedisConnectorExample {
                 }).reduce(new ReduceFunction<Tuple2<Long, Integer>>() {
                     @Override
                     public Tuple2<Long, Integer> reduce(Tuple2<Long, Integer> value1, Tuple2<Long, Integer> value2) throws Exception {
-                        return new Tuple2<Long, Integer>(value1.f0, value1.f1 + value2.f1);
+                        return new Tuple2<>(value1.f0, value1.f1 + value2.f1);
                     }
                 });
 
