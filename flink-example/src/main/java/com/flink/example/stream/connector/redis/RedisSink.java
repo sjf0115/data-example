@@ -52,7 +52,7 @@ public class RedisSink extends RichSinkFunction<Tuple2<Long, Integer>> {
                 (bitCount > 100000 && bitCount <= 1000000 && bitCount % 10000 == 0) ||
                 (bitCount > 1000000 && bitCount <= 10000000 && bitCount % 10000 == 0) ||
                 (bitCount > 10000000 && bitCount <= 100000000 && bitCount % 100000 == 0)) {
-            LOG.info("{},{},{},{}", key, bitCount, pfCount, (bitCount - pfCount));
+            LOG.info("{},{},{},{},{}", key, bitCount, pfCount, (bitCount - pfCount), (bitCount - pfCount)/bitCount*100);
         }
     }
 

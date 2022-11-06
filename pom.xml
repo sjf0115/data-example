@@ -59,6 +59,7 @@
         <redis.version>4.0.1</redis.version>
         <geohash.version>1.4.0</geohash.version>
         <joda.version>2.10.14</joda.version>
+        <roaringBitmap.version>0.9.23</roaringBitmap.version>
     </properties>
 
     <dependencyManagement>
@@ -371,6 +372,13 @@
                 <groupId>redis.clients</groupId>
                 <artifactId>jedis</artifactId>
                 <version>${redis.version}</version>
+            </dependency>
+
+            <!-- RoaringBitmap -->
+            <dependency>
+                <groupId>org.roaringbitmap</groupId>
+                <artifactId>RoaringBitmap</artifactId>
+                <version>${roaringBitmap.version}</version>
             </dependency>
 
             <!-- apache common -->

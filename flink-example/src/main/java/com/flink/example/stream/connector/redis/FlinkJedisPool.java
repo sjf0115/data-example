@@ -10,6 +10,7 @@ import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -68,6 +69,38 @@ public class FlinkJedisPool implements FlinkRedisCommand, Closeable {
         } catch (Exception var10) {
             if(LOG.isErrorEnabled()) {
                 LOG.error("Cannot send Redis message with command HSET to key {} and hashField {} error message {}", new Object[]{key, hashField, var10.getMessage()});
+            }
+            throw var10;
+        } finally {
+            this.releaseInstance(jedis);
+        }
+    }
+
+    @Override
+    public String hget(String key, String fieldKey) {
+        Jedis jedis = null;
+        try {
+            jedis = this.getInstance();
+            return jedis.hget(key, fieldKey);
+        } catch (Exception var10) {
+            if(LOG.isErrorEnabled()) {
+                LOG.error("Cannot send Redis message with command HGET to key {} and fieldKey {} error message {}", key, fieldKey, var10.getMessage());
+            }
+            throw var10;
+        } finally {
+            this.releaseInstance(jedis);
+        }
+    }
+
+    @Override
+    public Map<String, String> hgetAll(String key) {
+        Jedis jedis = null;
+        try {
+            jedis = this.getInstance();
+            return jedis.hgetAll(key);
+        } catch (Exception var10) {
+            if(LOG.isErrorEnabled()) {
+                LOG.error("Cannot send Redis message with command HGETALL to key {} error message {}", key, var10.getMessage());
             }
             throw var10;
         } finally {
@@ -167,6 +200,22 @@ public class FlinkJedisPool implements FlinkRedisCommand, Closeable {
         } catch (Exception var8) {
             if(LOG.isErrorEnabled()) {
                 LOG.error("Cannot send Redis message with command SET to key {} error message {}", key, var8.getMessage());
+            }
+            throw var8;
+        } finally {
+            this.releaseInstance(jedis);
+        }
+    }
+
+    @Override
+    public String get(String key) {
+        Jedis jedis = null;
+        try {
+            jedis = this.getInstance();
+            return jedis.get(key);
+        } catch (Exception var8) {
+            if(LOG.isErrorEnabled()) {
+                LOG.error("Cannot send Redis message with command GET to key {} error message {}", key, var8.getMessage());
             }
             throw var8;
         } finally {

@@ -2,12 +2,17 @@ package com.flink.example.stream.connector.redis;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Map;
 
 // Flink Redis 命令
 public interface FlinkRedisCommand extends Serializable {
     void open() throws Exception;
 
     void hset(String key, String hashField, String value, Integer ttl);
+
+    String hget(String key, String fieldKey);
+
+    Map<String, String> hgetAll(String key);
 
     void hincrBy(String key, String hashField, Long value, Integer ttl);
 
@@ -20,6 +25,8 @@ public interface FlinkRedisCommand extends Serializable {
     void publish(String channelName, String message);
 
     void set(String key, String value);
+
+    String get(String key);
 
     void setex(String key, String value, Integer ttl);
 
