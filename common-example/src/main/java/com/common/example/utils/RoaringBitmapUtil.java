@@ -59,23 +59,24 @@ public class RoaringBitmapUtil {
      * @return
      */
     public static String parseString(Roaring64NavigableMap bitmap) {
-//        if (Objects.equals(bitmap, null)){
-//            return null;
-//        }
-//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//        DataOutputStream dos = new DataOutputStream(bos);
-//        String value;
-//        try {
-//            bitmap.runOptimize();
-//            bitmap.serialize(dos);
-//            dos.close();
-//            value = bos.toString("UTF-8");
-//        }
-//        catch (IOException e) {
-//            throw new RuntimeException("Exception happen when serialize bitmap:" + e.getMessage());
-//        }
-        byte[] bytes = parseByteArray(bitmap);
-        return new String(bytes);
+        if (Objects.equals(bitmap, null)){
+            return null;
+        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        String value;
+        try {
+            bitmap.runOptimize();
+            bitmap.serialize(dos);
+            dos.close();
+            value = bos.toString("UTF-8");
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Exception happen when serialize bitmap:" + e.getMessage());
+        }
+//        byte[] bytes = parseByteArray(bitmap);
+//        return new String(bytes);
+        return value;
     }
 
     /**

@@ -18,9 +18,9 @@ public class UserPressureMockSource extends RichParallelSourceFunction<LoginUser
 
     private static final Logger LOG = LoggerFactory.getLogger(SkewUserMockSource.class);
     // 速度 每秒多少条
-    private long speed = 1000;
+    private long speed = 1;
     // 阈值 最多发送多条跳
-    private int threshold = 30000000;
+    private int threshold = 10;
     private volatile boolean cancel = false;
     private Random random = new Random();
     private int minUid = 10000001;

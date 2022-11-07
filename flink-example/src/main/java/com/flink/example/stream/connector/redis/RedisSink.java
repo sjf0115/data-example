@@ -36,24 +36,11 @@ public class RedisSink extends RichSinkFunction<Tuple2<Long, Integer>> {
 
     @Override
     public void invoke(Tuple2<Long, Integer> element, Context context) throws Exception {
-        String key = String.valueOf(element.f0);
-        String hlKey = "uv_hl";
         String bitKey = "uv_bit";
-
-        jedisPool.setbit(bitKey, element.f0, true);
-        jedisPool.pfadd(hlKey, key);
-
+        Long uid = element.f0;
+        jedisPool.setbit(bitKey, uid, true);
         long bitCount = jedisPool.bitcount(bitKey);
-        long pfCount = jedisPool.pfcount(hlKey);
-
-        if ((bitCount <= 1000 && bitCount % 10 == 0) ||
-                (bitCount > 1000 && bitCount <= 10000 && bitCount % 100 == 0) ||
-                (bitCount > 10000 && bitCount <= 100000 && bitCount % 1000 == 0) ||
-                (bitCount > 100000 && bitCount <= 1000000 && bitCount % 10000 == 0) ||
-                (bitCount > 1000000 && bitCount <= 10000000 && bitCount % 10000 == 0) ||
-                (bitCount > 10000000 && bitCount <= 100000000 && bitCount % 100000 == 0)) {
-            LOG.info("{},{},{},{},{}", key, bitCount, pfCount, (bitCount - pfCount), (bitCount - pfCount)/bitCount*100);
-        }
+        LOG.info("uid: {}, bitCount: {},", uid, bitCount);
     }
 
     @Override

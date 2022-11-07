@@ -20,9 +20,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 public class RedisConnectorExample {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
+        env.setParallelism(2);
 
-        DataStreamSource<LoginUser> source = env.addSource(new UserPressureMockSource());
+        DataStreamSource<LoginUser> source = env.addSource(new UserPressureMockSource()).setParallelism(1);
 
         SingleOutputStreamOperator<Tuple2<Long, Integer>> result = source
                 .map(new MapFunction<LoginUser, Tuple2<Long, Integer>>() {
@@ -48,7 +48,7 @@ public class RedisConnectorExample {
                 .setPort(6379)
                 .build();
 
-        result.addSink(new RedisSink(config));
+        result.addSink(new RedisSink(config)).setParallelism(3);
 
         env.execute();
     }
