@@ -40,13 +40,13 @@ public class HiveOptionsProcessor {
                 .build());
 
         // 1.3 版本之前
-//        options.addOption(OptionBuilder
-//                .withValueSeparator()
-//                .hasArgs(2)
-//                .withArgName("key=value")
-//                .withLongOpt("define")
-//                .withDescription("Variable substitution to apply to Hive commands. e.g. -d A=B or --define A=B")
-//                .create('d'));
+        /**options.addOption(OptionBuilder
+                .withValueSeparator()
+                .hasArgs(2)
+                .withArgName("key=value")
+                .withLongOpt("define")
+                .withDescription("Variable substitution to apply to Hive commands. e.g. -d A=B or --define A=B")
+                .create('d'));**/
 
         // [-H|--help]
         options.addOption(new Option("H", "help", false, "Print help information"));
@@ -57,11 +57,12 @@ public class HiveOptionsProcessor {
     public boolean process(String[] args) {
         try {
             // 2. 解析阶段
-            // CommandLineParser parser = new GnuParser(); // 老版本
+            // 1.3.0 版本之前
+            // CommandLineParser parser = new GnuParser();
             CommandLineParser parser = new DefaultParser();
             commandLine = parser.parse( options, args);
 
-            // 3. 询问阶段
+            // 3. 查询阶段
             // -H 或者 --help
             if (commandLine.hasOption('H')) {
                 printUsage();
@@ -109,7 +110,6 @@ public class HiveOptionsProcessor {
         String[] params = {"-e", "SHOW DATABASES", "-d", "dt=20221001", "--define", "hh=10"};
         //String[] params = {"-H"};
         //String[] params = {"--help"};
-        //String[] params = {"--define", "dt=20221001"};
         processor.process(params);
     }
 }
