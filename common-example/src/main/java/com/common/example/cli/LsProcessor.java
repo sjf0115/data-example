@@ -9,7 +9,7 @@ import org.apache.commons.cli.*;
  * 公众号：大数据生态
  * 日期：2022/12/25 下午8:38
  */
-public class LsCLIExample {
+public class LsProcessor {
 
     private Options options;
 
@@ -26,7 +26,7 @@ public class LsCLIExample {
                     + "-l:show ctime and sort by name otherwise: sort "
                     + "by ctime");
             options.addOption("C", false, "list entries by columns");
-            options.addOption(Option.builder()
+            options.addOption(Option.builder("SIZE")
                     .longOpt("block-size")
                     .argName("SIZE")
                     .desc("use SIZE-byte blocks")
@@ -42,6 +42,9 @@ public class LsCLIExample {
             if (commandLine.hasOption("a")) {
                 System.out.println("a: " + commandLine.hasOption("a"));
             }
+            if (commandLine.hasOption("b")) {
+                System.out.println("b: " + commandLine.hasOption("b"));
+            }
         } catch (ParseException e) {
             System.err.println(e.getMessage());
             printUsage();
@@ -55,9 +58,8 @@ public class LsCLIExample {
 
     public static void main(String[] args) {
         //args = new String[]{ "--block-size=10", "--all"};
-        args = new String[]{ "-SIZE=10"};
-
-        LsCLIExample example = new LsCLIExample();
+        args = new String[]{"ls", "-ab"};
+        LsProcessor example = new LsProcessor();
         example.parseLs(args);
     }
 }
