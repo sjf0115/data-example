@@ -27,21 +27,15 @@
     <dependencies>
 
         <!-- Hadoop -->
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.hadoop</groupId>-->
+            <!--<artifactId>hadoop-common</artifactId>-->
+        <!--</dependency>-->
 
         <!-- jcommander -->
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
-        </dependency>
-
-        <!-- Hive -->
-        <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-exec</artifactId>
         </dependency>
 
         <!-- MySQL -->
@@ -86,10 +80,10 @@
             <artifactId>joda-time</artifactId>
         </dependency>
 
-        <!-- jcommander -->
+        <!-- Hive 后续计划移除 -->
         <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
         </dependency>
 
         <!-- log4j -->

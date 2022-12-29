@@ -38,7 +38,7 @@
         <common.version>3.5</common.version>
         <jcommander.version>1.78</jcommander.version>
         <presto.version>0.86</presto.version>
-        <hive.version>2.3.7</hive.version>
+        <hive.version>2.3.4</hive.version>
         <zookeeper.version>3.4.12</zookeeper.version>
         <hbase.version>2.1.6</hbase.version>
         <scala.binary.version>2.11</scala.binary.version>
@@ -98,12 +98,14 @@
                 <groupId>org.apache.hive</groupId>
                 <artifactId>hive-jdbc</artifactId>
                 <version>${hive.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.hive</groupId>
                 <artifactId>hive-exec</artifactId>
                 <version>${hive.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <!-- zookeeper -->
@@ -443,21 +445,21 @@
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-slf4j-impl</artifactId>
                 <version>${log4j.version}</version>
-                <scope>runtime</scope>
+                <!--<scope>runtime</scope>-->
             </dependency>
 
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-api</artifactId>
                 <version>${log4j.version}</version>
-                <scope>runtime</scope>
+                <!--<scope>runtime</scope>-->
             </dependency>
 
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-core</artifactId>
                 <version>${log4j.version}</version>
-                <scope>runtime</scope>
+                <!--<scope>runtime</scope>-->
             </dependency>
 
             <!-- junit -->
