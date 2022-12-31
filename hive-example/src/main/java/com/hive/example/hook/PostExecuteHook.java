@@ -22,6 +22,6 @@ public class PostExecuteHook implements PostExecute {
     private static final Logger LOG = LoggerFactory.getLogger(PostExecuteHook.class);
     @Override
     public void run(SessionState ss, Set<ReadEntity> inputs, Set<WriteEntity> outputs, LineageInfo lInfo, UserGroupInformation ugi) throws Exception {
-        LOG.info("[PostExecute] Command: {}", ss.getLastCommand());
+        LOG.info("Command: {}", ss.getLastCommand());
     }
 }

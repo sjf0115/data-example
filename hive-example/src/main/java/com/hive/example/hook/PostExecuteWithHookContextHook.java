@@ -1,7 +1,5 @@
 package com.hive.example.hook;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.hadoop.hive.ql.QueryPlan;
 import org.apache.hadoop.hive.ql.hooks.ExecuteWithHookContext;
 import org.apache.hadoop.hive.ql.hooks.HookContext;
@@ -19,7 +17,6 @@ import java.util.Objects;
  */
 public class PostExecuteWithHookContextHook implements ExecuteWithHookContext {
     private static final Logger LOG = LoggerFactory.getLogger(PostExecuteWithHookContextHook.class);
-    private static final Gson gson = new GsonBuilder().create();
     @Override
     public void run(HookContext context) throws Exception {
         HookContext.HookType hookType = context.getHookType();
@@ -34,7 +31,7 @@ public class PostExecuteWithHookContextHook implements ExecuteWithHookContext {
         // 查询
         String query = plan.getQueryString();
 
-        LOG.info("[ExecuteWithHookContext] OperationName: {}", operationName);
-        LOG.info("[ExecuteWithHookContext] Query: {}", query);
+        LOG.info("OperationName: {}", operationName);
+        LOG.info("Query: {}", query);
     }
 }
