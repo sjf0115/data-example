@@ -1,5 +1,5 @@
-// Generated from /Users/wy/study/code/data-example/antlr-example/src/main/java/com/antlr/example/grammar/Hello.g4 by ANTLR 4.9.2
-package com.antlr.example.parse.hello;
+// Generated from com/antlr/example/hello/Hello.g4 by ANTLR 4.9.2
+package com.antlr.example.hello;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;

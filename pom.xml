@@ -34,6 +34,8 @@
     </modules>
 
     <properties>
+        <java.version>1.8</java.version>
+        <maven.version>3.3</maven.version>
         <common.example.version>1.0</common.example.version>
         <storm.version>1.1.2</storm.version>
         <common.version>3.5</common.version>
@@ -482,4 +484,27 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Maven 编译插件 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
+
+                <!-- Maven Antlr 插件 -->
+                <plugin>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr4-maven-plugin</artifactId>
+                    <version>${antlr.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

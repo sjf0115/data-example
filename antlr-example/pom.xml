@@ -10,18 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>antlr-example</artifactId>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>6</source>
-                    <target>6</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
     <dependencies>
         <!-- Antlr -->
@@ -31,4 +19,63 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <arguments>
+                        <!-- 指定生成代码的包名 -->
+                        <!-- <argument>-package</argument> -->
+                        <!-- <argument>com.antlr.example</argument> -->
+                    </arguments>
+                    <!-- ANTLR 语法文件(*.g4)所在目录 -->
+                    <sourceDirectory>${basedir}/src/main/antlr4</sourceDirectory>
+                    <!-- 指定生成 Java 文件的输出目录 -->
+<!--                    <outputDirectory>${project.build.directory}/generated-sources/antlr4</outputDirectory>-->
+                    <!-- Java 文件输出测试目录 -->
+                     <outputDirectory>${basedir}/src/main/generated-sources/antlr4</outputDirectory>
+                    <!-- 生成语分析法树监听器代码 -->
+                    <listener>true</listener>
+                    <!-- 生成语法分析树访问器代码 -->
+                    <visitor>true</visitor>
+                    <!-- 将 Warning 视为 Error -->
+                    <treatWarningsAsErrors>true</treatWarningsAsErrors>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
