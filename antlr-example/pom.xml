@@ -48,6 +48,8 @@
                         <!-- <argument>-package</argument> -->
                         <!-- <argument>com.antlr.example</argument> -->
                     </arguments>
+                    <!-- ANTLR 导入文件所在目录 -->
+                    <libDirectory>${basedir}/src/main/antlr4/imports</libDirectory>
                     <!-- ANTLR 语法文件(*.g4)所在目录 -->
                     <sourceDirectory>${basedir}/src/main/antlr4</sourceDirectory>
                     <!-- 指定生成 Java 文件的输出目录 -->

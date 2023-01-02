@@ -30,6 +30,7 @@
         </executions>
         <configuration>
           <arguments />
+          <libDirectory>${basedir}/src/main/antlr4/imports</libDirectory>
           <sourceDirectory>${basedir}/src/main/antlr4</sourceDirectory>
           <outputDirectory>${basedir}/src/main/generated-sources/antlr4</outputDirectory>
           <listener>true</listener>
