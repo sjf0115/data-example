@@ -13,7 +13,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
  */
 public class Calc {
     public static void main(String[] args) {
-        String input = "1 + 2 * 3 + (3 + 1) * 2\n";
+        String input = "a = 2\nb = 3\n1 + a * b + (3 + 1) * 2\n";
 
         // 1. 新建一个 CharStream 从字符串中读取数据
         CharStream charStream = CharStreams.fromString(input);

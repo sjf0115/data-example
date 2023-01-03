@@ -1,6 +1,5 @@
 package com.antlr.example.calculator;
 
-import com.antlr.example.labeledExpr.LabeledExprParser;
 
 import java.util.HashMap;
 
@@ -15,76 +14,90 @@ public class CalcVisitor extends CalculatorBaseVisitor<Integer> {
     // 计数器内存 存放变量名和变量值的关系
     private HashMap<String, Integer> memory = new HashMap<>();
 
-    // expr NEWLINE
+    // expr NEWLINE 备选分支 printExpr 标签
     @Override
     public Integer visitPrintExpr(CalculatorParser.PrintExprContext ctx) {
+        // 表达式
         String text = ctx.expr().getText();
-        // 计算 expr 子节点的值
+        // 计算表达式的值
         Integer value = visit(ctx.expr());
         System.out.println(text + "=" + value);
         // 返回值无所谓
         return value;
     }
 
-    // ID '=' expr NEWLINE
+    // ID '=' expr NEWLINE 备选分支 assign 标签
     @Override
     public Integer visitAssign(CalculatorParser.AssignContext ctx) {
-        // id 在 = 的右侧
+        // 获取 ID 值
         String id = ctx.ID().getText();
         // 计算右侧表达式的值
         Integer value = visit(ctx.expr());
-        // 将映射关系存入 memory 变量中
+        // 由于是赋值语句 将映射关系存入 memory 变量中
         memory.put(id, value);
         return value;
     }
 
+    // NEWLINE 备选分支 blank 标签
     @Override
     public Integer visitBlank(CalculatorParser.BlankContext ctx) {
         return 0;
     }
 
-    @Override
-    public Integer visitParens(CalculatorParser.ParensContext ctx) {
-        return visit(ctx.expr());
-    }
-
+    // expr op=('*'|'/') expr 备选分支 MulDiv
     @Override
     public Integer visitMulDiv(CalculatorParser.MulDivContext ctx) {
+        // 左侧的数
         Integer left = visit(ctx.expr(0));
+        // 右侧的数
         Integer right = visit(ctx.expr(1));
-        if (ctx.op.getType() == LabeledExprParser.MUL) {
+        // 运算
+        if (ctx.op.getType() == CalculatorParser.MUL) {
             return left * right;
         } else {
             return left / right;
         }
     }
 
+    // expr op=('+'|'-') expr 备选分支 AddSub
     @Override
     public Integer visitAddSub(CalculatorParser.AddSubContext ctx) {
+        // 左侧的数
         Integer left = visit(ctx.expr(0));
+        // 右侧的数
         Integer right = visit(ctx.expr(1));
-        if (ctx.op.getType() == LabeledExprParser.ADD) {
+        // 运算
+        if (ctx.op.getType() == CalculatorParser.ADD) {
             return left + right;
         } else {
             return left - right;
         }
     }
 
-    // ID
-    @Override
-    public Integer visitId(CalculatorParser.IdContext ctx) {
-        String id = ctx.ID().getText();
-        if (memory.containsKey(id)) {
-            return memory.get(id);
-        }
-        return 0;
-    }
-
-    // INT
+    // INT 备选分支 int
     @Override
     public Integer visitInt(CalculatorParser.IntContext ctx) {
         // 计算 INT 的值
         String value = ctx.INT().getText();
         return Integer.parseInt(value);
+    }
+
+    // ID 备选分支 id
+    @Override
+    public Integer visitId(CalculatorParser.IdContext ctx) {
+        // 获取 ID 变量
+        String id = ctx.ID().getText();
+        // 获取 ID 变量对应的值
+        if (memory.containsKey(id)) {
+            // 是否是赋值语句
+            return memory.get(id);
+        }
+        return 0;
+    }
+
+    // '(' expr ')' 备选分支 parens
+    @Override
+    public Integer visitParens(CalculatorParser.ParensContext ctx) {
+        return visit(ctx.expr());
     }
 }
