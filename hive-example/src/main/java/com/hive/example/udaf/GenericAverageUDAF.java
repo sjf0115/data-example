@@ -1,4 +1,4 @@
-package com.hive.example.udf;
+package com.hive.example.udaf;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

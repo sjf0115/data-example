@@ -1,4 +1,4 @@
-package com.hive.example.udf;
+package com.hive.example.udaf;
 
 import org.apache.hadoop.hive.ql.exec.UDAF;
 import org.apache.hadoop.hive.ql.exec.UDAFEvaluatorResolver;
