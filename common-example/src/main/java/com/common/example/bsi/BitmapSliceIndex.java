@@ -1,6 +1,7 @@
 package com.common.example.bsi;
 
 
+import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,10 +27,17 @@ public interface BitmapSliceIndex {
 
     int bitCount();
     long getLongCardinality();
-    void setValue(int columnId, int value);
-    Pair<Integer, Boolean> getValue(int columnId);
+    void addValue(Pair<Integer, Integer> pair);
+    void addValue(int key, int value);
+    Pair<Integer, Boolean> getValue(int key);
     void setValues(List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue);
+    boolean valueExist(Long columnId);
+
     void serialize(ByteBuffer buffer) throws IOException;
     void serialize(DataOutput output) throws IOException;
     int serializedSizeInBytes();
+
+    void deserialize(ByteBuffer buffer) throws IOException;
+    void deserialize(DataInput in) throws IOException;
+
 }

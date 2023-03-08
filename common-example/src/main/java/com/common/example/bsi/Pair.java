@@ -45,6 +45,10 @@ public class Pair<T1, T2> implements Serializable {
         return new Pair<T1, T2>(a, b);
     }
 
+    public static <T1, T2> Pair<T1, T2> of(T1 a, T2 b) {
+        return new Pair<T1, T2>(a, b);
+    }
+
     private static boolean equals(Object x, Object y) {
         return (x == null && y == null) || (x != null && x.equals(y));
     }

@@ -1,5 +1,10 @@
 package com.common.example.test;
 
+
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
 /**
  * 功能：
  * 作者：SmartSi
@@ -9,6 +14,9 @@ package com.common.example.test;
  */
 public class Test {
     public static void main(String[] args) {
-        System.out.println("....");
+        List<Integer> list = Lists.newArrayList(48,80,75,19,1,57,63,22,96,34);
+        for (Integer v : list) {
+            System.out.println(v + ": " + Integer.toBinaryString(v)+ ", " + Integer.toBinaryString(v).length());
+        }
     }
 }
