@@ -76,6 +76,7 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
         ensureCapacityInternal(0, value);
         for (int i = 0; i < this.bitCount(); i++) {
             if ((value & (1 << i)) > 0) {
+                //
                 this.bitmaps[i].add(key);
             } else {
                 this.bitmaps[i].remove(key);
@@ -84,8 +85,7 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
         this.ebM.add(key);
     }
 
-
-
+    // 获取对应值
     @Override
     public Pair<Integer, Boolean> getValue(int key) {
         boolean exists = this.ebM.contains(key);
@@ -101,6 +101,7 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
         return Pair.newPair(value, true);
     }
 
+    // 批量添加
     @Override
     public void setValues(List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue) {
         int maxValue = currentMaxValue != null ? currentMaxValue : values.stream().mapToInt(Pair::getRight).max().getAsInt();
@@ -112,8 +113,8 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
     }
 
     @Override
-    public boolean valueExist(Long columnId) {
-        return this.ebM.contains(columnId.intValue());
+    public boolean valueExist(int key) {
+        return this.ebM.contains(key);
     }
 
     @Override

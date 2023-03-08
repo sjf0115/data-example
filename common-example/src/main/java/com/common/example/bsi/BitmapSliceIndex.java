@@ -31,7 +31,7 @@ public interface BitmapSliceIndex {
     void addValue(int key, int value);
     Pair<Integer, Boolean> getValue(int key);
     void setValues(List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue);
-    boolean valueExist(Long columnId);
+    boolean valueExist(int key);
 
     void serialize(ByteBuffer buffer) throws IOException;
     void serialize(DataOutput output) throws IOException;
