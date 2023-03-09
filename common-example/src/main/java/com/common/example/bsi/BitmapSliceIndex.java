@@ -33,6 +33,8 @@ public interface BitmapSliceIndex {
     void setValues(List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue);
     boolean valueExist(int key);
 
+
+
     void serialize(ByteBuffer buffer) throws IOException;
     void serialize(DataOutput output) throws IOException;
     int serializedSizeInBytes();

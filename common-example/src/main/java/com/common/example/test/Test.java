@@ -14,9 +14,11 @@ import java.util.List;
  */
 public class Test {
     public static void main(String[] args) {
-        List<Integer> list = Lists.newArrayList(48,80,75,19,1,57,63,22,96,34);
-        for (Integer v : list) {
-            System.out.println(v + ": " + Integer.toBinaryString(v)+ ", " + Integer.toBinaryString(v).length());
-        }
+//        List<Integer> list = Lists.newArrayList(48,80,75,19,1,57,63,22,96,34);
+//        for (Integer v : list) {
+//            System.out.println(v + ": " + Integer.toBinaryString(v)+ ", " + Integer.toBinaryString(v).length());
+//        }
+
+        System.out.println(Integer.toBinaryString(51));
     }
 }

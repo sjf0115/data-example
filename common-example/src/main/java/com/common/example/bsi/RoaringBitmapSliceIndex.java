@@ -9,7 +9,6 @@ import org.roaringbitmap.RoaringBitmap;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
@@ -252,6 +251,108 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
 
     //------------------------------------------------------------------------------------------------------------------
 
+    // 范围查询
+    private RoaringBitmap compare(BitmapSliceIndex.Operation operation, int predicate, RoaringBitmap foundSet) {
+        RoaringBitmap fixedFoundSet = foundSet == null ? this.ebM : foundSet;
+        // 划分成三部分：小于(初始为空)、等于(初始为全量)、大于(初始为空)
+        RoaringBitmap GT = new RoaringBitmap();
+        RoaringBitmap LT = new RoaringBitmap();
+        RoaringBitmap EQ = this.ebM;
+
+        for (int i = this.bitCount() - 1; i >= 0; i--) {
+            // 右移 i 位 查看 i+1 位是0还是1
+            int bit = (predicate >> i) & 1;
+            if (bit == 1) {
+                LT = RoaringBitmap.or(LT, RoaringBitmap.andNot(EQ, this.bitmaps[i]));
+                EQ = RoaringBitmap.and(EQ, this.bitmaps[i]);
+            } else {
+                GT = RoaringBitmap.or(GT, RoaringBitmap.and(EQ, this.bitmaps[i]));
+                EQ = RoaringBitmap.andNot(EQ, this.bitmaps[i]);
+            }
+
+        }
+
+        EQ = RoaringBitmap.and(fixedFoundSet, EQ);
+        switch (operation) {
+            case EQ:
+                return EQ;
+            case NEQ:
+                return RoaringBitmap.andNot(fixedFoundSet, EQ);
+            case GT:
+                return RoaringBitmap.and(GT, fixedFoundSet);
+            case LT:
+                return RoaringBitmap.and(LT, fixedFoundSet);
+            case LE:
+                return RoaringBitmap.or(LT, EQ);
+            case GE:
+                return RoaringBitmap.or(GT, EQ);
+            default:
+                throw new IllegalArgumentException("");
+        }
+    }
+
+    public RoaringBitmap eq(int predicate) {
+        return compare(Operation.EQ, predicate, null);
+    }
+
+    public RoaringBitmap neq(int predicate) {
+        return compare(Operation.NEQ, predicate, null);
+    }
+
+    public RoaringBitmap gt(int predicate) {
+        return compare(Operation.GT, predicate, null);
+    }
+
+    public RoaringBitmap lt(int predicate) {
+        return compare(Operation.LT, predicate, null);
+    }
+
+    public RoaringBitmap gte(int predicate) {
+        return compare(Operation.GE, predicate, null);
+    }
+
+    public RoaringBitmap lte(int predicate) {
+        return compare(Operation.LE, predicate, null);
+    }
+
+    public RoaringBitmap range(int start, int end) {
+        RoaringBitmap left = compare(Operation.GE, start, null);
+        RoaringBitmap right = compare(Operation.LE, end, null);
+        return RoaringBitmap.and(left, right);
+    }
+
+    public RoaringBitmap eq(int predicate, RoaringBitmap foundSet) {
+        return compare(Operation.EQ, predicate, foundSet);
+    }
+
+    public RoaringBitmap neq(int predicate, RoaringBitmap foundSet) {
+        return compare(Operation.NEQ, predicate, foundSet);
+    }
+
+    public RoaringBitmap gt(int predicate, RoaringBitmap foundSet) {
+        return compare(Operation.GT, predicate, foundSet);
+    }
+
+    public RoaringBitmap lt(int predicate, RoaringBitmap foundSet) {
+        return compare(Operation.LT, predicate, foundSet);
+    }
+
+    public RoaringBitmap gte(int predicate, RoaringBitmap foundSet) {
+        return compare(Operation.GE, predicate, foundSet);
+    }
+
+    public RoaringBitmap lte(int predicate, RoaringBitmap foundSet) {
+        return compare(Operation.LE, predicate, foundSet);
+    }
+
+    public RoaringBitmap range(int start, int end, RoaringBitmap foundSet) {
+        RoaringBitmap left = compare(Operation.GE, start, foundSet);
+        RoaringBitmap right = compare(BitmapSliceIndex.Operation.LE, end, foundSet);
+        return RoaringBitmap.and(left, right);
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
     public void add(RoaringBitmapSliceIndex otherBsi) {
         this.ebM.or(otherBsi.ebM);
         for (int i = 0; i < otherBsi.bitCount(); i++) {
@@ -327,77 +428,9 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
     }
 
 
-    private RoaringBitmap oNeilCompare(BitmapSliceIndex.Operation operation, int predicate, RoaringBitmap foundSet) {
-        RoaringBitmap fixedFoundSet = foundSet == null ? this.ebM : foundSet;
-
-        RoaringBitmap GT = new RoaringBitmap();
-        RoaringBitmap LT = new RoaringBitmap();
-        RoaringBitmap EQ = this.ebM;
 
 
-        for (int i = this.bitCount() - 1; i >= 0; i--) {
-            int bit = (predicate >> i) & 1;
-            if (bit == 1) {
-                LT = RoaringBitmap.or(LT, RoaringBitmap.andNot(EQ, this.bitmaps[i]));
-                EQ = RoaringBitmap.and(EQ, this.bitmaps[i]);
-            } else {
-                GT = RoaringBitmap.or(GT, RoaringBitmap.and(EQ, this.bitmaps[i]));
-                EQ = RoaringBitmap.andNot(EQ, this.bitmaps[i]);
-            }
 
-        }
-        EQ = RoaringBitmap.and(fixedFoundSet, EQ);
-        switch (operation) {
-            case EQ:
-                return EQ;
-            case NEQ:
-                return RoaringBitmap.andNot(fixedFoundSet, EQ);
-            case GT:
-                return RoaringBitmap.and(GT, fixedFoundSet);
-            case LT:
-                return RoaringBitmap.and(LT, fixedFoundSet);
-            case LE:
-                return RoaringBitmap.or(LT, EQ);
-            case GE:
-                return RoaringBitmap.or(GT, EQ);
-            default:
-                throw new IllegalArgumentException("");
-        }
-    }
-
-    public RoaringBitmap compare(BitmapSliceIndex.Operation operation, int startOrValue, int end, RoaringBitmap foundSet) {
-        // todo whether we need this or not?
-        if (startOrValue > this.maxValue || (end > 0 && end < this.minValue)) {
-            return new RoaringBitmap();
-        }
-        startOrValue = startOrValue == 0 ? 1 : startOrValue;
-
-        switch (operation) {
-            case EQ:
-                return oNeilCompare(Operation.EQ, startOrValue, foundSet);
-            case NEQ:
-                return oNeilCompare(Operation.NEQ, startOrValue, foundSet);
-            case GE:
-                return oNeilCompare(Operation.GE, startOrValue, foundSet);
-            case GT: {
-                return oNeilCompare(BitmapSliceIndex.Operation.GT, startOrValue, foundSet);
-            }
-            case LT:
-                return oNeilCompare(BitmapSliceIndex.Operation.LT, startOrValue, foundSet);
-
-            case LE:
-                return oNeilCompare(BitmapSliceIndex.Operation.LE, startOrValue, foundSet);
-
-            case RANGE: {
-                RoaringBitmap left = oNeilCompare(Operation.GE, startOrValue, foundSet);
-                RoaringBitmap right = oNeilCompare(BitmapSliceIndex.Operation.LE, end, foundSet);
-
-                return RoaringBitmap.and(left, right);
-            }
-            default:
-                throw new IllegalArgumentException("not support operation!");
-        }
-    }
 
     public Pair<Long, Long> sum(RoaringBitmap foundSet) {
         if (null == foundSet || foundSet.isEmpty()) {
