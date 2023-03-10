@@ -269,7 +269,6 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
                 GT = RoaringBitmap.or(GT, RoaringBitmap.and(EQ, this.bitmaps[i]));
                 EQ = RoaringBitmap.andNot(EQ, this.bitmaps[i]);
             }
-
         }
 
         EQ = RoaringBitmap.and(fixedFoundSet, EQ);
