@@ -260,13 +260,23 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
         RoaringBitmap EQ = this.ebM;
 
         for (int i = this.bitCount() - 1; i >= 0; i--) {
-            // 右移 i 位 查看 i+1 位是0还是1
+            // 右移 i 位 查看查找值 i+1 Bit 位
             int bit = (predicate >> i) & 1;
             if (bit == 1) {
+                // 查找值 Bit 位为 1 则 EQ 中的候选值小于等于查找值
+                // 即 EQ 中的候选值分为两部分：一部分继续留在 EQ 集合中；一部分转移到 LT 集合中
+
+                // EQ 集合中的候选值 Bit 位为 0 (EQ 集合与 bitmaps[i] 集合的差集) 则转移到 LT 集合中(与 LT 集合的并集)
                 LT = RoaringBitmap.or(LT, RoaringBitmap.andNot(EQ, this.bitmaps[i]));
+                // EQ 集合中的候选值 Bit 位为 1 (EQ 集合与 bitmaps[i] 集合的交集) 则继续留在 EQ 集合中
                 EQ = RoaringBitmap.and(EQ, this.bitmaps[i]);
             } else {
+                // 查找值 Bit 位为 0 则 EQ 中的候选值大于等于查找值
+                // 即 EQ 中的候选值分为两部分：一部分继续留在 EQ 集合中；一部分转移到 GT 集合中
+
+                // EQ 集合中的候选值 Bit 位为 0 (EQ 集合与 bitmaps[i] 集合的交集) 则转移到 GT 集合中(与 GT 集合的并集)
                 GT = RoaringBitmap.or(GT, RoaringBitmap.and(EQ, this.bitmaps[i]));
+                // EQ 集合中的候选值 Bit 位为 1 (EQ 集合与 bitmaps[i] 集合的差集) 则继续留在 EQ 集合中
                 EQ = RoaringBitmap.andNot(EQ, this.bitmaps[i]);
             }
         }
@@ -281,6 +291,51 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
                 return RoaringBitmap.and(GT, fixedFoundSet);
             case LT:
                 return RoaringBitmap.and(LT, fixedFoundSet);
+            case LE:
+                return RoaringBitmap.or(LT, EQ);
+            case GE:
+                return RoaringBitmap.or(GT, EQ);
+            default:
+                throw new IllegalArgumentException("");
+        }
+    }
+
+    // 优化版本
+    private RoaringBitmap compare2(BitmapSliceIndex.Operation operation, int vale) {
+        // 大于查找值 Value 的集合
+        RoaringBitmap GT = new RoaringBitmap();
+        // 小于查找值 Value 的集合
+        RoaringBitmap LT = new RoaringBitmap();
+        // 等于查找值 Value 的集合
+        RoaringBitmap EQ = new RoaringBitmap();
+        // 候选集合 初始化为全量
+        RoaringBitmap CANDIDATE = this.ebM;
+
+        for (int i = this.bitCount() - 1; i >= 0; i--) {
+            // 右移 i 位 查看查找值 i+1 Bit 位
+            int bit = (vale >> i) & 1;
+            if (bit == 1) {
+                // 查找值 Bit 位为 1 则候选集合中的元素值均小于等于查找值
+                // 将候选集合中小于查找值的元素(即 Bit 位为 0，候选集合与 bitmaps[i] 集合的差集)转移到 LT 集合中
+                LT = RoaringBitmap.or(LT, RoaringBitmap.andNot(CANDIDATE, this.bitmaps[i]));
+            } else {
+                // 查找值 Bit 位为 0 则候选集合中的元素值均大于等于查找值
+                // 将候选集合中大于查找值的元素(即 Bit 位为 1，候选集合与 bitmaps[i] 集合的交集)转移到 GT 集合中
+                GT = RoaringBitmap.or(GT, RoaringBitmap.and(CANDIDATE, this.bitmaps[i]));
+            }
+        }
+        // 将候选集合中大于或者等于查找值的值分别转移到 GT 和 LT 集合中 剩下的是等于查找值的 Key
+        EQ = RoaringBitmap.or(CANDIDATE, EQ);
+
+        switch (operation) {
+            case EQ:
+                return EQ;
+            case NEQ:
+                return RoaringBitmap.andNot(this.ebM, EQ);
+            case GT:
+                return GT;
+            case LT:
+                return LT;
             case LE:
                 return RoaringBitmap.or(LT, EQ);
             case GE:
