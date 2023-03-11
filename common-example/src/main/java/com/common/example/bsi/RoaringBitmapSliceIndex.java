@@ -301,7 +301,7 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
     }
 
     // 优化版本
-    private RoaringBitmap compare2(BitmapSliceIndex.Operation operation, int vale) {
+    private RoaringBitmap rangeCompare(BitmapSliceIndex.Operation operation, int vale) {
         // 大于查找值 Value 的集合
         RoaringBitmap GT = new RoaringBitmap();
         // 小于查找值 Value 的集合
@@ -318,10 +318,14 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
                 // 查找值 Bit 位为 1 则候选集合中的元素值均小于等于查找值
                 // 将候选集合中小于查找值的元素(即 Bit 位为 0，候选集合与 bitmaps[i] 集合的差集)转移到 LT 集合中
                 LT = RoaringBitmap.or(LT, RoaringBitmap.andNot(CANDIDATE, this.bitmaps[i]));
+                // 其他元素(Bit 位为 1，即 bitmaps[i] 集合中的元素) 继续留在 CANDIDATE 集合中
+                CANDIDATE = RoaringBitmap.and(CANDIDATE, this.bitmaps[i]);
             } else {
                 // 查找值 Bit 位为 0 则候选集合中的元素值均大于等于查找值
                 // 将候选集合中大于查找值的元素(即 Bit 位为 1，候选集合与 bitmaps[i] 集合的交集)转移到 GT 集合中
                 GT = RoaringBitmap.or(GT, RoaringBitmap.and(CANDIDATE, this.bitmaps[i]));
+                // 其他元素(Bit 位为 0，即非 bitmaps[i] 集合中的元素) 继续留在 CANDIDATE 集合中
+                CANDIDATE = RoaringBitmap.andNot(CANDIDATE, this.bitmaps[i]);
             }
         }
         // 将候选集合中大于或者等于查找值的值分别转移到 GT 和 LT 集合中 剩下的是等于查找值的 Key
@@ -345,64 +349,75 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
         }
     }
 
-    public RoaringBitmap eq(int predicate) {
-        return compare(Operation.EQ, predicate, null);
+    public RoaringBitmap eq(int value) {
+        return rangeCompare(Operation.EQ, value);
     }
 
-    public RoaringBitmap neq(int predicate) {
-        return compare(Operation.NEQ, predicate, null);
+    public RoaringBitmap neq(int value) {
+        return rangeCompare(Operation.NEQ, value);
     }
 
-    public RoaringBitmap gt(int predicate) {
-        return compare(Operation.GT, predicate, null);
+    public RoaringBitmap gt(int value) {
+        return rangeCompare(Operation.GT, value);
     }
 
-    public RoaringBitmap lt(int predicate) {
-        return compare(Operation.LT, predicate, null);
+    public RoaringBitmap lt(int value) {
+        return rangeCompare(Operation.LT, value);
     }
 
-    public RoaringBitmap gte(int predicate) {
-        return compare(Operation.GE, predicate, null);
+    public RoaringBitmap gte(int value) {
+        return rangeCompare(Operation.GE, value);
     }
 
-    public RoaringBitmap lte(int predicate) {
-        return compare(Operation.LE, predicate, null);
+    public RoaringBitmap lte(int value) {
+        return rangeCompare(Operation.LE, value);
     }
 
     public RoaringBitmap range(int start, int end) {
-        RoaringBitmap left = compare(Operation.GE, start, null);
-        RoaringBitmap right = compare(Operation.LE, end, null);
+        RoaringBitmap left = rangeCompare(Operation.GE, start);
+        RoaringBitmap right = rangeCompare(Operation.LE, end);
         return RoaringBitmap.and(left, right);
     }
 
-    public RoaringBitmap eq(int predicate, RoaringBitmap foundSet) {
-        return compare(Operation.EQ, predicate, foundSet);
+    public RoaringBitmap eq(int value, RoaringBitmap foundSet) {
+        RoaringBitmap bitmap = rangeCompare(Operation.EQ, value);
+        RoaringBitmap.and(bitmap, foundSet);
+        return bitmap;
     }
 
-    public RoaringBitmap neq(int predicate, RoaringBitmap foundSet) {
-        return compare(Operation.NEQ, predicate, foundSet);
+    public RoaringBitmap neq(int value, RoaringBitmap foundSet) {
+        RoaringBitmap EQ = rangeCompare(Operation.EQ, value);
+        RoaringBitmap bitmap = foundSet;
+        RoaringBitmap.andNot(bitmap, EQ);
+        return foundSet;
     }
 
-    public RoaringBitmap gt(int predicate, RoaringBitmap foundSet) {
-        return compare(Operation.GT, predicate, foundSet);
+    public RoaringBitmap gt(int value, RoaringBitmap foundSet) {
+        RoaringBitmap GT = rangeCompare(Operation.GT, value);
+        return RoaringBitmap.and(GT, foundSet);
     }
 
-    public RoaringBitmap lt(int predicate, RoaringBitmap foundSet) {
-        return compare(Operation.LT, predicate, foundSet);
+    public RoaringBitmap lt(int value, RoaringBitmap foundSet) {
+        RoaringBitmap LT = rangeCompare(Operation.LT, value);
+        return RoaringBitmap.and(LT, foundSet);
     }
 
-    public RoaringBitmap gte(int predicate, RoaringBitmap foundSet) {
-        return compare(Operation.GE, predicate, foundSet);
+    public RoaringBitmap gte(int value, RoaringBitmap foundSet) {
+        RoaringBitmap GT = rangeCompare(Operation.GT, value);
+        RoaringBitmap EQ = rangeCompare(Operation.EQ, value);
+        return RoaringBitmap.and(RoaringBitmap.or(GT, EQ), foundSet);
     }
 
-    public RoaringBitmap lte(int predicate, RoaringBitmap foundSet) {
-        return compare(Operation.LE, predicate, foundSet);
+    public RoaringBitmap lte(int value, RoaringBitmap foundSet) {
+        RoaringBitmap LT = rangeCompare(Operation.LT, value);
+        RoaringBitmap EQ = rangeCompare(Operation.EQ, value);
+        return RoaringBitmap.and(RoaringBitmap.or(LT, EQ), foundSet);
     }
 
     public RoaringBitmap range(int start, int end, RoaringBitmap foundSet) {
-        RoaringBitmap left = compare(Operation.GE, start, foundSet);
-        RoaringBitmap right = compare(BitmapSliceIndex.Operation.LE, end, foundSet);
-        return RoaringBitmap.and(left, right);
+        RoaringBitmap GE = rangeCompare(Operation.GE, start);
+        RoaringBitmap LE = rangeCompare(Operation.LE, end);
+        return RoaringBitmap.and(RoaringBitmap.and(GE, LE), foundSet);
     }
 
     //------------------------------------------------------------------------------------------------------------------

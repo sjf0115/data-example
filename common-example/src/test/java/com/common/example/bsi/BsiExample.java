@@ -1,5 +1,6 @@
 package com.common.example.bsi;
 
+import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,25 +21,26 @@ import java.util.stream.IntStream;
 public class BsiExample {
 
     private RoaringBitmapSliceIndex bsi;
-    private List<Pair<Integer, Integer>> input;
+    private Map<Integer, Integer> input;
 
     @Before
     public void setup() {
-        input = Lists.newArrayList(
-                Pair.of(1, 48),
-                Pair.of(2, 80),
-                Pair.of(3, 75),
-                Pair.of(4, 19),
-                Pair.of(5, 1),
-                Pair.of(6, 57),
-                Pair.of(7, 63),
-                Pair.of(8, 22),
-                Pair.of(9, 96),
-                Pair.of(10, 34));
+        input = Maps.newHashMap(
+                1, 48,
+                2, 80,
+                3, 75,
+                4, 19,
+                5, 1,
+                6, 57,
+                7, 63,
+                8, 22,
+                9, 96,
+                10, 34
+        );
         bsi = new RoaringBitmapSliceIndex(1, 96);
         // 添加
-        for (Pair<Integer, Integer> pair : input) {
-            bsi.addValue(pair.left, pair.right);
+        for (Integer key : input.keySet()) {
+            bsi.addValue(key, input.get(key));
         }
     }
 
@@ -51,9 +53,9 @@ public class BsiExample {
     @Test
     public void testGet() {
         // 查询
-        for (Pair<Integer, Integer> pair : input) {
-            Pair<Integer, Boolean> value = bsi.getValue(pair.left);
-            System.out.println(pair.left + ": " + value.left);
+        for (Integer key : input.keySet()) {
+            Pair<Integer, Boolean> value = bsi.getValue(key);
+            System.out.println(key + ": " + value.left);
         }
     }
 
@@ -67,12 +69,85 @@ public class BsiExample {
     }
 
     @Test
-    public void testLE() {
-        RoaringBitmap bitmap = bsi.lte(51);
+    public void testEQ() {
+        // 等于
+        RoaringBitmap bitmap = bsi.eq(75);
         bitmap.forEach(new IntConsumer() {
             @Override
             public void accept(int key) {
-                System.out.println("Value 小于等于 51 的 Key：" + key);
+                System.out.println("key: " + input.get(key));
+            }
+        });
+    }
+
+    @Test
+    public void testNEQ() {
+        // 不等于
+        RoaringBitmap bitmap = bsi.neq(75);
+        bitmap.forEach(new IntConsumer() {
+            @Override
+            public void accept(int key) {
+                System.out.println("key: " + input.get(key));
+            }
+        });
+    }
+
+    @Test
+    public void testLT() {
+        // 小于
+        RoaringBitmap bitmap = bsi.lt(75);
+        bitmap.forEach(new IntConsumer() {
+            @Override
+            public void accept(int key) {
+                System.out.println("key: " + input.get(key));
+            }
+        });
+    }
+
+    @Test
+    public void testLTE() {
+        // 小于等于
+        RoaringBitmap bitmap = bsi.lte(75);
+        bitmap.forEach(new IntConsumer() {
+            @Override
+            public void accept(int key) {
+                System.out.println("key: " + input.get(key));
+            }
+        });
+    }
+
+    @Test
+    public void testGT() {
+        // 大于
+        RoaringBitmap bitmap = bsi.gt(75);
+        bitmap.forEach(new IntConsumer() {
+            @Override
+            public void accept(int key) {
+                System.out.println("key: " + input.get(key));
+            }
+        });
+    }
+
+    @Test
+    public void testGTE() {
+        // 大于等于
+        RoaringBitmap bitmap = bsi.gte(75);
+        bitmap.forEach(new IntConsumer() {
+            @Override
+            public void accept(int key) {
+                System.out.println("key: " + input.get(key));
+            }
+        });
+    }
+
+    @Test
+    public void testRange() {
+        // 范围 [start, end]
+        RoaringBitmap bitmap = bsi.range(57, 75);
+        bitmap.forEach(new IntConsumer() {
+            @Override
+            public void accept(int key) {
+                System.out.println("key: " + input.get(key));
             }
         });
     }
