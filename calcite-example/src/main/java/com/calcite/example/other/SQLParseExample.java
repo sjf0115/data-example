@@ -1,4 +1,4 @@
-package com.calcite.example;
+package com.calcite.example.other;
 
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.SqlKind;

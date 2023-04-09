@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "defaultSchema": "SALES",
+  "schemas": [
+    {
+      "name": "SALES",
+      "type": "custom",
+      "factory": "com.calcite.example.adapter.csv.CsvSchemaFactory",
+      "operand": {
+        "directory": "sales"
+      }
+    }
+  ]
+}
