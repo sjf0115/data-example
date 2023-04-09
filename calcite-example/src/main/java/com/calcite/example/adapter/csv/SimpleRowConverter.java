@@ -6,13 +6,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import java.util.List;
 
 /**
- * 功能：行转换器-简单实现
+ * 功能：SimpleRowConverter
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
- * 日期：2023/4/9 下午10:02
+ * 日期：2023/4/9 下午11:30
  */
-public class SimpleRowConverter<E> {
+public class SimpleRowConverter extends AbstractRowConverter<@Nullable Object[]> {
     private final List<RelDataType> fieldTypes;
     private final List<Integer> fields;
 
@@ -21,48 +21,13 @@ public class SimpleRowConverter<E> {
         this.fields = fields;
     }
 
-    public Object convertRow(@Nullable String[] rows) {
+    @Override
+    public @Nullable Object[] convertRow(@Nullable String[] rows) {
         final @Nullable Object[] objects = new Object[fields.size()];
         for (int i = 0; i < fields.size(); i++) {
             int field = fields.get(i);
             objects[i] = convert(fieldTypes.get(field), rows[field]);
         }
         return objects;
-    }
-
-    private @Nullable Object convert(@Nullable RelDataType fieldType, @Nullable String string) {
-        if (fieldType == null || string == null) {
-            return string;
-        }
-        switch (fieldType.getSqlTypeName()) {
-            case BOOLEAN:
-                if (string.length() == 0) {
-                    return null;
-                }
-                return Boolean.parseBoolean(string);
-            case INTEGER:
-                if (string.length() == 0) {
-                    return null;
-                }
-                return Integer.parseInt(string);
-            case BIGINT:
-                if (string.length() == 0) {
-                    return null;
-                }
-                return Long.parseLong(string);
-            case FLOAT:
-                if (string.length() == 0) {
-                    return null;
-                }
-                return Float.parseFloat(string);
-            case DOUBLE:
-                if (string.length() == 0) {
-                    return null;
-                }
-                return Double.parseDouble(string);
-            case VARCHAR:
-            default:
-                return string;
-        }
     }
 }

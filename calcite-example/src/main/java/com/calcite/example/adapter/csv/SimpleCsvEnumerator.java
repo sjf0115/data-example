@@ -5,8 +5,6 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.type.SqlTypeName;
-import org.apache.calcite.util.ImmutableIntList;
-import org.apache.calcite.util.ImmutableNullableList;
 import org.apache.calcite.util.Pair;
 import org.apache.calcite.util.Source;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -35,14 +33,14 @@ public class SimpleCsvEnumerator<E> implements Enumerator<E> {
     private final CSVReader reader;
     private final @Nullable List<@Nullable String> filterValues;
     private final AtomicBoolean cancelFlag;
-    private final SimpleRowConverter<E> rowConverter;
+    private final AbstractRowConverter<E> rowConverter;
     private @Nullable E current;
 
 
     public SimpleCsvEnumerator(Source source, AtomicBoolean cancelFlag, List<RelDataType> fieldTypes, List<Integer> fields) {
         this.cancelFlag = cancelFlag;
         this.filterValues = null;
-        this.rowConverter = new SimpleRowConverter<E>(fieldTypes, fields);
+        this.rowConverter = (AbstractRowConverter<E>) converter(fieldTypes, fields);
         try {
             this.reader = new CSVReader(source.reader());
             this.reader.readNext();
@@ -103,6 +101,10 @@ public class SimpleCsvEnumerator<E> implements Enumerator<E> {
     }
 
     //------------------------------------------------------------------------------------------------------------------
+
+    private static AbstractRowConverter<?> converter(List<RelDataType> fieldTypes, List<Integer> fields) {
+        return new SimpleRowConverter(fieldTypes, fields);
+    }
 
     public static RelDataType deduceRowType(JavaTypeFactory typeFactory, Source source, @Nullable List<RelDataType> fieldTypes) {
         final List<RelDataType> types = new ArrayList<>();
