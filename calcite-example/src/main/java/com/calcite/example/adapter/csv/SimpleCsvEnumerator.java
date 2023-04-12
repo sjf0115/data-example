@@ -106,6 +106,7 @@ public class SimpleCsvEnumerator<E> implements Enumerator<E> {
         return new SimpleRowConverter(fieldTypes, fields);
     }
 
+    // 数据类型转换
     public static RelDataType deduceRowType(JavaTypeFactory typeFactory, Source source, @Nullable List<RelDataType> fieldTypes) {
         final List<RelDataType> types = new ArrayList<>();
         final List<String> names = new ArrayList<>();

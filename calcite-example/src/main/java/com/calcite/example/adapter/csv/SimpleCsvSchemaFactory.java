@@ -24,6 +24,7 @@ public class SimpleCsvSchemaFactory implements SchemaFactory {
 
     @Override
     public Schema create(SchemaPlus parentSchema, String name, Map<String, Object> operand) {
+        // 自定义参数
         final String directory = (String) operand.get("directory");
         // CSV 文件
         final File base = (File) operand.get(ModelHandler.ExtraOperand.BASE_DIRECTORY.camelName);

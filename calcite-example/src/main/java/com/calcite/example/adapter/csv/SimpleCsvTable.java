@@ -8,6 +8,7 @@ import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelProtoDataType;
+import org.apache.calcite.schema.ScannableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.util.ImmutableIntList;
 import org.apache.calcite.util.Source;
@@ -18,13 +19,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 功能：CsvTable
+ * 功能：CsvTable 简单实现
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2023/4/9 上午8:31
  */
-public class SimpleCsvTable extends AbstractTable {
+public class SimpleCsvTable extends AbstractTable implements ScannableTable {
     protected final Source source;
     protected final @Nullable RelProtoDataType protoRowType;
     private @Nullable RelDataType rowType;
@@ -44,6 +45,7 @@ public class SimpleCsvTable extends AbstractTable {
         return "SimpleCsvTable";
     }
 
+    // 定义Table的字段以及字段类型
     @Override
     public RelDataType getRowType(RelDataTypeFactory typeFactory) {
         if (protoRowType != null) {
@@ -55,11 +57,8 @@ public class SimpleCsvTable extends AbstractTable {
         return rowType;
     }
 
-    /**
-     * 全表扫描
-     * @param root
-     * @return
-     */
+    // 如何遍历读取CSV文件 全表扫描
+    @Override
     public Enumerable<@Nullable Object[]> scan(DataContext root) {
         JavaTypeFactory typeFactory = root.getTypeFactory();
         // 字段类型
