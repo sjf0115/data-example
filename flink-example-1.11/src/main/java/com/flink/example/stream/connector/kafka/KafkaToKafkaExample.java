@@ -43,14 +43,14 @@ public class KafkaToKafkaExample {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // 开启 Checkpoint 用于容错
-        env.enableCheckpointing(5*000);
+        env.enableCheckpointing(10*1000);
 
-        // Kafka Source 配置
+        // Kafka Consumer 配置
         Properties consumerProps = new Properties();
         consumerProps.put("bootstrap.servers", "localhost:9092");
         consumerProps.put("group.id", "word-count");
 
-        // 创建 Kafka Source
+        // 创建 Kafka Consumer
         String consumerTopic = "word";
         FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(consumerTopic, new SimpleStringSchema(), consumerProps);
         consumer.setStartFromLatest();
@@ -87,6 +87,7 @@ public class KafkaToKafkaExample {
             }
         };
 
+        // 创建 Kafka Producer
         FlinkKafkaProducer<String> producer = new FlinkKafkaProducer<>(
                 producerTopic, serializationSchema,
                 producerProps, FlinkKafkaProducer.Semantic.EXACTLY_ONCE

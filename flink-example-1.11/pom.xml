@@ -31,6 +31,14 @@
             <!--<scope>provided</scope>-->
         </dependency>
 
+        <!-- Flink DataStream 本地运行 -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-clients_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+            <!--<scope>provided</scope>-->
+        </dependency>
+
         <!-- Flink Table & SQL -->
         <dependency>
             <groupId>org.apache.flink</groupId>
