@@ -1,4 +1,4 @@
-package com.flink.example.stream.connector.kafka;
+package com.flink.example.stream.connector.kafka.serializable;
 
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

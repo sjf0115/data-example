@@ -1,5 +1,6 @@
-package com.flink.example.stream.connector.kafka;
+package com.flink.example.stream.connector.kafka.offset;
 
+import com.flink.example.stream.connector.kafka.serializable.CustomKafkaDeserializationSchema3;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.flink.api.common.functions.MapFunction;

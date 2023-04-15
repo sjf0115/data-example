@@ -1,4 +1,4 @@
-package com.flink.example.stream.connector.kafka;
+package com.flink.example.stream.connector.kafka.base;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
