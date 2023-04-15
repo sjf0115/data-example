@@ -1,4 +1,4 @@
-package com.flink.example.stream.sink;
+package com.flink.example.stream.sink.wal;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
