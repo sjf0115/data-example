@@ -20,7 +20,7 @@ public class WordSingleProducer {
 
     public static void main(String[] args) {
         String topic = "word";
-        List<String> words = Lists.newArrayList("a", "b", "a");
+        List<String> words = Lists.newArrayList("b", "d", "b");
 //        List<String> words = Lists.newArrayList("a", "c", "ERROR");
 
         // 配置发送者
