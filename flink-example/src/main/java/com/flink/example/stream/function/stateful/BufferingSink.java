@@ -69,7 +69,6 @@ public class BufferingSink extends RichSinkFunction<String> implements Checkpoin
                 "buffered-elements",
                 TypeInformation.of(new TypeHint<String>() {})
         );
-
         statePerPartition = context.getOperatorStateStore().getListState(descriptor);
 
         // 从状态中恢复
