@@ -66,13 +66,16 @@ public class RichFunctionExample {
         @Override
         public void open(Configuration parameters) throws Exception {
             super.open(parameters);
+            // 初始化计数器状态
             ValueStateDescriptor<Long> stateDescriptor = new ValueStateDescriptor<>("counter", Long.class);
             counterState = getRuntimeContext().getState(stateDescriptor);
         }
 
         @Override
         public Tuple2<String, Long> map(String word) throws Exception {
+            // 当前执行子任务的编号
             int subtask = getRuntimeContext().getIndexOfThisSubtask();
+            // 计数器计数
             Long count = counterState.value();
             if (Objects.equals(count, null)) {
                 count = 0L;
@@ -81,11 +84,6 @@ public class RichFunctionExample {
             counterState.update(newCount);
             LOG.info("word: {}, count: {}, subtask: {}", word, newCount, subtask);
             return new Tuple2<>(word, newCount);
-        }
-
-        @Override
-        public void close() throws Exception {
-            super.close();
         }
     }
 }
