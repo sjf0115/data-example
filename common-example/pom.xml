@@ -80,6 +80,12 @@
             <artifactId>joda-time</artifactId>
         </dependency>
 
+        <!-- velocity -->
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity-engine-core</artifactId>
+        </dependency>
+
         <!-- Hive 后续计划移除 -->
         <dependency>
             <groupId>org.apache.hive</groupId>

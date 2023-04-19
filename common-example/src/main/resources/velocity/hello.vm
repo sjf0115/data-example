@@ -1,0 +1,5 @@
+#set($h = 'hello')
+$h $name
+#foreach($fruit in $fruits)
+do you like eating $fruit
+#end

@@ -65,6 +65,7 @@
         <roaringBitmap.version>0.9.23</roaringBitmap.version>
         <common-cli.version>1.5.0</common-cli.version>
         <antlr.version>4.9.2</antlr.version>
+        <velocity.version>2.3</velocity.version>
     </properties>
 
     <dependencyManagement>
@@ -449,6 +450,13 @@
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${joda.version}</version>
+            </dependency>
+
+            <!-- velocity -->
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity-engine-core</artifactId>
+                <version>${velocity.version}</version>
             </dependency>
 
             <!-- log4j -->
