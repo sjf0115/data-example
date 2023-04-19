@@ -2,8 +2,14 @@ package com.flink.example.stream.function.stateful;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.streaming.api.checkpoint.ListCheckpointed;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.runtime.state.FunctionInitializationContext;
+import org.apache.flink.runtime.state.FunctionSnapshotContext;
+import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
@@ -12,19 +18,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 功能：ListCheckpointed 示例
+ * 功能：有状态 Sink 示例
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
- * 日期：2023/4/18 上午8:00
+ * 日期：2023/4/16 下午6:14
  */
-public class ListCheckpointedExample {
-    private static final Logger LOG = LoggerFactory.getLogger(ListCheckpointedExample.class);
+public class CheckpointedFunctionOSExample {
+    private static final Logger LOG = LoggerFactory.getLogger(CheckpointedFunctionOSExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -58,50 +63,60 @@ public class ListCheckpointedExample {
         env.execute("CheckpointedFunctionOperatorStateExample");
     }
 
-    // 自定义实现 ListCheckpointed
-    public static class BufferingSink extends RichSinkFunction<String> implements ListCheckpointed<String> {
-        private List<String> bufferedWords;
+    public static class BufferingSink extends RichSinkFunction<String> implements CheckpointedFunction {
+
+        private static final Logger LOG = LoggerFactory.getLogger(CheckpointedFunctionOSExample.class);
+
         private final int threshold;
+        private transient ListState<String> statePerPartition;
+        private List<String> bufferedElements;
 
         public BufferingSink(int threshold) {
             this.threshold = threshold;
-            this.bufferedWords = new ArrayList<>();
+            this.bufferedElements = new ArrayList<>();
         }
 
         @Override
-        public void invoke(String word, Context context) throws Exception {
+        public void invoke(String word, Context context) {
             int subTask = getRuntimeContext().getIndexOfThisSubtask();
-            bufferedWords.add(word);
-            LOG.info("buffer subTask: {}, word: {}, size: {}", subTask, word, bufferedWords.size());
+            bufferedElements.add(word);
+            LOG.info("buffer subTask: {}, word: {}, size: {}", subTask, word, bufferedElements.size());
             // 缓冲达到阈值输出
-            if (bufferedWords.size() == threshold) {
-                for (String bufferElement: bufferedWords) {
+            if (bufferedElements.size() == threshold) {
+                for (String bufferElement: bufferedElements) {
                     // 输出
-                    LOG.info("buffer sink subTask: {}, element: {}", subTask, bufferElement);
+                    LOG.info("buffer sink subTask: {}, word: {}", subTask, bufferElement);
                 }
-                bufferedWords.clear();
+                bufferedElements.clear();
             }
         }
 
         @Override
-        public List snapshotState(long checkpointId, long timestamp) throws Exception {
+        public void snapshotState(FunctionSnapshotContext context) throws Exception {
+            long checkpointId = context.getCheckpointId();
             int subTask = getRuntimeContext().getIndexOfThisSubtask();
+            // 清空上一次快照的状态
+            statePerPartition.clear();
             // 生成新快照的状态
-            for (String word : bufferedWords) {
+            for (String word : bufferedElements) {
                 LOG.info("snapshotState subTask: {}, checkpointId: {}, word: {}",
                         subTask, checkpointId, word);
+                statePerPartition.add(word);
             }
-            // 直接返回 List 即可
-            return Collections.singletonList(bufferedWords);
         }
 
         @Override
-        public void restoreState(List<String> state) throws Exception {
-            // 不需要初始化 ListState
+        public void initializeState(FunctionInitializationContext context) throws Exception {
+            ListStateDescriptor<String> descriptor = new ListStateDescriptor<>(
+                    "buffered-elements", TypeInformation.of(new TypeHint<String>() {}));
+            statePerPartition = context.getOperatorStateStore().getListState(descriptor);
+
             // 从状态中恢复
-            for (String word : state) {
-                LOG.info("initializeState restored word: {}", word);
-                bufferedWords.add(word);
+            if (context.isRestored()) {
+                for (String element : statePerPartition.get()) {
+                    LOG.info("initializeState restored element: {}", element);
+                    bufferedElements.add(element);
+                }
             }
         }
     }

@@ -1,12 +1,9 @@
 package com.flink.example.stream.function.stateful;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.api.common.state.ReducingState;
-import org.apache.flink.api.common.state.ReducingStateDescriptor;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
@@ -20,14 +17,14 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * 功能：CheckpointedFunction 示例
+ * 功能：CheckpointedFunction 操作 OperatorState 示例
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2023/4/17 下午11:03
  */
-public class CheckpointedFunctionExample {
-    private static final Logger LOG = LoggerFactory.getLogger(CheckpointedFunctionExample.class);
+public class CheckpointedFunctionOSExample2 {
+    private static final Logger LOG = LoggerFactory.getLogger(CheckpointedFunctionOSExample2.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -56,40 +53,30 @@ public class CheckpointedFunctionExample {
         }).map(new CounterMapFunction());
         wordStream.print();
 
-        env.execute("CheckpointedFunctionExample");
+        env.execute("CheckpointedFunctionOperatorStateExample");
     }
 
-    // 自定义实现 CheckpointedFunction
+    // 自定义实现 CheckpointedFunction 操作 OperatorState
     public static class CounterMapFunction extends RichMapFunction<String, Tuple2<String, Long>> implements CheckpointedFunction {
-        private ReducingState<Long> countPerKey;
+        // 算子状态计数器
         private ListState<Long> countPerPartition;
-        private long localCount;
+        // 本地计数器
+        private long count;
 
         @Override
         public Tuple2<String, Long> map(String word) throws Exception {
-            countPerKey.add(1L);
-            localCount++;
-            LOG.info("word: {}, count: {}", word, localCount);
-            return Tuple2.of(word, localCount);
+            count++;
+            LOG.info("word: {}, count: {}", word, count);
+            return Tuple2.of(word, count);
         }
 
         @Override
         public void initializeState(FunctionInitializationContext context) throws Exception {
-            // 每个键的计数器
-            countPerKey = context.getKeyedStateStore().getReducingState(
-                    new ReducingStateDescriptor<>("perKeyCount", new ReduceFunction<Long>() {
-                        @Override
-                        public Long reduce(Long value1, Long value2) throws Exception {
-                            return value1 + value2;
-                        }
-                    }, Long.class));
-            // 每个实例的计数器
             countPerPartition = context.getOperatorStateStore().getListState(
                     new ListStateDescriptor<>("perPartitionCount", Long.class));
-
             if (context.isRestored()) {
                 for (Long count : countPerPartition.get()) {
-                    localCount += count;
+                    this.count += count;
                 }
             }
         }
@@ -97,7 +84,7 @@ public class CheckpointedFunctionExample {
         @Override
         public void snapshotState(FunctionSnapshotContext context) throws Exception {
             countPerPartition.clear();
-            countPerPartition.add(localCount);
+            countPerPartition.add(count);
         }
     }
 }
