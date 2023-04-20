@@ -7,6 +7,7 @@ import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -52,13 +54,21 @@ public class CheckpointedFunctionOSExample {
             public void flatMap(String value, Collector out) {
                 for (String word : value.split("\\s")) {
                     LOG.info("word: {}", word);
+                    if (Objects.equals(word, "ERROR")) {
+                        throw new RuntimeException("error dirty data");
+                    }
                     out.collect(word);
                 }
             }
+        }).keyBy(new KeySelector<String, String>() {
+            @Override
+            public String getKey(String word) throws Exception {
+                return word;
+            }
         });
 
-        // 每个并行实例缓冲3个单词输出一次
-        wordStream.addSink(new BufferingSink(3));
+        // 每个并行实例缓冲4个单词输出一次
+        wordStream.addSink(new BufferingSink(4));
 
         env.execute("CheckpointedFunctionOperatorStateExample");
     }
@@ -69,25 +79,25 @@ public class CheckpointedFunctionOSExample {
 
         private final int threshold;
         private transient ListState<String> statePerPartition;
-        private List<String> bufferedElements;
+        private List<String> bufferedWords;
 
         public BufferingSink(int threshold) {
             this.threshold = threshold;
-            this.bufferedElements = new ArrayList<>();
+            this.bufferedWords = new ArrayList<>();
         }
 
         @Override
         public void invoke(String word, Context context) {
             int subTask = getRuntimeContext().getIndexOfThisSubtask();
-            bufferedElements.add(word);
-            LOG.info("buffer subTask: {}, word: {}, size: {}", subTask, word, bufferedElements.size());
+            bufferedWords.add(word);
+            LOG.info("invoke buffer subTask: {}, words: {}", subTask, bufferedWords.toString());
             // 缓冲达到阈值输出
-            if (bufferedElements.size() == threshold) {
-                for (String bufferElement: bufferedElements) {
+            if (bufferedWords.size() == threshold) {
+                for (String bufferedWord: bufferedWords) {
                     // 输出
-                    LOG.info("buffer sink subTask: {}, word: {}", subTask, bufferElement);
+                    LOG.info("invoke sink subTask: {}, word: {}", subTask, bufferedWord);
                 }
-                bufferedElements.clear();
+                bufferedWords.clear();
             }
         }
 
@@ -98,25 +108,24 @@ public class CheckpointedFunctionOSExample {
             // 清空上一次快照的状态
             statePerPartition.clear();
             // 生成新快照的状态
-            for (String word : bufferedElements) {
-                LOG.info("snapshotState subTask: {}, checkpointId: {}, word: {}",
-                        subTask, checkpointId, word);
+            for (String word : bufferedWords) {
                 statePerPartition.add(word);
             }
+            LOG.info("snapshotState subTask: {}, checkpointId: {}, words: {}", subTask, checkpointId, bufferedWords.toString());
         }
 
         @Override
         public void initializeState(FunctionInitializationContext context) throws Exception {
             ListStateDescriptor<String> descriptor = new ListStateDescriptor<>(
-                    "buffered-elements", TypeInformation.of(new TypeHint<String>() {}));
+                    "buffered-words", TypeInformation.of(new TypeHint<String>() {}));
             statePerPartition = context.getOperatorStateStore().getListState(descriptor);
-
+            int subTask = getRuntimeContext().getIndexOfThisSubtask();
             // 从状态中恢复
             if (context.isRestored()) {
-                for (String element : statePerPartition.get()) {
-                    LOG.info("initializeState restored element: {}", element);
-                    bufferedElements.add(element);
+                for (String word : statePerPartition.get()) {
+                    bufferedWords.add(word);
                 }
+                LOG.info("initializeState subTask: {}, words: {}", subTask, bufferedWords.toString());
             }
         }
     }
