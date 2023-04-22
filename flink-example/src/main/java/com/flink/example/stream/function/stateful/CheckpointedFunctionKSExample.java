@@ -56,13 +56,12 @@ public class CheckpointedFunctionKSExample {
         }).map(new CounterMapFunction());
         wordStream.print();
 
-        env.execute("CheckpointedFunctionExample");
+        env.execute("CheckpointedFunctionKSExample");
     }
 
     // 自定义实现 CheckpointedFunction
     public static class CounterMapFunction extends RichMapFunction<String, Tuple2<String, Long>> implements CheckpointedFunction {
         private ReducingState<Long> countPerKey;
-        private ListState<Long> countPerPartition;
         private long localCount;
 
         @Override
@@ -83,21 +82,11 @@ public class CheckpointedFunctionKSExample {
                             return value1 + value2;
                         }
                     }, Long.class));
-            // 每个实例的计数器
-            countPerPartition = context.getOperatorStateStore().getListState(
-                    new ListStateDescriptor<>("perPartitionCount", Long.class));
-
-            if (context.isRestored()) {
-                for (Long count : countPerPartition.get()) {
-                    localCount += count;
-                }
-            }
         }
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) throws Exception {
-            countPerPartition.clear();
-            countPerPartition.add(localCount);
+
         }
     }
 }
