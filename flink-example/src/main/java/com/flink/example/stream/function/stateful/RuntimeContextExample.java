@@ -42,6 +42,9 @@ public class RuntimeContextExample {
         DataStream<Tuple3<String, Double, Double>> alertStream = stream.map(new MapFunction<String, Tuple2<String, Double>>() {
             @Override
             public Tuple2<String, Double> map(String value) throws Exception {
+                if(Objects.equals(value, "ERROR")) {
+                    throw new RuntimeException("error dirty data");
+                }
                 String[] params = value.split(",");
                 LOG.info("sensor input, id: {}, temperature: {}", params[0], params[1]);
                 return new Tuple2<>(params[0], Double.parseDouble(params[1]));
@@ -94,7 +97,15 @@ public class RuntimeContextExample {
                 // 温度变化超过阈值
                 LOG.info("sensor alert, id: {}, temperature: {}, lastTemperature: {}, diff: {}", sensorId, temperature, lastTemperature, diff);
                 out.collect(Tuple3.of(sensorId, temperature, diff));
+            } else {
+                LOG.info("sensor no alert, id: {}, temperature: {}, lastTemperature: {}, diff: {}", sensorId, temperature, lastTemperature, diff);
             }
         }
     }
 }
+// 1,35.4
+// 1,20.8
+// 2,23.5
+// ERROR
+// 1,31.6
+// 2,37.2
