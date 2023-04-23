@@ -26,7 +26,7 @@ import java.util.Objects;
  * 日期：2023/4/22 下午11:07
  */
 public class RuntimeContextExample {
-    private static final Logger LOG = LoggerFactory.getLogger(CheckpointedFunctionKSExample.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RuntimeContextExample.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
