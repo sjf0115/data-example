@@ -1,9 +1,7 @@
 package com.flink.example.stream.function.stateful;
 
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.functions.*;
+import org.apache.flink.api.common.state.*;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -21,14 +19,14 @@ import java.util.Objects;
 
 /**
  * 功能：CheckpointedFunction 实现操作 KeyedState 的有状态函数
- *         连续两次的温度变化超过阈值则报警
+ *         错误用法 不要在 snapshotState 中更新 KeyedState
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
  * 日期：2023/4/17 下午11:03
  */
-public class CheckpointedFunctionKSExample {
-    private static final Logger LOG = LoggerFactory.getLogger(CheckpointedFunctionKSExample.class);
+public class CheckpointedFunctionKSExample2 {
+    private static final Logger LOG = LoggerFactory.getLogger(CheckpointedFunctionKSExample2.class);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -68,6 +66,7 @@ public class CheckpointedFunctionKSExample {
         private double threshold;
         // 上一次温度
         private ValueState<Double> lastTemperatureState;
+        private Double lastTemperature;
         public TemperatureAlertFlatMapFunction(double threshold) {
             this.threshold = threshold;
         }
@@ -78,8 +77,6 @@ public class CheckpointedFunctionKSExample {
             String sensorId = sensor.f0;
             // 当前温度
             double temperature = sensor.f1;
-            Double lastTemperature = lastTemperatureState.value();
-            lastTemperatureState.update(temperature);
             // 是否是第一次上报的温度
             if (Objects.equals(lastTemperature, null)) {
                 LOG.info("sensor first temperature, subTask: {}, id: {}, temperature: {}", subTask, sensorId, temperature);
@@ -93,18 +90,31 @@ public class CheckpointedFunctionKSExample {
                     LOG.info("sensor no alert, subTask: {}, id: {}, temperature: {}, lastTemperature: {}, diff: {}", subTask, sensorId, temperature, lastTemperature, diff);
                 }
             }
+            // 保存当前温度
+            lastTemperature = temperature;
         }
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) throws Exception {
-
+            long checkpointId = context.getCheckpointId();
+            int subTask = getRuntimeContext().getIndexOfThisSubtask();
+            // 获取最新的温度之后更新保存上一次温度的状态
+            if (!Objects.equals(lastTemperature, null)) {
+                lastTemperatureState.update(lastTemperature);
+            }
+            LOG.info("sensor snapshotState, subTask: {}, checkpointId: {}, temperature: {}", subTask, checkpointId, lastTemperature);
         }
 
         @Override
         public void initializeState(FunctionInitializationContext context) throws Exception {
+            int subTask = getRuntimeContext().getIndexOfThisSubtask();
             // 初始化
             ValueStateDescriptor<Double> stateDescriptor = new ValueStateDescriptor<>("lastTemperature", Double.class);
             lastTemperatureState = context.getKeyedStateStore().getState(stateDescriptor);
+            if (context.isRestored()) {
+                lastTemperature = lastTemperatureState.value();
+                LOG.info("sensor initializeState, subTask: {}, lastTemperature: {}", subTask, lastTemperature);
+            }
         }
     }
 }
