@@ -62,7 +62,7 @@ public class CheckpointedFunctionKSExample {
     }
 
     // FlatMap 的好处是在温度变化不超过阈值的时候不进行输出
-    public static class TemperatureAlertFlatMapFunction implements CheckpointedFunction, FlatMapFunction<Tuple2<String, Double>, Tuple3<String, Double, Double>> {
+    public static class TemperatureAlertFlatMapFunction extends RichFlatMapFunction<Tuple2<String, Double>, Tuple3<String, Double, Double>> implements CheckpointedFunction  {
         // 温度差报警阈值
         private double threshold;
         // 上一次温度
@@ -77,7 +77,9 @@ public class CheckpointedFunctionKSExample {
             String sensorId = sensor.f0;
             // 当前温度
             double temperature = sensor.f1;
-            // 是否有保存上一次的温度
+            // 保存当前温度
+            lastTemperature = temperature;
+            // 是否是第一次上报的温度
             if (Objects.equals(lastTemperature, null)) {
                 LOG.info("sensor first temperature, id: {}, temperature: {}", sensorId, temperature);
                 return;
@@ -90,25 +92,28 @@ public class CheckpointedFunctionKSExample {
             } else {
                 LOG.info("sensor no alert, id: {}, temperature: {}, lastTemperature: {}, diff: {}", sensorId, temperature, lastTemperature, diff);
             }
-            lastTemperature = temperature;
         }
 
         @Override
         public void snapshotState(FunctionSnapshotContext context) throws Exception {
+            long checkpointId = context.getCheckpointId();
+            int subTask = getRuntimeContext().getIndexOfThisSubtask();
             // 获取最新的温度之后更新保存上一次温度的状态
-            //lastTemperatureState.clear();
-            lastTemperatureState.update(lastTemperature);
-            LOG.info("sensor snapshotState, temperature: {}", lastTemperature);
+            if (!Objects.equals(lastTemperature, null)) {
+                lastTemperatureState.update(lastTemperature);
+            }
+            LOG.info("sensor snapshotState, subTask: {}, checkpointId: {}, temperature: {}", subTask, checkpointId, lastTemperature);
         }
 
         @Override
         public void initializeState(FunctionInitializationContext context) throws Exception {
+            int subTask = getRuntimeContext().getIndexOfThisSubtask();
             // 初始化
             ValueStateDescriptor<Double> stateDescriptor = new ValueStateDescriptor<>("lastTemperature", Double.class);
             lastTemperatureState = context.getKeyedStateStore().getState(stateDescriptor);
             if (context.isRestored()) {
                 lastTemperature = lastTemperatureState.value();
-                LOG.info("sensor initializeState, lastTemperature: {}", lastTemperature);
+                LOG.info("sensor initializeState, subTask: {}, lastTemperature: {}", subTask, lastTemperature);
             }
         }
     }
