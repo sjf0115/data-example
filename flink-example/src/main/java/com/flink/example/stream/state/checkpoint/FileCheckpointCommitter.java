@@ -1,4 +1,4 @@
-package com.flink.example.stream.sink;
+package com.flink.example.stream.state.checkpoint;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.runtime.operators.CheckpointCommitter;
@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 
 /**
  * 功能：FileCheckpointCommitter
+ *      将检查点提交到文件中
  * 作者：SmartSi
  * CSDN博客：https://blog.csdn.net/sunnyyoona
  * 公众号：大数据生态
@@ -39,18 +40,19 @@ public class FileCheckpointCommitter extends CheckpointCommitter {
         // no need to close a connection
     }
 
+    // 创建资源(在这为文件)
     @Override
     public void createResource() throws Exception {
         this.jobBasePath = this.basePath + "/" + this.jobId;
         // 当前 JobId 作为提交文件的目录
-        Files.createDirectory(Paths.get(jobBasePath));
-        LOG.info("create resource {}", jobBasePath);
+        Files.createDirectory(Paths.get(this.jobBasePath));
+        LOG.info("create resource {}", this.jobBasePath);
     }
 
-    // 提交 Checkpoint
+    // 提交 Checkpoint(为每个任务实例提交)
     @Override
     public void commitCheckpoint(int subTaskIdx, long checkpointID) throws Exception {
-        Path commitPath = Paths.get(jobBasePath + "/" + subTaskIdx);
+        Path commitPath = Paths.get(this.jobBasePath + "/" + subTaskIdx);
         // 将 CheckpointID 转换为 16 进制字符串
         String hexID = "0x" + StringUtils.leftPad(Long.toHexString(checkpointID), 16, "0");
         // 将 16 进制字符串写进提交文件中
@@ -62,12 +64,12 @@ public class FileCheckpointCommitter extends CheckpointCommitter {
     @Override
     public boolean isCheckpointCommitted(int subTaskIdx, long checkpointID) throws Exception {
         boolean isCommitted;
-        Path commitPath = Paths.get(jobBasePath + "/" + subTaskIdx);
+        Path commitPath = Paths.get(this.jobBasePath + "/" + subTaskIdx);
         if (!Files.exists(commitPath)) {
             // 提交文件都没有表示没有提交过
             isCommitted = false;
         } else {
-            // read committed checkpoint id from commit file
+            // 从文件中读取提交的 CheckpointId
             String hexID = Files.readAllLines(commitPath).get(0);
             Long commitCheckpointID = Long.decode(hexID);
             // 判断当前 CheckpointID 是否小于等于已提交的 CheckpointID

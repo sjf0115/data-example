@@ -1,6 +1,6 @@
 package com.flink.example.stream.sink.wal;
 
-import com.flink.example.stream.sink.FileCheckpointCommitter;
+import com.flink.example.stream.state.checkpoint.FileCheckpointCommitter;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.tuple.Tuple2;
