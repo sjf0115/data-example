@@ -28,6 +28,12 @@ public class LoginUser {
         this.timestamp = timestamp;
     }
 
+    public LoginUser(Long uid, String os, Long timestamp) {
+        this.uid = uid;
+        this.os = os;
+        this.timestamp = timestamp;
+    }
+
     public Integer getAppId() {
         return appId;
     }
