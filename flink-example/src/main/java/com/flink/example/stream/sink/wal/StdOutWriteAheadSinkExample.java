@@ -95,8 +95,11 @@ public class StdOutWriteAheadSinkExample {
         // 构造函数
         public StdOutWALSink() throws Exception {
             super(
+                    // CheckpointCommitter
                     new FileCheckpointCommitter(System.getProperty("java.io.tmpdir")),
+                    // 用于序列化输入记录的 TypeSerializer
                     Types.<Tuple2<String, Long>>TUPLE(Types.STRING, Types.LONG).createSerializer(new ExecutionConfig()),
+                    // 自定义作业 ID
                     UUID.randomUUID().toString()
             );
         }
