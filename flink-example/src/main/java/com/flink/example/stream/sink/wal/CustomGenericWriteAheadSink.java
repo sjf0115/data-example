@@ -1,5 +1,6 @@
 package com.flink.example.stream.sink.wal;
 
+import com.google.common.collect.Lists;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
@@ -14,12 +15,13 @@ import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
 import org.apache.flink.streaming.runtime.operators.CheckpointCommitter;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.util.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 功能：CustomGenericWriteAheadSink
@@ -31,6 +33,7 @@ import java.util.UUID;
 public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOperator<IN>
         implements OneInputStreamOperator<IN, IN> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CustomGenericWriteAheadSink.class);
     private final String id;
     private final CheckpointCommitter committer;
     protected final TypeSerializer<IN> serializer;
@@ -44,6 +47,7 @@ public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOper
     // 1. 构造器
 
     public CustomGenericWriteAheadSink(CheckpointCommitter committer, TypeSerializer<IN> serializer, String jobID) throws Exception {
+        LOG.info("CustomGenericWriteAheadSink.............................");
         this.committer = Preconditions.checkNotNull(committer);
         this.serializer = Preconditions.checkNotNull(serializer);
         this.id = UUID.randomUUID().toString();
@@ -56,6 +60,7 @@ public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOper
 
     @Override
     public void open() throws Exception {
+        LOG.info("open.............................");
         super.open();
         committer.setOperatorId(id);
         committer.open();
@@ -65,7 +70,7 @@ public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOper
 
     @Override
     public void close() throws Exception {
-        super.close();
+        LOG.info("close.............................");
         committer.close();
     }
 
@@ -74,6 +79,7 @@ public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOper
 
     @Override
     public void initializeState(StateInitializationContext context) throws Exception {
+        LOG.info("initializeState.............................");
         super.initializeState(context);
         Preconditions.checkState(this.checkpointedState == null, "The reader state has already been initialized.");
         // 创建算子 Checkpoint 状态
@@ -95,6 +101,7 @@ public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOper
 
     @Override
     public void snapshotState(StateSnapshotContext context) throws Exception {
+        LOG.info("snapshotState.............................");
         super.snapshotState(context);
         Preconditions.checkState(this.checkpointedState != null, "The operator state has not been properly initialized.");
 
@@ -120,24 +127,25 @@ public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOper
 
     @Override
     public void notifyCheckpointComplete(long checkpointId) throws Exception {
+        LOG.info("notifyCheckpointComplete.............................");
         super.notifyCheckpointComplete(checkpointId);
         synchronized (pendingCheckpoints) {
             Iterator<PendingCheckpoint> pendingCheckpointIt = pendingCheckpoints.iterator();
-            // 处理每个 PendingCheckpoint
+            // 待提交的检查点
             while (pendingCheckpointIt.hasNext()) {
                 PendingCheckpoint pendingCheckpoint = pendingCheckpointIt.next();
                 long pastCheckpointId = pendingCheckpoint.checkpointId;
                 int subtaskId = pendingCheckpoint.subtaskId;
                 long timestamp = pendingCheckpoint.timestamp;
                 StreamStateHandle streamHandle = pendingCheckpoint.stateHandle;
-                // 处理小于当前 checkpointId 的 Checkpoint
+                // 将当前检查点之前的检查点进行提交
                 if (pastCheckpointId <= checkpointId) {
                     try {
-                        // 是否已提交
+                        // 判断是否已经提交
                         if (!committer.isCheckpointCommitted(subtaskId, pastCheckpointId)) {
                             // 未提交
                             try (FSDataInputStream in = streamHandle.openInputStream()) {
-                                // 判断是否发送成功
+                                // 进行发送
                                 ReusingMutableToRegularIteratorWrapper<IN> ins = new ReusingMutableToRegularIteratorWrapper<>(
                                         new InputViewIterator<>(new DataInputViewStreamWrapper(in), serializer),
                                         serializer
@@ -171,6 +179,7 @@ public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOper
 
     @Override
     public void processElement(StreamRecord<IN> element) throws Exception {
+        LOG.info("processElement.............................");
         IN value = element.getValue();
         if (out == null) {
             out = checkpointStorage.createTaskOwnedStateStream();
@@ -246,8 +255,24 @@ public abstract class CustomGenericWriteAheadSink<IN> extends AbstractStreamOper
             int subtaskIdx = getRuntimeContext().getIndexOfThisSubtask();
             StreamStateHandle handle = out.closeAndGetHandle();
 
-            PendingCheckpoint pendingCheckpoint = new PendingCheckpoint(checkpointId, subtaskIdx, timestamp, handle);
+            // ------------------------------------
+            // 查看 Checkpoint 周期内缓冲的数据 测试使用
+            try (FSDataInputStream in = handle.openInputStream()) {
+                // 进行发送
+                ReusingMutableToRegularIteratorWrapper<IN> iterator = new ReusingMutableToRegularIteratorWrapper<>(
+                        new InputViewIterator<>(new DataInputViewStreamWrapper(in), serializer),
+                        serializer
+                );
+                List<IN> words = Lists.newArrayList();
+                while (iterator.hasNext()) {
+                    IN word = iterator.next();
+                    words.add(word);
+                }
+                LOG.info("saveHandleInState state is {}", words);
+            }
+            // ------------------------------------
 
+            PendingCheckpoint pendingCheckpoint = new PendingCheckpoint(checkpointId, subtaskIdx, timestamp, handle);
             if (pendingCheckpoints.contains(pendingCheckpoint)) {
                 handle.discardState();
             } else {

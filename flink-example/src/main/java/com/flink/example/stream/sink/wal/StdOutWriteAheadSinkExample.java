@@ -91,7 +91,7 @@ public class StdOutWriteAheadSinkExample {
     }
 
     // 自定义实现 GenericWriteAheadSink
-    private static class StdOutWALSink extends GenericWriteAheadSink<Tuple2<String, Long>> {
+    private static class StdOutWALSink extends CustomGenericWriteAheadSink<Tuple2<String, Long>> {
         // 构造函数
         public StdOutWALSink() throws Exception {
             super(
@@ -102,6 +102,16 @@ public class StdOutWriteAheadSinkExample {
                     // 自定义作业 ID
                     UUID.randomUUID().toString()
             );
+        }
+
+        @Override
+        public void open() throws Exception {
+            super.open();
+        }
+
+        @Override
+        public void close() throws Exception {
+            super.close();
         }
 
         @Override
