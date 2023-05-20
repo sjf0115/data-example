@@ -2,7 +2,6 @@ package com.common.example.jdbc;
 
 import com.common.example.bean.Student;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 
 import java.sql.*;
 import java.util.List;
@@ -15,7 +14,7 @@ import java.util.Objects;
  * 公众号：大数据生态
  * 日期：2021/8/7 下午8:52
  */
-public class ConnectExample {
+public class MySQLJDBCExample {
 
     // MySQL Server 8.0 以下版本
     // private static final String DRIVER = "com.mysql.jdbc.Driver";
@@ -24,7 +23,6 @@ public class ConnectExample {
     // MySQL Server 8.0 以上版本
     private static final String user = "root";
     private static final String password = "root";
-    private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
     private static final String URL = "jdbc:mysql://localhost:3306/test?useSSL=false&characterEncoding=utf8";
 
     // 获取数据连接
