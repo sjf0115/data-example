@@ -66,6 +66,8 @@
         <common-cli.version>1.5.0</common-cli.version>
         <antlr.version>4.9.2</antlr.version>
         <velocity.version>2.3</velocity.version>
+        <csv.version>5.7.1</csv.version>
+        <au.csv.version>2.4</au.csv.version>
     </properties>
 
     <dependencyManagement>
@@ -457,6 +459,20 @@
                 <groupId>org.apache.velocity</groupId>
                 <artifactId>velocity-engine-core</artifactId>
                 <version>${velocity.version}</version>
+            </dependency>
+
+            <!-- OpenCsv -->
+            <dependency>
+                <groupId>com.opencsv</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>${csv.version}</version>
+            </dependency>
+
+            <!-- OpenCsv 老版本 推荐迁移到 com.opencsv -->
+            <dependency>
+                <groupId>au.com.bytecode</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>${au.csv.version}</version>
             </dependency>
 
             <!-- log4j -->

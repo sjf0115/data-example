@@ -43,7 +43,7 @@ public class SimpleCsvSchema extends AbstractSchema {
             if (csvSource == null) {
                 continue;
             }
-            // 每个文件对应一个 Table
+            // 根据文件创建对应的 Table
             final Table table = new SimpleCsvTable(source);
             builder.put(csvSource.relative(baseSource).path(), table);
         }

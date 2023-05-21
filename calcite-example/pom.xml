@@ -25,6 +25,12 @@
             <artifactId>calcite-core</artifactId>
         </dependency>
 
+        <!-- OpenCsv 老版本 推荐迁移到 com.opencsv -->
+        <dependency>
+            <groupId>au.com.bytecode</groupId>
+            <artifactId>opencsv</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

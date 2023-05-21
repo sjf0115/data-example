@@ -5,7 +5,7 @@
     {
       "name": "SALES",
       "type": "custom",
-      "factory": "com.calcite.example.adapter.csv.CsvSchemaFactory",
+      "factory": "com.calcite.example.adapter.csv.SimpleCsvSchemaFactory",
       "operand": {
         "directory": "sales"
       }
