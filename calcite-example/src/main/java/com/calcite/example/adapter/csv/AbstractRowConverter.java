@@ -5,7 +5,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 /**
- * 功能：行转换器-简单实现
+ * 功能：行转换器-简单实现 Java 数据类型转换为目标数据类型
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态

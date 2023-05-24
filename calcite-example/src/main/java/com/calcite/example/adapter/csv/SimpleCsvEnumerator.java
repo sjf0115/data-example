@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.apache.calcite.linq4j.Nullness.castNonNull;
 
 /**
- * 功能：CsvEnumerator
+ * 功能：CsvEnumerator CSV 读取迭代器
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
@@ -29,7 +29,7 @@ import static org.apache.calcite.linq4j.Nullness.castNonNull;
 public class SimpleCsvEnumerator<E> implements Enumerator<E> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvEnumerator.class);
-
+    // 用于读取 CSV 文件
     private final CSVReader reader;
     private final @Nullable List<@Nullable String> filterValues;
     private final AtomicBoolean cancelFlag;
@@ -62,23 +62,26 @@ public class SimpleCsvEnumerator<E> implements Enumerator<E> {
                 if (cancelFlag.get()) {
                     return false;
                 }
-                final String[] strings = reader.readNext();
-                if (strings == null) {
+                // 读取一行记录
+                final String[] record = reader.readNext();
+                if (record == null) {
                     current = null;
                     reader.close();
                     return false;
                 }
+                // 谓词下推
                 if (filterValues != null) {
-                    for (int i = 0; i < strings.length; i++) {
+                    for (int i = 0; i < record.length; i++) {
                         String filterValue = filterValues.get(i);
                         if (filterValue != null) {
-                            if (!filterValue.equals(strings[i])) {
+                            if (!filterValue.equals(record[i])) {
                                 continue outer;
                             }
                         }
                     }
                 }
-                current = rowConverter.convertRow(strings);
+                // 数据类型转换
+                current = rowConverter.convertRow(record);
                 return true;
             }
         } catch (IOException e) {

@@ -66,7 +66,7 @@
         <common-cli.version>1.5.0</common-cli.version>
         <antlr.version>4.9.2</antlr.version>
         <velocity.version>2.3</velocity.version>
-        <csv.version>5.7.1</csv.version>
+        <csv.version>3.8</csv.version>
         <au.csv.version>2.4</au.csv.version>
     </properties>
 

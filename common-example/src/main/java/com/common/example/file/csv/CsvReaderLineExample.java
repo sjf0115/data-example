@@ -1,15 +1,14 @@
 package com.common.example.file.csv;
 
-import com.common.example.bean.Person;
+import com.common.example.bean.Employee;
+import com.google.common.collect.Lists;
 import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.exceptions.CsvValidationException;
-import org.apache.commons.compress.utils.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,25 +22,27 @@ public class CsvReaderLineExample {
     public static void main(String[] args) {
         CSVReader reader = null;
         try {
-            reader = new CSVReaderBuilder(new FileReader("person.csv")).build();
-            List<Person> persons = Lists.newArrayList();
+            reader = new CSVReader(new FileReader("/opt/data/emps.csv"), ',');
+            List<Employee> employees = Lists.newArrayList();
             String[] record;
             while ((record = reader.readNext()) != null) {
-                Person person = new Person();
-                person.setName(record[0]);
-                person.setAge(Integer.valueOf(record[1]));
-                persons.add(person);
+                Employee emp = new Employee();
+                emp.setId(record[0]);
+                emp.setName(record[1]);
+                emp.setAge(Integer.parseInt(record[2]));
+                emp.setCountry(record[3]);
+                System.out.println(emp);
+                employees.add(emp);
             }
-            System.out.println(persons);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (CsvValidationException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
-                reader.close();
+                if (reader != null) {
+                    reader.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

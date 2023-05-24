@@ -6,7 +6,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import java.util.List;
 
 /**
- * 功能：SimpleRowConverter
+ * 功能：SimpleRowConverter 行转换器
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态

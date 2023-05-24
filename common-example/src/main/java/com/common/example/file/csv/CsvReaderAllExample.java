@@ -1,11 +1,9 @@
 package com.common.example.file.csv;
 
-import com.common.example.bean.Person;
+import com.common.example.bean.Employee;
+import com.google.common.collect.Lists;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
-import com.opencsv.exceptions.CsvException;
-import com.opencsv.exceptions.CsvValidationException;
-import org.apache.commons.compress.utils.Lists;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -20,33 +18,35 @@ import java.util.List;
  * 公众号：大数据生态
  * 日期：2023/5/21 下午11:06
  */
-public class CSVReaderAllExample {
+public class CsvReaderAllExample {
     public static void main(String[] args) {
         CSVReader reader = null;
         try {
-            reader = new CSVReaderBuilder(new FileReader("person.csv")).build();
-            List<Person> persons = Lists.newArrayList();
+            reader = new CSVReaderBuilder(new FileReader("/opt/data/emps.csv")).build();
+            List<Employee> employees = Lists.newArrayList();
             // 一次性读取全部数据
             List<String[]> records = reader.readAll();
             Iterator<String[]> iterator = records.iterator();
             // 遍历
             while (iterator.hasNext()) {
                 String[] record = iterator.next();
-                Person person = new Person();
-                person.setName(record[0]);
-                person.setAge(Integer.valueOf(record[1]));
-                persons.add(person);
+                Employee emp = new Employee();
+                emp.setId(record[0]);
+                emp.setName(record[1]);
+                emp.setAge(Integer.parseInt(record[2]));
+                emp.setCountry(record[3]);
+                System.out.println(emp);
+                employees.add(emp);
             }
-            System.out.println(persons);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (CsvException e) {
-            e.printStackTrace();
         } finally {
             try {
-                reader.close();
+                if (reader != null) {
+                    reader.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
