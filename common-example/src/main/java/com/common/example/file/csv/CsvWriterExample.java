@@ -34,8 +34,13 @@ public class CsvWriterExample {
             records.add(new String[] {"2", "David Dan", "40", "USA"});
             records.add(new String[] {"3", "Lisa Ray", "28", "Germany"});
 
-            // 写入
+            // 一次全部写入
             writer.writeAll(records);
+
+            // 逐行写入
+            /*for (String[] record : records) {
+                writer.writeNext(record);
+            }*/
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

@@ -13,6 +13,16 @@ public class Employee {
     private int age;
     private String country;
 
+    public Employee() {
+    }
+
+    public Employee(String id, String name, int age, String country) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.country = country;
+    }
+
     public String getId() {
         return id;
     }
