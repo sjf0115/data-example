@@ -60,11 +60,11 @@ public class SimpleCsvTable extends AbstractTable implements ScannableTable {
     // 如何遍历读取CSV文件 全表扫描
     @Override
     public Enumerable<@Nullable Object[]> scan(DataContext root) {
+        // 根据 CSV 文件中第一行的字段以及字段类型进行数据转换
         JavaTypeFactory typeFactory = root.getTypeFactory();
-        // 字段类型
         List<RelDataType> fieldTypes = new ArrayList<>();
         SimpleCsvEnumerator.deduceRowType(typeFactory, source, fieldTypes);
-        // 字段？
+
         List<Integer> fields = ImmutableIntList.identity(fieldTypes.size());
 
         final AtomicBoolean cancelFlag = DataContext.Variable.CANCEL_FLAG.get(root);

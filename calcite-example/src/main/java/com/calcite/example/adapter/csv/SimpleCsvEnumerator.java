@@ -31,7 +31,6 @@ public class SimpleCsvEnumerator<E> implements Enumerator<E> {
     private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvEnumerator.class);
     // 用于读取 CSV 文件
     private final CSVReader reader;
-    private final @Nullable List<@Nullable String> filterValues;
     private final AtomicBoolean cancelFlag;
     private final AbstractRowConverter<E> rowConverter;
     private @Nullable E current;
@@ -39,7 +38,6 @@ public class SimpleCsvEnumerator<E> implements Enumerator<E> {
 
     public SimpleCsvEnumerator(Source source, AtomicBoolean cancelFlag, List<RelDataType> fieldTypes, List<Integer> fields) {
         this.cancelFlag = cancelFlag;
-        this.filterValues = null;
         this.rowConverter = (AbstractRowConverter<E>) converter(fieldTypes, fields);
         try {
             this.reader = new CSVReader(source.reader());
@@ -68,17 +66,6 @@ public class SimpleCsvEnumerator<E> implements Enumerator<E> {
                     current = null;
                     reader.close();
                     return false;
-                }
-                // 谓词下推
-                if (filterValues != null) {
-                    for (int i = 0; i < record.length; i++) {
-                        String filterValue = filterValues.get(i);
-                        if (filterValue != null) {
-                            if (!filterValue.equals(record[i])) {
-                                continue outer;
-                            }
-                        }
-                    }
                 }
                 // 数据类型转换
                 current = rowConverter.convertRow(record);
@@ -115,51 +102,56 @@ public class SimpleCsvEnumerator<E> implements Enumerator<E> {
         final List<String> names = new ArrayList<>();
 
         try (CSVReader reader = openCsv(source)) {
-            String[] strings = reader.readNext();
-            if (strings == null) {
-                strings = new String[]{"EmptyFileHasNoColumns:boolean"};
+            // 读取第一行:字段以及字段数据类型 格式例如 ID:int,NAME:string
+            String[] fields = reader.readNext();
+            if (fields == null) {
+                fields = new String[]{"EmptyFileHasNoColumns:boolean"};
             }
-            for (String string : strings) {
-                final String name;
-                final RelDataType fieldType;
-                final int colon = string.indexOf(':');
+            for (String field : fields) {
+                final String fieldName, fieldType;
+                final RelDataType fieldRelType;
+                final int colon = field.indexOf(':');
                 if (colon >= 0) {
-                    name = string.substring(0, colon);
-                    String typeString = string.substring(colon + 1);
-                    switch (typeString) {
+                    // 格式例如 ID:int,NAME:string
+                    // 字段名称
+                    fieldName = field.substring(0, colon);
+                    // 字段类型
+                    fieldType = field.substring(colon + 1).toLowerCase();
+                    // Java 数据类型转换为 SQL 数据类型
+                    switch (fieldType) {
                         case "string":
-                            fieldType = toNullableRelDataType(typeFactory, SqlTypeName.VARCHAR);
+                            fieldRelType = toNullableRelDataType(typeFactory, SqlTypeName.VARCHAR);
                             break;
                         case "char":
-                            fieldType = toNullableRelDataType(typeFactory, SqlTypeName.CHAR);
+                            fieldRelType = toNullableRelDataType(typeFactory, SqlTypeName.CHAR);
                             break;
                         case "int":
-                            fieldType = toNullableRelDataType(typeFactory, SqlTypeName.INTEGER);
+                            fieldRelType = toNullableRelDataType(typeFactory, SqlTypeName.INTEGER);
                             break;
                         case "long":
-                            fieldType = toNullableRelDataType(typeFactory, SqlTypeName.BIGINT);
+                            fieldRelType = toNullableRelDataType(typeFactory, SqlTypeName.BIGINT);
                             break;
                         case "float":
-                            fieldType = toNullableRelDataType(typeFactory, SqlTypeName.REAL);
+                            fieldRelType = toNullableRelDataType(typeFactory, SqlTypeName.REAL);
                             break;
                         case "double":
-                            fieldType = toNullableRelDataType(typeFactory, SqlTypeName.DOUBLE);
+                            fieldRelType = toNullableRelDataType(typeFactory, SqlTypeName.DOUBLE);
                             break;
                         default:
-                            LOG.warn("Found unknown type: {} in file: {} for column: {}. Will assume the type of "
-                                            + "column is string.",
-                                    typeString, source.path(), name);
-                            fieldType = toNullableRelDataType(typeFactory, SqlTypeName.VARCHAR);
+                            LOG.warn("Found unknown type: {} in file: {} for column: {}. Will assume the type of column is string.",
+                                    fieldType, source.path(), fieldName);
+                            fieldRelType = toNullableRelDataType(typeFactory, SqlTypeName.VARCHAR);
                             break;
                     }
                 } else {
-                    name = string;
-                    fieldType = typeFactory.createSqlType(SqlTypeName.VARCHAR);
+                    // 没有指定数据类型 格式例如 ID,NAME
+                    fieldName = field;
+                    fieldRelType = typeFactory.createSqlType(SqlTypeName.VARCHAR);
                 }
-                names.add(name);
-                types.add(fieldType);
+                names.add(fieldName);
+                types.add(fieldRelType);
                 if (fieldTypes != null) {
-                    fieldTypes.add(fieldType);
+                    fieldTypes.add(fieldRelType);
                 }
             }
         } catch (IOException e) {
