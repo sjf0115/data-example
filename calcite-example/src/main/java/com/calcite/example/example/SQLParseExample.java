@@ -1,4 +1,4 @@
-package com.calcite.example.other;
+package com.calcite.example.example;
 
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.SqlKind;
@@ -74,9 +74,7 @@ public class SQLParseExample {
     }
 
     private static void parse(String sql) {
-        //使用mysql 语法
         SqlParser.Config config = SqlParser.config().withLex(Lex.MYSQL);
-        //SqlParser 语法解析器         
         SqlParser sqlParser = SqlParser.create(sql, config);
         SqlNode sqlNode;
         try {

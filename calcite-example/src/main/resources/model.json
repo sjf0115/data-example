@@ -1,13 +1,13 @@
 {
   "version": "1.0",
-  "defaultSchema": "SALES",
+  "defaultSchema": "test",
   "schemas": [
     {
-      "name": "SALES",
+      "name": "test",
       "type": "custom",
       "factory": "com.calcite.example.adapter.csv.SimpleCsvSchemaFactory",
       "operand": {
-        "directory": "sales"
+        "directory": "csv"
       }
     }
   ]

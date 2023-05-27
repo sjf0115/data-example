@@ -14,19 +14,16 @@ import java.util.List;
  */
 public class SimpleRowConverter extends AbstractRowConverter<@Nullable Object[]> {
     private final List<RelDataType> fieldTypes;
-    private final List<Integer> fields;
 
-    public SimpleRowConverter(List<RelDataType> fieldTypes, List<Integer> fields) {
+    public SimpleRowConverter(List<RelDataType> fieldTypes) {
         this.fieldTypes = fieldTypes;
-        this.fields = fields;
     }
 
     @Override
     public @Nullable Object[] convertRow(@Nullable String[] rows) {
-        final @Nullable Object[] objects = new Object[fields.size()];
-        for (int i = 0; i < fields.size(); i++) {
-            int field = fields.get(i);
-            objects[i] = convert(fieldTypes.get(field), rows[field]);
+        final @Nullable Object[] objects = new Object[fieldTypes.size()];
+        for (int i = 0; i < fieldTypes.size(); i++) {
+            objects[i] = convert(fieldTypes.get(i), rows[i]);
         }
         return objects;
     }

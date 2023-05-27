@@ -5,7 +5,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 /**
- * 功能：行转换器-简单实现 Java 数据类型转换为目标数据类型
+ * 功能：行转换器-简单实现 SQL 数据类型转换为 Java 数据类型
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
@@ -14,6 +14,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public abstract class AbstractRowConverter<E> {
     abstract E convertRow(@Nullable String[] rows);
 
+    // 字符串转换为对应的数据类型
     protected @Nullable Object convert(@Nullable RelDataType fieldType, @Nullable String string) {
         if (fieldType == null || string == null) {
             return string;
