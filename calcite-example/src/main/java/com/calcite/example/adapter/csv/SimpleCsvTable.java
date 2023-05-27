@@ -71,7 +71,8 @@ public class SimpleCsvTable extends AbstractTable implements ScannableTable {
     // 如何遍历读取CSV文件 全表扫描
     @Override
     public Enumerable<@Nullable Object[]> scan(DataContext root) {
-        // 根据 CSV 文件头的字段以及字段类型进行数据转换
+        // 根据 CSV 文件头信息获取每个字段的数据类型用于遍历数据的数据类型转换
+        // Csv 文件中都是使用字符串存储
         JavaTypeFactory typeFactory = root.getTypeFactory();
         RelDataType rowType = getRelDataType(typeFactory, source);
         List<RelDataType> fieldTypes = rowType.getFieldList()
@@ -107,7 +108,7 @@ public class SimpleCsvTable extends AbstractTable implements ScannableTable {
                 fieldName = field.substring(0, colon);
                 // 字段类型
                 fieldType = field.substring(colon + 1).toLowerCase();
-                // Java 数据类型转换为 SQL 数据类型
+                // 文件头数据类型转换为 SQL 数据类型
                 switch (fieldType) {
                     case "string":
                         fieldSqlType = toNullableRelDataType(typeFactory, SqlTypeName.VARCHAR);
@@ -148,12 +149,12 @@ public class SimpleCsvTable extends AbstractTable implements ScannableTable {
         return typeFactory.createStructType(Pair.zip(names, types));
     }
 
-    private static RelDataType toNullableRelDataType(JavaTypeFactory typeFactory, SqlTypeName sqlTypeName) {
+    private RelDataType toNullableRelDataType(JavaTypeFactory typeFactory, SqlTypeName sqlTypeName) {
         return typeFactory.createTypeWithNullability(typeFactory.createSqlType(sqlTypeName), true);
     }
 
     // 获取 Csv 文件头中获取字段以及字段类型(需要在Csv文件中自定义)
-    private static String[] getCsvDataType(Source source) {
+    private String[] getCsvDataType(Source source) {
         Objects.requireNonNull(source, "source");
         String[] fields = null;
         try (CSVReader reader = new CSVReader(source.reader())){
