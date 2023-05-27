@@ -15,7 +15,7 @@ import java.util.Properties;
  */
 public class CsvAdapterExample {
     public static void main(String[] args) {
-        String sql = "select * from test.emps where age > 25";
+        String sql = "select * from test.sales where DEPTNO > 10";
         Connection connection = null;
         try {
             Class.forName("org.apache.calcite.jdbc.Driver");

@@ -63,7 +63,7 @@ public class SimpleCsvTable extends AbstractTable implements ScannableTable {
             return protoRowType.apply(typeFactory);
         }
         if (rowType == null) {
-            rowType = getRowType((JavaTypeFactory) typeFactory, source);
+            rowType = getRelDataType((JavaTypeFactory) typeFactory, source);
         }
         return rowType;
     }
@@ -73,7 +73,7 @@ public class SimpleCsvTable extends AbstractTable implements ScannableTable {
     public Enumerable<@Nullable Object[]> scan(DataContext root) {
         // 根据 CSV 文件头的字段以及字段类型进行数据转换
         JavaTypeFactory typeFactory = root.getTypeFactory();
-        RelDataType rowType = getRowType(typeFactory, source);
+        RelDataType rowType = getRelDataType(typeFactory, source);
         List<RelDataType> fieldTypes = rowType.getFieldList()
                 .stream()
                 .map(RelDataTypeField::getType)
@@ -89,7 +89,7 @@ public class SimpleCsvTable extends AbstractTable implements ScannableTable {
     }
 
     // 数据类型转换
-    private RelDataType getRowType(JavaTypeFactory typeFactory, Source source) {
+    private RelDataType getRelDataType(JavaTypeFactory typeFactory, Source source) {
         final List<RelDataType> types = new ArrayList<>();
         final List<String> names = new ArrayList<>();
         // 读取 Csv 文件头: 字段以及字段数据类型 格式例如 ID:int,NAME:string
