@@ -1,4 +1,4 @@
-package com.calcite.example.example;
+package com.calcite.example.parse;
 
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.SqlKind;
@@ -58,33 +58,44 @@ public class SQLParseExample {
 
         // From
         SqlNode fromNode = sqlSelect.getFrom();
-        System.out.println("From: " + fromNode.toString());
+        if (fromNode != null) {
+            System.out.println("From: " + fromNode);
+        }
 
         // Where
         SqlNode whereNode = sqlSelect.getWhere();
-        System.out.println("Where: " + whereNode.toString());
+        if (whereNode != null) {
+            System.out.println("Where: " + whereNode);
+        }
 
         // Fetch
         SqlNode fetchNode = sqlSelect.getFetch();
-        System.out.println("Fetch: " + fetchNode.toString());
+        if (fetchNode != null) {
+            System.out.println("Fetch: " + fetchNode);
+        }
 
         // Offset
         SqlNode offsetNode = sqlSelect.getOffset();
-        System.out.println("Offset: " + offsetNode.toString());
+        if (offsetNode != null) {
+            System.out.println("Offset: " + offsetNode);
+        }
     }
 
     private static void parse(String sql) {
-        SqlParser.Config config = SqlParser.config().withLex(Lex.MYSQL);
-        SqlParser sqlParser = SqlParser.create(sql, config);
-        SqlNode sqlNode;
         try {
-            sqlNode = sqlParser.parseStmt();
-            SqlKind sqlKind = sqlNode.getKind();
-            if (sqlKind.equals(SqlKind.SELECT)) {
+            // 解析配置
+            SqlParser.Config config = SqlParser.config()
+                    .withLex(Lex.MYSQL);
+
+            // SQL 解析器
+            SqlParser sqlParser = SqlParser.create(sql, config);
+            // 解析出 SqlNode
+            SqlNode sqlNode = sqlParser.parseStmt();
+            System.out.println("SQL 类型：" + sqlNode.getKind().lowerName);
+            // 查询语句
+            if (Objects.equals(sqlNode.getKind(), SqlKind.SELECT)) {
                 parseSqlSelect(sqlNode);
             }
-            String name = sqlKind.lowerName;
-            System.out.println(name);
         } catch (SqlParseException e) {
             e.printStackTrace();
         }
@@ -92,7 +103,6 @@ public class SQLParseExample {
 
     public static void main(String[] args) {
         String sql = "select id, name, age FROM student where age < 20";
-        sql = "select id as stu_id, name as stu_name from stu where age < 20 and age > 10 order by id limit 10";
         parse(sql);
     }
 }
