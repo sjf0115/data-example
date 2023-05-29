@@ -31,6 +31,12 @@
             <artifactId>opencsv</artifactId>
         </dependency>
 
+        <!-- 实现 Redis Adapter-->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
