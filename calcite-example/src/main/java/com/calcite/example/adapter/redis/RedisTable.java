@@ -76,6 +76,11 @@ public class RedisTable extends AbstractTable implements ScannableTable {
         return new RedisTable(schema, tableName, protoRowType, allFields, dataFormat, redisConfig);
     }
 
+    static Table of(RedisSchema schema, String tableName, Map operand, RelProtoDataType protoRowType) {
+        RedisConfig redisConfig = new RedisConfig(schema.host, schema.port, schema.database, schema.password);
+        return of(schema, tableName, redisConfig, protoRowType);
+    }
+
     static Map<String, Object> deduceRowType(RedisTableField tableField) {
         final Map<String, Object> fieldBuilder = new LinkedHashMap<>();
         // 支持的数据格式
