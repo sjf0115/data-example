@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "defaultSchema": "test",
+  "schemas": [
+    {
+      "type": "custom",
+      "name": "test",
+      "factory": "com.calcite.example.adapter.redis.RedisSchemaFactory",
+      "operand": {
+        "host": "localhost",
+        "port": 6379,
+        "database": 0,
+        "password": ""
+      },
+      "tables": [
+        {
+          "name": "user_score",
+          "factory": "com.calcite.example.adapter.redis.RedisTableFactory",
+          "operand": {
+            "dataFormat": "csv",
+            "keyDelimiter": ":",
+            "fields": [
+              {
+                "name": "id",
+                "type": "int",
+                "mapping": 0
+              },
+              {
+                "name": "score",
+                "type": "int",
+                "mapping": 1
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
