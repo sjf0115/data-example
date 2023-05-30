@@ -16,12 +16,12 @@ import java.util.Properties;
  */
 public class RedisSQLExample {
     public static void main(String[] args) {
-        String sql = "select * from test.students_json where name like '%Tom%'";
+        String sql = "select * from test.students_csv";
         Connection connection = null;
         try {
             Class.forName("org.apache.calcite.jdbc.Driver");
             Properties info = new Properties();
-            info.setProperty("lex", "JAVA");
+            info.setProperty("lex", "java");
             info.setProperty("model", getModelPath("redis/custom_redis_model.json"));
             connection = DriverManager.getConnection("jdbc:calcite:", info);
 

@@ -62,21 +62,21 @@ public class RedisDataProcess {
         }
     }
 
-    private List<Object[]> parse(Iterable<String> keys) {
+    private List<Object[]> parse(Iterable<String> values) {
         List<Object[]> objs = new ArrayList<>();
-        for (String key : keys) {
+        for (String value : values) {
             if (dataType == RedisDataType.STRING) {
-                key = jedis.get(key);
+                value = jedis.get(value);
             }
             switch (redisDataFormat) {
                 case RAW:
-                    objs.add(new Object[]{key});
+                    objs.add(new Object[]{value});
                     break;
                 case JSON:
-                    objs.add(parseJson(key));
+                    objs.add(parseJson(value));
                     break;
                 case CSV:
-                    objs.add(parseCsv(key));
+                    objs.add(parseCsv(value));
                     break;
                 default:
                     break;
@@ -85,21 +85,21 @@ public class RedisDataProcess {
         return objs;
     }
 
-    public List<Object[]> parse(List<String> keys) {
+    public List<Object[]> parse(List<String> values) {
         List<Object[]> objs = new ArrayList<>();
-        for (String key : keys) {
+        for (String value : values) {
             if (dataType == RedisDataType.STRING) {
-                key = jedis.get(key);
+                value = jedis.get(value);
             }
             switch (redisDataFormat) {
                 case RAW:
-                    objs.add(new Object[]{key});
+                    objs.add(new Object[]{value});
                     break;
                 case JSON:
-                    objs.add(parseJson(key));
+                    objs.add(parseJson(value));
                     break;
                 case CSV:
-                    objs.add(parseCsv(key));
+                    objs.add(parseCsv(value));
                     break;
                 default:
                     break;
