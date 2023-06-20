@@ -17,7 +17,22 @@ import org.apache.flink.sql.parser.validate.FlinkSqlConformance;
  */
 public class SimpleParse {
     public static void main(String[] args) {
-        String sql = "insert into ... select ...";
+        String sql = "SELECT\n" +
+                "  a.id, b.name, a.score\n" +
+                "FROM (\n" +
+                "  SELECT id, score \n" +
+                "  FROM senior_stu\n" +
+                "  WHERE score > 90\n" +
+                "  UNION ALL \n" +
+                "  SELECT id, score \n" +
+                "  FROM middle_sut\n" +
+                "  WHERE score > 90\n" +
+                ") AS a\n" +
+                "LEFT OUTER JOIN (\n" +
+                "  SELECT id, name \n" +
+                "  FROM sut\n" +
+                ") AS b\n" +
+                "ON a.id = b.id";
         SqlParser.Config config = SqlParser.config()
                 .withParserFactory(FlinkSqlParserImpl.FACTORY)
                 .withQuoting(Quoting.BACK_TICK)
@@ -31,6 +46,7 @@ public class SimpleParse {
         SqlNode sqlNode;
         try {
             sqlNode = sqlParser.parseStmt();
+            System.out.println(sqlNode);
         } catch (SqlParseException e) {
             throw new RuntimeException("使用 Calcite 进行语法分析发生了异常", e);
         }
