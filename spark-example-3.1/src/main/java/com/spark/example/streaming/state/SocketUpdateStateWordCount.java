@@ -10,6 +10,8 @@ import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import java.util.Arrays;
@@ -24,6 +26,7 @@ import java.util.List;
  * 日期：2022/10/9 下午12:06
  */
 public class SocketUpdateStateWordCount {
+    private static final Logger LOG = LoggerFactory.getLogger(SocketUpdateStateWordCount.class);
     private static String hostName = "localhost";
     private static int port = 9100;
 
@@ -55,6 +58,7 @@ public class SocketUpdateStateWordCount {
             // Optional<Long> 表示存储类型为 Long 的状态
             @Override
             public Optional<Long> call(List<Integer> elements, Optional<Long> countState) throws Exception {
+                LOG.info("当前批次元素: {}，当前状态值: {}", elements, countState.isPresent() ? countState.get() : null);
                 Long count = 0L;
                 if (countState.isPresent()) {
                     count = countState.get();
