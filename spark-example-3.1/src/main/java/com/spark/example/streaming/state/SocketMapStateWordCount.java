@@ -13,6 +13,8 @@ import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import java.util.Arrays;
@@ -27,6 +29,7 @@ import java.util.List;
  * 日期：2022/10/9 下午12:06
  */
 public class SocketMapStateWordCount {
+    private static final Logger LOG = LoggerFactory.getLogger(SocketMapStateWordCount.class);
     private static String hostName = "localhost";
     private static int port = 9100;
 
@@ -36,12 +39,11 @@ public class SocketMapStateWordCount {
 
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
-        // 通过 updateStateByKey 实现有状态的应用必须实现 Checkpoint
+        // 通过 MapWithState 实现有状态的应用必须实现 Checkpoint
         ssc.checkpoint("hdfs://localhost:9000/spark/checkpoint");
 
         // 以端口 9100 作为输入源创建 DStream
         JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
-
 
         // 用来初始化 State
         List<Tuple2<String, Integer>> elements = Arrays.asList(
@@ -49,6 +51,21 @@ public class SocketMapStateWordCount {
                 new Tuple2<>("world", 1)
         );
         JavaPairRDD<String, Integer> elementRDD = ssc.sparkContext().parallelizePairs(elements);
+
+        // 状态描述符
+        StateSpec<String, Integer, Integer, Tuple2<String, Integer>> stateSpec = StateSpec.function(new Function3<String, Optional<Integer>, State<Integer>, Tuple2<String, Integer>>() {
+            @Override
+            public Tuple2<String, Integer> call(String word, Optional<Integer> count, State<Integer> countState) throws Exception {
+                LOG.info("当前 Key: {}, 当前元素: {}, 当前状态: {}", word, count.get(), countState.exists() ? countState.get() : null);
+                int newCount = 0;
+                if (countState.exists()) {
+                    newCount = countState.get();
+                }
+                newCount += count.orElse(0);
+                countState.update(newCount);
+                return new Tuple2<>(word, newCount);
+            }
+        }).initialState(elementRDD);
 
         // 统计每个单词出现的次数
         JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> wordCounts = lines.flatMap(new FlatMapFunction<String, String>() {
@@ -61,20 +78,7 @@ public class SocketMapStateWordCount {
             public Tuple2<String, Integer> call(String word) {
                 return new Tuple2<>(word, 1);
             }
-        }).mapWithState(
-                StateSpec.function(new Function3<String, Optional<Integer>, State<Integer>, Tuple2<String, Integer>>() {
-                    @Override
-                    public Tuple2<String, Integer> call(String word, Optional<Integer> count, State<Integer> countState) throws Exception {
-                        int newCount = 0;
-                        if (countState.exists()) {
-                            newCount = countState.get();
-                        }
-                        newCount += count.orElse(0);
-                        countState.update(newCount);
-                        return new Tuple2<>(word, newCount);
-                    }
-                }).initialState(elementRDD)
-        );
+        }).mapWithState(stateSpec);
 
         // 输出
         wordCounts.print();
