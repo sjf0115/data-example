@@ -33,53 +33,10 @@ public class JavaSparkSQLExample {
                 .master("local[*]")
                 .getOrCreate();
 
-        //runDatasetCreationExample(spark);
         //runInferSchemaExample(spark);
         //runProgrammaticSchemaExample(spark);
 
         spark.stop();
-    }
-
-    private static void runDatasetCreationExample(SparkSession spark) {
-        // $example on:create_ds$
-        // Create an instance of a Bean class
-        Person person = new Person();
-        person.setName("Andy");
-        person.setAge(32);
-
-        // Encoders are created for Java beans
-        Encoder<Person> personEncoder = Encoders.bean(Person.class);
-        Dataset<Person> javaBeanDS = spark.createDataset(
-                Collections.singletonList(person),
-                personEncoder
-        );
-        javaBeanDS.show();
-        // +---+----+
-        // |age|name|
-        // +---+----+
-        // | 32|Andy|
-        // +---+----+
-
-        // Encoders for most common types are provided in class Encoders
-        Encoder<Long> longEncoder = Encoders.LONG();
-        Dataset<Long> primitiveDS = spark.createDataset(Arrays.asList(1L, 2L, 3L), longEncoder);
-        Dataset<Long> transformedDS = primitiveDS.map(
-                (MapFunction<Long, Long>) value -> value + 1L,
-                longEncoder);
-        transformedDS.collect(); // Returns [2, 3, 4]
-
-        // DataFrames can be converted to a Dataset by providing a class. Mapping based on name
-        String path = "examples/src/main/resources/people.json";
-        Dataset<Person> peopleDS = spark.read().json(path).as(personEncoder);
-        peopleDS.show();
-        // +----+-------+
-        // | age|   name|
-        // +----+-------+
-        // |null|Michael|
-        // |  30|   Andy|
-        // |  19| Justin|
-        // +----+-------+
-        // $example off:create_ds$
     }
 
     private static void runInferSchemaExample(SparkSession spark) {
