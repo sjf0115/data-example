@@ -1,6 +1,9 @@
 package com.spark.example.sql;
 
 import org.apache.spark.sql.SparkSession;
+import scala.Tuple2;
+import scala.collection.Iterator;
+import scala.collection.immutable.Map;
 
 /**
  * 功能：SparkSession 示例
@@ -11,12 +14,29 @@ import org.apache.spark.sql.SparkSession;
  */
 public class SparkSessionExample {
     public static void main(String[] args) {
+        // 1. 创建 SparkSession
         SparkSession spark = SparkSession
                 .builder()
-                .master("local[2]")
-                .appName("Java Spark SQL basic example")
+                .master("local[*]")
+                .appName("SparkSessionExample")
                 .config("spark.some.config.option", "some-value")
                 .getOrCreate();
 
+        // 2. 配置 Spark 的运行时属性
+        Map<String, String> configMap = spark.conf().getAll();
+        Iterator<Tuple2<String, String>> ite = configMap.iterator();
+        while (ite.hasNext()) {
+            Tuple2<String, String> config = ite.next();
+            System.out.println(config._1 + ": " + config._2);
+        }
+
+        // 修改运行时属性
+        spark.conf().set("spark.app.name", "SparkSession Example");
+        String appName = spark.conf().get("spark.app.name");
+        System.out.println("AppName: " + appName);
+
+        // 3. 访问 Catalog 元数据
+        spark.catalog().listDatabases().show();
+        spark.catalog().listTables().show();
     }
 }
