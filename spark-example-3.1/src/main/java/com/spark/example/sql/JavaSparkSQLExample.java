@@ -33,61 +33,12 @@ public class JavaSparkSQLExample {
                 .master("local[*]")
                 .getOrCreate();
 
-        //runInferSchemaExample(spark);
-        //runProgrammaticSchemaExample(spark);
+        runProgrammaticSchemaExample(spark);
 
         spark.stop();
     }
 
-    private static void runInferSchemaExample(SparkSession spark) {
-        // $example on:schema_inferring$
-        // Create an RDD of Person objects from a text file
-        JavaRDD<Person> peopleRDD = spark.read()
-                .textFile("examples/src/main/resources/people.txt")
-                .javaRDD()
-                .map(line -> {
-                    String[] parts = line.split(",");
-                    Person person = new Person();
-                    person.setName(parts[0]);
-                    person.setAge(Integer.parseInt(parts[1].trim()));
-                    return person;
-                });
-
-        // Apply a schema to an RDD of JavaBeans to get a DataFrame
-        Dataset<Row> peopleDF = spark.createDataFrame(peopleRDD, Person.class);
-        // Register the DataFrame as a temporary view
-        peopleDF.createOrReplaceTempView("people");
-
-        // SQL statements can be run by using the sql methods provided by spark
-        Dataset<Row> teenagersDF = spark.sql("SELECT name FROM people WHERE age BETWEEN 13 AND 19");
-
-        // The columns of a row in the result can be accessed by field index
-        Encoder<String> stringEncoder = Encoders.STRING();
-        Dataset<String> teenagerNamesByIndexDF = teenagersDF.map(
-                (MapFunction<Row, String>) row -> "Name: " + row.getString(0),
-                stringEncoder);
-        teenagerNamesByIndexDF.show();
-        // +------------+
-        // |       value|
-        // +------------+
-        // |Name: Justin|
-        // +------------+
-
-        // or by field name
-        Dataset<String> teenagerNamesByFieldDF = teenagersDF.map(
-                (MapFunction<Row, String>) row -> "Name: " + row.<String>getAs("name"),
-                stringEncoder);
-        teenagerNamesByFieldDF.show();
-        // +------------+
-        // |       value|
-        // +------------+
-        // |Name: Justin|
-        // +------------+
-        // $example off:schema_inferring$
-    }
-
     private static void runProgrammaticSchemaExample(SparkSession spark) {
-        // $example on:programmatic_schema$
         // Create an RDD
         JavaRDD<String> peopleRDD = spark.sparkContext()
                 .textFile("examples/src/main/resources/data/people.txt", 1)
