@@ -1,4 +1,4 @@
-package com.spark.example.sql;
+package com.spark.example.sql.base;
 
 import java.util.ArrayList;
 import java.util.List;

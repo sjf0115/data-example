@@ -1,4 +1,4 @@
-package com.spark.example.sql;
+package com.spark.example.sql.base;
 
 import com.spark.example.bean.Person;
 import org.apache.spark.api.java.JavaRDD;

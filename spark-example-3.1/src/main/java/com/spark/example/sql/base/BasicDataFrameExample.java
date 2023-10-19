@@ -1,4 +1,4 @@
-package com.spark.example.sql;
+package com.spark.example.sql.base;
 
 import org.apache.spark.sql.*;
 import static org.apache.spark.sql.functions.col;

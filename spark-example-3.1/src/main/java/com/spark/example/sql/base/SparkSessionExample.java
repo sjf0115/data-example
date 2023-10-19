@@ -1,4 +1,4 @@
-package com.spark.example.sql;
+package com.spark.example.sql.base;
 
 import com.google.common.collect.Lists;
 import org.apache.spark.sql.Dataset;
