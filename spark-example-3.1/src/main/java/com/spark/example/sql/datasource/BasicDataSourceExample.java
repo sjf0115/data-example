@@ -20,9 +20,10 @@ public class BasicDataSourceExample {
                 .master("local[*]")
                 .getOrCreate();
 
-        test(spark);
+        // test(spark);
         //defaultFormat(spark);
         //jsonFormat(spark);
+        csvFormat(spark);
         //runSQLOnFile(spark);
         spark.stop();
     }
@@ -33,7 +34,7 @@ public class BasicDataSourceExample {
         Dataset<Row> usersDF = spark.read().load("spark-example-3.1/src/main/resources/data/users.parquet");
         usersDF.show();
         // 如果不指定 format 默认保存的是 parquet 文件
-        usersDF.select("name", "favorite_color", "favorite_numbers").write().format("csv").save("users.parquet");
+        usersDF.select("name").write().format("csv").save("users.parquet");
     }
 
     // 默认 Format
@@ -42,28 +43,36 @@ public class BasicDataSourceExample {
         Dataset<Row> usersDF = spark.read().load("spark-example-3.1/src/main/resources/data/users.parquet");
         usersDF.show();
         // 如果不指定 format 默认保存的是 parquet 文件
-        //usersDF.select("name", "favorite_color").write().save("namesAndFavColors.parquet");
+        usersDF.select("name", "favorite_color").write().save("namesAndFavColors.parquet");
     }
 
+    // json 格式
     private static void jsonFormat(SparkSession spark) {
         // format 指定为 json 读取的是 json 文件
         Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
         usersDF.show();
-        // format 指定为 json  保存的是 json 文件
-        usersDF.select("name", "age").write().format("json").save("namesAndFavColors.json");
+        // format 指定为 json 保存的是 json 文件
+        usersDF.select("name", "favorite_color").write().format("json").save("namesAndFavColors.json");
     }
 
+    // csv 格式
     private static void csvFormat(SparkSession spark) {
-        // format 指定为 csv 读取的是 csv 文件
-        Dataset<Row> usersDF = spark.read().format("csv")
+        // format 指定为 csv 读取的是 csv 文件 指定额外参数
+        Dataset<Row> peopleDF = spark.read().format("csv")
                 .option("sep", ";")
                 .option("inferSchema", "true")
                 .option("header", "true")
-                .load("spark-example-3.1/src/main/resources/data/people.csv");
-        usersDF.show();
+                .load("spark-example-3.1/src/main/resources/data/people2.csv");
+        peopleDF.show();
+
+        // format 指定为 csv 保存的是 csv 文件
+        peopleDF.select("name", "age").write().format("csv")
+                .option("sep", ",")
+                .option("header", "false")
+                .save("namesAndAges.csv");
     }
 
-
+    // orc 格式
     private static void orcFormat(SparkSession spark) {
         // format 指定为 json 读取的是 json 文件
         Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
@@ -77,6 +86,7 @@ public class BasicDataSourceExample {
                 .save("users_with_options.orc");
     }
 
+    // parquet 格式
     private static void parquetFormat(SparkSession spark) {
         // format 指定为 json 读取的是 json 文件
         Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
