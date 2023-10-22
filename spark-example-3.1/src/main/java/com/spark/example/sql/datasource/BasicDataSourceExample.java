@@ -1,9 +1,6 @@
 package com.spark.example.sql.datasource;
 
-import org.apache.spark.sql.AnalysisException;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
 
 /**
  * 功能：数据源 Load 与 Save 示例
@@ -20,11 +17,13 @@ public class BasicDataSourceExample {
                 .master("local[*]")
                 .getOrCreate();
 
-        // test(spark);
+        //test(spark);
         //defaultFormat(spark);
         //jsonFormat(spark);
-        csvFormat(spark);
+        //csvFormat(spark);
         //runSQLOnFile(spark);
+        //saveMode(spark);
+        saveAsTable(spark);
         spark.stop();
     }
 
@@ -34,7 +33,7 @@ public class BasicDataSourceExample {
         Dataset<Row> usersDF = spark.read().load("spark-example-3.1/src/main/resources/data/users.parquet");
         usersDF.show();
         // 如果不指定 format 默认保存的是 parquet 文件
-        usersDF.select("name").write().format("csv").save("users.parquet");
+        usersDF.select("name", "favorite_color", "favorite_numbers").write().format("json").save("users.json");
     }
 
     // 默认 Format
@@ -74,8 +73,8 @@ public class BasicDataSourceExample {
 
     // orc 格式
     private static void orcFormat(SparkSession spark) {
-        // format 指定为 json 读取的是 json 文件
-        Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
+        // format 指定为 orc 读取的是 orc 文件
+        Dataset<Row> usersDF = spark.read().format("orc").load("spark-example-3.1/src/main/resources/data/users.orc");
         usersDF.show();
 
         // format 指定为 orc 保存的是 orc 文件
@@ -88,8 +87,8 @@ public class BasicDataSourceExample {
 
     // parquet 格式
     private static void parquetFormat(SparkSession spark) {
-        // format 指定为 json 读取的是 json 文件
-        Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
+        // format 指定为 parquet 读取的是 parquet 文件
+        Dataset<Row> usersDF = spark.read().format("parquet").load("spark-example-3.1/src/main/resources/data/users.parquet");
         usersDF.show();
 
         // format 指定为 parquet 保存的是 parquet 文件
@@ -110,6 +109,32 @@ public class BasicDataSourceExample {
         Dataset<Row> jsonDF = spark.sql("SELECT * FROM json.`spark-example-3.1/src/main/resources/data/users.json`");
         jsonDF.show();
     }
+
+    // SaveMode 保存模式
+    private static void saveMode(SparkSession spark) {
+        // format 指定为 json 读取的是 json 文件
+        Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
+        usersDF.show();
+        // 使用 SaveMode 指定保存模式
+        usersDF.select("name", "favorite_color").write().format("json")
+                .mode(SaveMode.ErrorIfExists)
+                .save("namesAndFavColors.json");
+    }
+
+    // saveAsTable
+    private static void saveAsTable(SparkSession spark) {
+        // format 指定为 json 读取的是 json 文件
+        Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
+        usersDF.show();
+        // 使用 saveAsTable 指定保存模式
+        usersDF.select("name", "favorite_color").write().format("json")
+                .option("path", "spark-example-3.1/src/main/resources/data/namesAndFavColors.json")
+                .saveAsTable("namesAndFavColors");
+        // 查询
+        Dataset<Row> namesAndFavColorsDF = spark.sql("SELECT * FROM namesAndFavColors");
+        namesAndFavColorsDF.show();
+    }
+
 
     private static void bucketBy(SparkSession spark) {
 //                peopleDF.write().bucketBy(42, "name").sortBy("age").saveAsTable("people_bucketed");
