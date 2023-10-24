@@ -23,7 +23,8 @@ public class BasicDataSourceExample {
         //csvFormat(spark);
         //runSQLOnFile(spark);
         //saveMode(spark);
-        saveAsTable(spark);
+        //saveAsTable(spark);
+        bucketBy(spark);
         spark.stop();
     }
 
@@ -128,25 +129,34 @@ public class BasicDataSourceExample {
         usersDF.show();
         // 使用 saveAsTable 指定保存模式
         usersDF.select("name", "favorite_color").write().format("json")
-                .option("path", "spark-example-3.1/src/main/resources/data/namesAndFavColors.json")
+                .mode(SaveMode.Overwrite)
                 .saveAsTable("namesAndFavColors");
-        // 查询
-        Dataset<Row> namesAndFavColorsDF = spark.sql("SELECT * FROM namesAndFavColors");
+
+        // 查询 在 SparkSession 上调用 table 方法来创建 DataFrame 的持久化表
+        Dataset<Row> namesAndFavColorsDF = spark.table("namesAndFavColors");
         namesAndFavColorsDF.show();
     }
 
 
     private static void bucketBy(SparkSession spark) {
-//                peopleDF.write().bucketBy(42, "name").sortBy("age").saveAsTable("people_bucketed");
-//        usersDF
-//                .write()
+        // format 指定为 json 读取的是 json 文件
+        Dataset<Row> peopleDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/people.json");
+        peopleDF.show();
+        // 分桶
+        peopleDF.write().format("json").bucketBy(42, "name").sortBy("age").saveAsTable("people_bucketed");
+        // 查询
+        Dataset<Row> dataset = spark.sql("SELECT * FROM people_bucketed");
+        dataset.show();
+    }
+
+    private static void partitionBy(SparkSession spark) {
+
+//        usersDF.write()
 //                .partitionBy("favorite_color")
 //                .format("parquet")
 //                .save("namesPartByColor.parquet");
 //        spark.sql("DROP TABLE IF EXISTS people_bucketed");
-    }
 
-    private static void partitionBy(SparkSession spark) {
 //                usersDF
 //                .write()
 //                .partitionBy("favorite_color")
