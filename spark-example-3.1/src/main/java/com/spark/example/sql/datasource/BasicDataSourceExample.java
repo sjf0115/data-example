@@ -21,10 +21,14 @@ public class BasicDataSourceExample {
         //defaultFormat(spark);
         //jsonFormat(spark);
         //csvFormat(spark);
+        orcFormat(spark);
+        //parquetFormat(spark);
         //runSQLOnFile(spark);
         //saveMode(spark);
         //saveAsTable(spark);
-        bucketBy(spark);
+        //bucketBy(spark);
+        //partitionBy(spark);
+        //bucketAndPartitionBy(spark);
         spark.stop();
     }
 
@@ -34,7 +38,7 @@ public class BasicDataSourceExample {
         Dataset<Row> usersDF = spark.read().load("spark-example-3.1/src/main/resources/data/users.parquet");
         usersDF.show();
         // 如果不指定 format 默认保存的是 parquet 文件
-        usersDF.select("name", "favorite_color", "favorite_numbers").write().format("json").save("users.json");
+        usersDF.select("name", "favorite_color", "favorite_numbers").write().format("orc").save("users.orc");
     }
 
     // 默认 Format
@@ -137,31 +141,44 @@ public class BasicDataSourceExample {
         namesAndFavColorsDF.show();
     }
 
-
+    // 分桶
     private static void bucketBy(SparkSession spark) {
         // format 指定为 json 读取的是 json 文件
         Dataset<Row> peopleDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/people.json");
         peopleDF.show();
-        // 分桶
-        peopleDF.write().format("json").bucketBy(42, "name").sortBy("age").saveAsTable("people_bucketed");
+        // 根据年龄分桶
+        peopleDF.write().format("json")
+                .bucketBy(3, "age")
+                .sortBy("age")
+                .saveAsTable("people_bucketed");
         // 查询
         Dataset<Row> dataset = spark.sql("SELECT * FROM people_bucketed");
         dataset.show();
     }
 
+    // 分区
     private static void partitionBy(SparkSession spark) {
+        // format 指定为 json 读取的是 json 文件
+        Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
+        usersDF.show();
+        // 根据favorite_color分区
+        usersDF.write().format("json")
+                .partitionBy("favorite_color")
+                .save("namesPartByColor.json");
+    }
 
-//        usersDF.write()
-//                .partitionBy("favorite_color")
-//                .format("parquet")
-//                .save("namesPartByColor.parquet");
-//        spark.sql("DROP TABLE IF EXISTS people_bucketed");
-
-//                usersDF
-//                .write()
-//                .partitionBy("favorite_color")
-//                .bucketBy(42, "name")
-//                .saveAsTable("users_partitioned_bucketed");
-//        spark.sql("DROP TABLE IF EXISTS users_partitioned_bucketed");
+    // 分区和分桶
+    private static void bucketAndPartitionBy(SparkSession spark) {
+        // format 指定为 json 读取的是 json 文件
+        Dataset<Row> usersDF = spark.read().format("json").load("spark-example-3.1/src/main/resources/data/users.json");
+        usersDF.show();
+        // 根据姓名分桶根据喜欢颜色分区
+        usersDF.write()
+                .partitionBy("favorite_color")
+                .bucketBy(3, "name")
+                .saveAsTable("users_partitioned_bucketed");
+        // 查询
+        Dataset<Row> dataset = spark.sql("SELECT * FROM users_partitioned_bucketed");
+        dataset.show();
     }
 }
