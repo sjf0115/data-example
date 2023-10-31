@@ -1,6 +1,5 @@
 package com.spark.example.streaming.checkpoint;
 
-import com.spark.example.streaming.state.SocketMapStateWordCount;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function0;
@@ -30,61 +29,54 @@ public class SocketRecoverableWordCount {
     private static String hostName = "localhost";
     private static int port = 9100;
 
-    private static JavaStreamingContext createContext(String ip, int port, String checkpointDirectory) {
-        SparkConf sparkConf = new SparkConf().setAppName("SocketRecoverableWordCount");
-        JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(1));
-        ssc.checkpoint(checkpointDirectory);
-
-        JavaReceiverInputDStream<String> lines = ssc.socketTextStream(ip, port);
-        JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(x.split("\\s+")).iterator());
-        JavaPairDStream<String, Integer> wordCounts = words.mapToPair(s -> new Tuple2<>(s, 1))
-                .reduceByKey((i1, i2) -> i1 + i2);
-
-        wordCounts.foreachRDD((rdd, time) -> {
-            // 注册 Broadcast
-            Broadcast<List<String>> excludeList =
-                    JavaWordExcludeList.getInstance(new JavaSparkContext(rdd.context()));
-            // 注册 Accumulator
-            LongAccumulator droppedWordsCounter =
-                    JavaDroppedWordsCounter.getInstance(new JavaSparkContext(rdd.context()));
-            // 记录丢失的单词个数
-            String counts = rdd.filter(wordCount -> {
-                if (excludeList.value().contains(wordCount._1())) {
-                    droppedWordsCounter.add(wordCount._2());
-                    return false;
-                } else {
-                    return true;
-                }
-            }).collect().toString();
-            LOG.info("........................Counts at time {} {}", time, counts);
-            LOG.info("........................Dropped {} word(s) totally", droppedWordsCounter.value());
-        });
-
-        wordCounts.print();
-
-        return ssc;
-    }
-
     public static void main(String[] args) throws InterruptedException {
         String checkpointDirectory = "hdfs://localhost:9000/spark/checkpoint";
 
-        // Create a factory object that can create and setup a new JavaStreamingContext
-        /*JavaStreamingContextFactory contextFactory = new JavaStreamingContextFactory() {
-            @Override public JavaStreamingContext create() {
-                JavaStreamingContext jssc = new JavaStreamingContext(...);  // new context
-                JavaDStream<String> lines = jssc.socketTextStream(...);     // create DStreams
-                jssc.checkpoint(checkpointDirectory);                       // set checkpoint directory
-                return jssc;
-            }
-        };*/
+        JavaStreamingContext context = JavaStreamingContext.getOrCreate(checkpointDirectory, new Function0<JavaStreamingContext>() {
+            @Override
+            public JavaStreamingContext call() throws Exception {
+                SparkConf conf = new SparkConf().setAppName("SocketRecoverableWordCount").setMaster("local[2]");
+                JavaSparkContext sparkContext = new JavaSparkContext(conf);
+                JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(20));
 
-        Function0<JavaStreamingContext> createContextFunc = () -> createContext(hostName, port, checkpointDirectory);
-        JavaStreamingContext context = JavaStreamingContext.getOrCreate(checkpointDirectory, createContextFunc);
+                ssc.checkpoint(checkpointDirectory);
+
+                JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
+                JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(x.split("\\s+")).iterator());
+                JavaPairDStream<String, Integer> wordCounts = words
+                        .mapToPair(s -> new Tuple2<>(s, 1))
+                        .reduceByKey((i1, i2) -> i1 + i2);
+
+                wordCounts.foreachRDD((rdd, time) -> {
+                    // 注册 Broadcast 黑名单
+                    Broadcast<List<String>> excludeList =
+                            JavaWordExcludeList.getInstance(new JavaSparkContext(rdd.context()));
+                    // 注册 Accumulator 记录排除黑名单中的元素个数
+                    LongAccumulator droppedWordsCounter =
+                            JavaDroppedWordsCounter.getInstance(new JavaSparkContext(rdd.context()));
+                    // 记录丢失的单词个数
+                    String counts = rdd.filter(wordCount -> {
+                        if (excludeList.value().contains(wordCount._1())) {
+                            droppedWordsCounter.add(wordCount._2());
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }).collect().toString();
+                    LOG.info("........................Counts at time {} {}", time, counts);
+                    LOG.info("........................Dropped {} word(s) totally", droppedWordsCounter.value());
+                });
+
+                wordCounts.print();
+                return ssc;
+            }
+        });
         context.start();
         context.awaitTermination();
     }
 }
 
+// 广播
 class JavaWordExcludeList {
 
     private static volatile Broadcast<List<String>> instance = null;
@@ -102,6 +94,7 @@ class JavaWordExcludeList {
     }
 }
 
+// 计数器
 class JavaDroppedWordsCounter {
 
     private static volatile LongAccumulator instance = null;
