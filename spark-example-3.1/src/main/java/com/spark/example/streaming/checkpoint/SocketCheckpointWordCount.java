@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * 功能：单词计数 实现 Checkpoint
@@ -55,9 +56,14 @@ public class SocketCheckpointWordCount {
         }).timeout(Durations.seconds(60));
 
         JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(x.split("\\s+")).iterator());
-        JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> stream = words
+        JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> wordCounts = words
                 .mapToPair(s -> new Tuple2<>(s, 1))
                 .mapWithState(stateSpec);
+
+        wordCounts.foreachRDD(rdd -> {
+            List<Tuple2<String, Integer>> top = rdd.top(10);
+            top.forEach(tuple -> System.out.print(tuple._1+","+tuple._2));
+        });
 
         ssc.start();
         ssc.awaitTermination();

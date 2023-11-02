@@ -1,14 +1,18 @@
 package com.spark.example.core.base;
 
 import com.google.common.collect.Lists;
+import com.spark.example.bean.Person;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.util.LongAccumulator;
+import scala.Tuple2;
 
+import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -18,7 +22,7 @@ import java.util.List;
  * 公众号：大数据生态
  * 日期：2023/9/24 07:24
  */
-public class ActionFunctionExample {
+public class ActionFunctionExample implements Serializable {
 
     // reduce
     private static void reduceFunction(JavaSparkContext sc) {
@@ -95,6 +99,36 @@ public class ActionFunctionExample {
         System.out.println(first);
     }
 
+    // top
+    private static void topFunction(JavaSparkContext sc) {
+        JavaRDD<Integer> javaRDD = sc.parallelize(Arrays.asList(1, 2, 3, 4));
+        List<Integer> top = javaRDD.top(2);
+        System.out.println(top);
+
+//        JavaRDD<Person> peopleRDD = sc.parallelize(Arrays.asList(
+//                new Person("Lucy", 10),
+//                new Person("Tom", 18),
+//                new Person("Jack", 21),
+//                new Person("LiLy", 15)
+//        ));
+//        List<Person> personTop = peopleRDD.top(2, new Comparator<Person>() {
+//            @Override
+//            public int compare(Person o1, Person o2) {
+//                long age1 = o1.getAge();
+//                long age2 = o2.getAge();
+//                if (age1 > age2) {
+//                    return 1;
+//                } else if (age1 < age2) {
+//                    return -1;
+//                }
+//                return 0;
+//            }
+//        });
+//        for(Person person : personTop) {
+//            System.out.println(person);
+//        }
+    }
+
     public static void main(String[] args) {
         SparkConf conf = new SparkConf().setAppName("ActionFunctionExample").setMaster("local[*]");
         JavaSparkContext sc = new JavaSparkContext(conf);
@@ -113,6 +147,8 @@ public class ActionFunctionExample {
         // count
         // countFunction(sc);
         // first
-        firstFunction(sc);
+        // firstFunction(sc);
+        // top
+        topFunction(sc);
     }
 }

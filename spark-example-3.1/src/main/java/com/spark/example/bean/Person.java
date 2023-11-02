@@ -1,5 +1,8 @@
 package com.spark.example.bean;
 
+
+import java.io.Serializable;
+
 /**
  * 功能：Person 类
  * 作者：SmartSi
@@ -7,9 +10,18 @@ package com.spark.example.bean;
  * 公众号：大数据生态
  * 日期：2023/10/11 07:31
  */
-public class Person {
+public class Person implements Serializable {
+
     private String name;
     private long age;
+
+    public Person() {
+    }
+
+    public Person(String name, long age) {
+        this.name = name;
+        this.age = age;
+    }
 
     public String getName() {
         return name;
