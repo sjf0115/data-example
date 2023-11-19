@@ -2,6 +2,7 @@ package com.spark.example.core.base;
 
 import com.google.common.collect.Lists;
 import com.spark.example.bean.Person;
+import com.spark.example.bean.SerializableComparator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -105,28 +106,28 @@ public class ActionFunctionExample implements Serializable {
         List<Integer> top = javaRDD.top(2);
         System.out.println(top);
 
-//        JavaRDD<Person> peopleRDD = sc.parallelize(Arrays.asList(
-//                new Person("Lucy", 10),
-//                new Person("Tom", 18),
-//                new Person("Jack", 21),
-//                new Person("LiLy", 15)
-//        ));
-//        List<Person> personTop = peopleRDD.top(2, new Comparator<Person>() {
-//            @Override
-//            public int compare(Person o1, Person o2) {
-//                long age1 = o1.getAge();
-//                long age2 = o2.getAge();
-//                if (age1 > age2) {
-//                    return 1;
-//                } else if (age1 < age2) {
-//                    return -1;
-//                }
-//                return 0;
-//            }
-//        });
-//        for(Person person : personTop) {
-//            System.out.println(person);
-//        }
+        JavaRDD<Person> peopleRDD = sc.parallelize(Arrays.asList(
+                new Person("Lucy", 10),
+                new Person("Tom", 18),
+                new Person("Jack", 21),
+                new Person("LiLy", 15)
+        ));
+        List<Person> personTop = peopleRDD.top(2, new SerializableComparator<Person>() {
+            @Override
+            public int compare(Person o1, Person o2) {
+                long age1 = o1.getAge();
+                long age2 = o2.getAge();
+                if (age1 > age2) {
+                    return 1;
+                } else if (age1 < age2) {
+                    return -1;
+                }
+                return 0;
+            }
+        });
+        for(Person person : personTop) {
+            System.out.println(person);
+        }
     }
 
     public static void main(String[] args) {
