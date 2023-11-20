@@ -29,14 +29,14 @@ public class SocketCheckpointWordCount {
     private static int port = 9100;
 
     public static void main(String[] args) throws InterruptedException {
-        SparkConf conf = new SparkConf().setAppName("SocketCheckpointWordCount").setMaster("local[2]");
+        SparkConf conf = new SparkConf().setAppName("SocketCheckpointWordCount").setMaster("local[*]");
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
         // 设置 Checkpoint 路径
         ssc.checkpoint("hdfs://localhost:9000/spark/checkpoint");
 
         // 单词流
-        JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port, StorageLevels.MEMORY_AND_DISK_SER);
+        JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
         // 设置 Checkpoint 周期
         lines.checkpoint(Durations.seconds(60));
 
@@ -53,7 +53,7 @@ public class SocketCheckpointWordCount {
                 countState.update(newCount);
                 return new Tuple2<>(word, newCount);
             }
-        }).timeout(Durations.seconds(60));
+        }).timeout(Durations.seconds(120));
 
         JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(x.split("\\s+")).iterator());
         JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> wordCounts = words
