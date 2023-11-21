@@ -1,9 +1,9 @@
 package com.spark.example.streaming.checkpoint;
 
+import com.spark.example.bean.SerializableComparator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.Optional;
-import org.apache.spark.api.java.StorageLevels;
 import org.apache.spark.api.java.function.Function3;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.State;
@@ -34,7 +34,6 @@ public class SocketCheckpointWordCount {
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
         // 设置 Checkpoint 路径
         ssc.checkpoint("hdfs://localhost:9000/spark/checkpoint");
-
         // 单词流
         JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
         // 设置 Checkpoint 周期
@@ -44,16 +43,18 @@ public class SocketCheckpointWordCount {
         StateSpec<String, Integer, Integer, Tuple2<String, Integer>> stateSpec = StateSpec.function(new Function3<String, Optional<Integer>, State<Integer>, Tuple2<String, Integer>>() {
             @Override
             public Tuple2<String, Integer> call(String word, Optional<Integer> count, State<Integer> countState) throws Exception {
-                LOG.info("Word: {}, Count: {}, State: {}", word, count.get(), countState.exists() ? countState.get() : null);
+                LOG.info("Word: {}, Count: {}, State: {}", word, count.or(0), countState.exists() ? countState.get() : null);
                 int newCount = 0;
                 if (countState.exists()) {
                     newCount = countState.get();
                 }
                 newCount += count.orElse(0);
-                countState.update(newCount);
+                if (!countState.isTimingOut()) {
+                    countState.update(newCount);
+                }
                 return new Tuple2<>(word, newCount);
             }
-        }).timeout(Durations.seconds(120));
+        });
 
         JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(x.split("\\s+")).iterator());
         JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> wordCounts = words
@@ -61,8 +62,20 @@ public class SocketCheckpointWordCount {
                 .mapWithState(stateSpec);
 
         wordCounts.foreachRDD(rdd -> {
-            List<Tuple2<String, Integer>> top = rdd.top(10);
-            top.forEach(tuple -> System.out.print(tuple._1+","+tuple._2));
+            List<Tuple2<String, Integer>> top = rdd.top(10, new SerializableComparator<Tuple2<String, Integer>>() {
+                @Override
+                public int compare(Tuple2<String, Integer> o1, Tuple2<String, Integer> o2) {
+                    long count1 = o1._2;
+                    long count2 = o2._2;
+                    if (count1 > count2) {
+                        return 1;
+                    } else if (count1 < count2) {
+                        return -1;
+                    }
+                    return 0;
+                }
+            });
+            top.forEach(tuple -> System.out.println(tuple._1+","+tuple._2));
         });
 
         ssc.start();
