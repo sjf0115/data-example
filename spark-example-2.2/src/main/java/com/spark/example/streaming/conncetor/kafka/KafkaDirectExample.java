@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * 功能：
+ * 功能：基于 Direct 方式访问 Kafka - 没有问题
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
@@ -24,7 +24,7 @@ public class KafkaDirectExample {
     private static final Pattern SPACE = Pattern.compile("\\s+");
 
     public static void main(String[] args) throws Exception {
-        SparkConf sparkConf = new SparkConf().setAppName("KafkaDirectExample");
+        SparkConf sparkConf = new SparkConf().setAppName("KafkaDirectExample").setMaster("local[*]");
         JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, new Duration(10000));
 
         // Kafka 配置参数

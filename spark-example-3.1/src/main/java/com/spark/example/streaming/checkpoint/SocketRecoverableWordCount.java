@@ -35,13 +35,14 @@ public class SocketRecoverableWordCount {
         JavaStreamingContext context = JavaStreamingContext.getOrCreate(checkpointDirectory, new Function0<JavaStreamingContext>() {
             @Override
             public JavaStreamingContext call() throws Exception {
-                SparkConf conf = new SparkConf().setAppName("SocketRecoverableWordCount").setMaster("local[2]");
+                SparkConf conf = new SparkConf().setAppName("SocketRecoverableWordCount").setMaster("local[*]");
                 JavaSparkContext sparkContext = new JavaSparkContext(conf);
-                JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(20));
+                JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
                 ssc.checkpoint(checkpointDirectory);
 
                 JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
+                lines.checkpoint(Durations.seconds(20));
                 JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(x.split("\\s+")).iterator());
                 JavaPairDStream<String, Integer> wordCounts = words
                         .mapToPair(s -> new Tuple2<>(s, 1))
@@ -49,13 +50,12 @@ public class SocketRecoverableWordCount {
 
                 wordCounts.foreachRDD((rdd, time) -> {
                     // 注册 Broadcast 黑名单
-                    Broadcast<List<String>> excludeList =
-                            JavaWordExcludeList.getInstance(new JavaSparkContext(rdd.context()));
+                    Broadcast<List<String>> excludeList = JavaWordExcludeList.getInstance(new JavaSparkContext(rdd.context()));
                     // 注册 Accumulator 记录排除黑名单中的元素个数
-                    LongAccumulator droppedWordsCounter =
-                            JavaDroppedWordsCounter.getInstance(new JavaSparkContext(rdd.context()));
+                    LongAccumulator droppedWordsCounter = JavaDroppedWordsCounter.getInstance(new JavaSparkContext(rdd.context()));
                     // 记录丢失的单词个数
                     String counts = rdd.filter(wordCount -> {
+                        LOG.info("........................ word: {}", wordCount._1());
                         if (excludeList.value().contains(wordCount._1())) {
                             droppedWordsCounter.add(wordCount._2());
                             return false;
@@ -67,7 +67,6 @@ public class SocketRecoverableWordCount {
                     LOG.info("........................Dropped {} word(s) totally", droppedWordsCounter.value());
                 });
 
-                wordCounts.print();
                 return ssc;
             }
         });
@@ -76,11 +75,9 @@ public class SocketRecoverableWordCount {
     }
 }
 
-// 广播
+// 广播-黑名单
 class JavaWordExcludeList {
-
     private static volatile Broadcast<List<String>> instance = null;
-
     public static Broadcast<List<String>> getInstance(JavaSparkContext jsc) {
         if (instance == null) {
             synchronized (JavaWordExcludeList.class) {
