@@ -15,7 +15,9 @@ import java.util.Properties;
 public class TextSingleProducer {
     public static void main(String[] args) {
         String topic = "word";
-        List<String> lines = Lists.newArrayList("hello world", "hello spark", "hello flink");
+        //List<String> lines = Lists.newArrayList("hello world", "hello spark", "hello flink");
+        //List<String> lines = Lists.newArrayList("a", "b", "b");
+        List<String> lines = Lists.newArrayList("ERROR"); //, ""
 
         // 配置发送者
         Properties props = new Properties();
