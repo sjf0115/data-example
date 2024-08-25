@@ -8,6 +8,8 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.JdbcSink;
+import org.apache.flink.connector.jdbc.JdbcStatementBuilder;
+import org.apache.flink.connector.jdbc.table.JdbcDynamicTableSink;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -15,6 +17,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
@@ -59,26 +63,43 @@ public class JdbcMysqlExample {
         wordsCount.print();
 
         // 输出到 MySQL
-        wordsCount.addSink(JdbcSink.sink(
-                "INSERT INTO word_count_upsert (word, count) VALUES (?, ?) ON DUPLICATE KEY UPDATE count = ?",
-                //"insert into word_count_append (word, count) values (?, ?)",
-                (statement, tuple2) -> {
-                    statement.setString(1, tuple2.f0);
-                    statement.setLong(2, tuple2.f1);
-                    statement.setLong(3, tuple2.f1);
-                },
-                JdbcExecutionOptions.builder()
-                        .withBatchSize(1)
-                        .withBatchIntervalMs(200)
-                        .withMaxRetries(5)
-                        .build(),
-                new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
-                        .withUrl("jdbc:mysql://localhost:3308/flink")
-                        .withDriverName("com.mysql.cj.jdbc.Driver")
-                        .withUsername("root")
-                        .withPassword("root")
-                        .build()
-        ));
+        //String dmlSQL = "insert into word_count_append (word, count) values (?, ?)";
+        String dmlSQL = "INSERT INTO word_count_upsert (word, count) VALUES (?, ?) ON DUPLICATE KEY UPDATE count = ?";
+
+//        JdbcStatementBuilder<Tuple2<String, Integer>> statementBuilder = (statement, tuple2) -> {
+//            statement.setString(1, tuple2.f0);
+//            statement.setLong(2, tuple2.f1);
+//            statement.setLong(3, tuple2.f1);
+//        };
+
+        JdbcStatementBuilder<Tuple2<String, Integer>> statementBuilder = new JdbcStatementBuilder<Tuple2<String, Integer>>() {
+            @Override
+            public void accept(PreparedStatement statement, Tuple2<String, Integer> wordCount) throws SQLException {
+                String word = wordCount.f0;
+                Integer count = wordCount.f1;
+                statement.setString(1, word);
+                statement.setInt(2, count);
+                statement.setInt(3, count);
+            }
+        };
+
+        JdbcExecutionOptions.Builder executionOptionsBuilder = JdbcExecutionOptions.builder();
+        JdbcExecutionOptions executionOptions = executionOptionsBuilder
+                .withBatchSize(1)
+                .withBatchIntervalMs(200)
+                .withMaxRetries(5)
+                .build();
+
+        JdbcConnectionOptions.JdbcConnectionOptionsBuilder connectionOptionsBuilder = new JdbcConnectionOptions.JdbcConnectionOptionsBuilder();
+        JdbcConnectionOptions connectionOptions = connectionOptionsBuilder.withUrl("jdbc:mysql://localhost:3308/flink")
+                .withDriverName("com.mysql.cj.jdbc.Driver")
+                .withUsername("root")
+                .withPassword("root")
+                .build();
+
+        wordsCount.addSink(
+                JdbcSink.sink(dmlSQL, statementBuilder, executionOptions, connectionOptions)
+        );
 
         env.execute("JdbcMysqlExample");
     }
