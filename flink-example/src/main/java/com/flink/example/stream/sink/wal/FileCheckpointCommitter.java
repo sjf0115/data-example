@@ -1,4 +1,4 @@
-package com.flink.example.stream.state.checkpoint;
+package com.flink.example.stream.sink.wal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.runtime.operators.CheckpointCommitter;

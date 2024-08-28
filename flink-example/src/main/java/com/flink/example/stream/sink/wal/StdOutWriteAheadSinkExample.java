@@ -1,7 +1,6 @@
 package com.flink.example.stream.sink.wal;
 
 import com.common.example.bean.WordCount;
-import com.flink.example.stream.state.checkpoint.FileCheckpointCommitter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.flink.api.common.ExecutionConfig;
@@ -17,7 +16,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
-import org.apache.flink.streaming.runtime.operators.GenericWriteAheadSink;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
