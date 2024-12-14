@@ -1,4 +1,4 @@
-package com.spark.example.streaming.base;
+package com.spark.example.streaming.funtion.output;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -14,19 +14,19 @@ import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /**
- * 功能：Spark 第一个程序 SocketWordCount
+ * 功能：输出操作函数-print
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
- * 日期：2022/10/9 下午12:06
+ * 日期：2024/12/8 09:42
  */
-public class SocketWordCountLambda {
+public class PrintExample {
     private static final Pattern SPACE = Pattern.compile("\\s+");
     private static String hostName = "localhost";
     private static int port = 9100;
 
     public static void main(String[] args) throws InterruptedException {
-        SparkConf conf = new SparkConf().setAppName("socket-spark-stream").setMaster("local[2]");
+        SparkConf conf = new SparkConf().setAppName("print-stream").setMaster("local[2]");
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
