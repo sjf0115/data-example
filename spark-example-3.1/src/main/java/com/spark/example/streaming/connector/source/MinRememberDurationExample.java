@@ -8,19 +8,27 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.Durations;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 /**
- * 功能：Source - FileStream
+ * 功能：Source - textFileStream - spark.streaming.minRememberDuration
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
- * 日期：2024/12/14 17:07
+ * 日期：2024/12/8 09:48
  */
-public class FileSourceExample {
+public class MinRememberDurationExample {
     public static void main(String[] args) throws InterruptedException {
-        SparkConf conf = new SparkConf().setAppName("file-stream").setMaster("local[2]");
+        SparkConf conf = new SparkConf()
+                .setAppName("text-file-stream")
+                .setMaster("local[2]")
+                .set("spark.serializer","org.apache.spark.serializer.KryoSerializer")  ;
+
+        // 设置记忆窗口为1个小时 即文件修改时间戳在最近一个小时内就可以被处理
+        conf.set("spark.streaming.minRememberDuration", "6000000s");
+
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
@@ -41,7 +49,7 @@ public class FileSourceExample {
                 Text.class,
                 TextInputFormat.class,
                 filter,
-                true
+                false
         );
         dStream.print();
 
