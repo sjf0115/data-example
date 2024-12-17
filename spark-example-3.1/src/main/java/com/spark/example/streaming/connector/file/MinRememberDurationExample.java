@@ -1,4 +1,4 @@
-package com.spark.example.streaming.connector.source;
+package com.spark.example.streaming.connector.file;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -8,7 +8,6 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
@@ -23,8 +22,10 @@ public class MinRememberDurationExample {
     public static void main(String[] args) throws InterruptedException {
         SparkConf conf = new SparkConf()
                 .setAppName("text-file-stream")
-                .setMaster("local[2]")
-                .set("spark.serializer","org.apache.spark.serializer.KryoSerializer")  ;
+                .setMaster("local[2]");
+
+        // 序列化
+        conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         // 设置记忆窗口为1个小时 即文件修改时间戳在最近一个小时内就可以被处理
         conf.set("spark.streaming.minRememberDuration", "6000000s");

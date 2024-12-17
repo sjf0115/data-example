@@ -1,4 +1,4 @@
-package com.spark.example.streaming.connector;
+package com.spark.example.streaming.connector.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.SparkConf;

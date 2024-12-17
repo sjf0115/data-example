@@ -1,4 +1,4 @@
-package com.spark.example.streaming.base;
+package com.spark.example.streaming.connector.socket;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;

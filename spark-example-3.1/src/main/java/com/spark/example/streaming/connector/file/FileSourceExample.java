@@ -1,4 +1,4 @@
-package com.spark.example.streaming.connector.source;
+package com.spark.example.streaming.connector.file;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
