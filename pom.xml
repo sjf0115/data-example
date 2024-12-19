@@ -69,6 +69,7 @@
         <velocity.version>2.3</velocity.version>
         <csv.version>3.8</csv.version>
         <au.csv.version>2.4</au.csv.version>
+        <druid.version>1.2.20</druid.version>
     </properties>
 
     <dependencyManagement>
@@ -410,6 +411,13 @@
                 <groupId>org.roaringbitmap</groupId>
                 <artifactId>RoaringBitmap</artifactId>
                 <version>${roaringBitmap.version}</version>
+            </dependency>
+
+            <!-- SQL解析&连接池 阿里 Druid -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${druid.version}</version>
             </dependency>
 
             <!-- commons lang3 -->

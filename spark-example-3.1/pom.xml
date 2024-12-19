@@ -57,6 +57,12 @@
             <groupId>com.example</groupId>
             <artifactId>common-example</artifactId>
         </dependency>
+
+        <!-- SQL解析&连接池 阿里 Druid -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
