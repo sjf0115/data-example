@@ -27,8 +27,8 @@ public class MinRememberDurationExample {
         // 序列化
         conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
-        // 设置记忆窗口为1个小时 即文件修改时间戳在最近一个小时内就可以被处理
-        conf.set("spark.streaming.minRememberDuration", "6000000s");
+        // 设置记忆窗口为8*24*60*60 即文件修改时间戳在最近8天内就可以被处理
+        conf.set("spark.streaming.minRememberDuration", "891200");
 
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
@@ -52,7 +52,7 @@ public class MinRememberDurationExample {
                 filter,
                 false
         );
-        dStream.print();
+        dStream.map(text -> text._2.toString()).print();
 
         ssc.start();
         ssc.awaitTermination();

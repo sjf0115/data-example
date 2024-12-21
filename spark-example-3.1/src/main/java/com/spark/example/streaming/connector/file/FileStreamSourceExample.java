@@ -18,9 +18,12 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
  * 公众号：大数据生态
  * 日期：2024/12/14 17:07
  */
-public class FileSourceExample {
+public class FileStreamSourceExample {
     public static void main(String[] args) throws InterruptedException {
         SparkConf conf = new SparkConf().setAppName("file-stream").setMaster("local[2]");
+        // 序列化
+        conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
@@ -35,15 +38,16 @@ public class FileSourceExample {
         };
 
         // 读取文件
+        // newFilesOnly 设置为 false 表示要处理历史已有文件
         JavaPairInputDStream<LongWritable, Text> dStream = ssc.fileStream(
                 path,
                 LongWritable.class,
                 Text.class,
                 TextInputFormat.class,
                 filter,
-                true
+                false
         );
-        dStream.print();
+        dStream.map(text -> text._2.toString()).print();
 
         ssc.start();
         ssc.awaitTermination();
