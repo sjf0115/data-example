@@ -16,7 +16,7 @@ import java.sql.PreparedStatement;
 import java.util.Iterator;
 
 /**
- * 功能：与外部存储系统交互 反例 出现 object not serializable 异常
+ * 功能：与外部存储系统交互
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
@@ -28,7 +28,7 @@ public class DataBaseSinkPartitionExample {
     private static int port = 9100;
 
     public static void main(String[] args) throws InterruptedException {
-        SparkConf conf = new SparkConf().setAppName("database-sink-1-stream").setMaster("local[2]");
+        SparkConf conf = new SparkConf().setAppName("database-sink-partition-stream").setMaster("local[2]");
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
