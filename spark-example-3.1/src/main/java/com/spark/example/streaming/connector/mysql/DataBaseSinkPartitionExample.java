@@ -44,10 +44,9 @@ public class DataBaseSinkPartitionExample {
                         // 1. 通过连接池获取连接
                         DruidDataSource dataSource = DruidConfig.getDataSource();
                         DruidPooledConnection connection = dataSource.getConnection();
-                        LOG.info("[INFO] 建立连接");
                         while (iterator.hasNext()) {
                             String record = iterator.next();
-                            LOG.info("[INFO] 数据记录：" + record);
+                            LOG.info("[INFO] 输入记录：" + record);
                             // 2. 遍历 RDD 通过连接与外部存储系统交互
                             String[] params = record.split(",");
                             String sql = "INSERT INTO tb_user (id, name, age, email) VALUES (?, ?, ?, ?)";

@@ -28,7 +28,7 @@ public class DataBaseSinkRddWorkerExample {
     private static int port = 9100;
 
     public static void main(String[] args) throws InterruptedException {
-        SparkConf conf = new SparkConf().setAppName("database-sink-1-stream").setMaster("local[2]");
+        SparkConf conf = new SparkConf().setAppName("database-sink-rdd-worker-stream").setMaster("local[2]");
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
@@ -41,7 +41,7 @@ public class DataBaseSinkRddWorkerExample {
                 rdd.foreach(new VoidFunction<String>() {
                     @Override
                     public void call(String record) throws Exception {
-                        LOG.info("record：" + record);
+                        LOG.info("[INFO] 输入记录：" + record);
                         // 1. 通过连接池获取连接
                         DruidDataSource dataSource = DruidConfig.getDataSource();
                         DruidPooledConnection connection = dataSource.getConnection();
@@ -58,8 +58,9 @@ public class DataBaseSinkRddWorkerExample {
                             stmt.setInt(3, Integer.parseInt(params[2]));
                             stmt.setString(4, params[3]);
                             stmt.executeUpdate();
+                            LOG.info("[INFO] 通过连接与外部存储系统交互");
                         } catch (Exception e) {
-                            LOG.error("与外部存储系统交互失败：" + e.getMessage());
+                            LOG.error("[ERROR] 与外部存储系统交互失败：" + e.getMessage());
                         } finally {
                             // 3. 关闭连接
                             if (stmt != null) {
@@ -67,6 +68,7 @@ public class DataBaseSinkRddWorkerExample {
                             }
                             if(connection != null) {
                                 connection.close();
+                                LOG.info("[INFO] 关闭连接");
                             }
                         }
                     }

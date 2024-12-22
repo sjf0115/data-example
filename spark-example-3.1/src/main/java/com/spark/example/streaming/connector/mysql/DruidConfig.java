@@ -18,7 +18,7 @@ public class DruidConfig implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(DruidConfig.class);
 
     public static DruidDataSource getDataSource() {
-        LOG.info("getDataSource...........");
+        LOG.info("[INFO] 创建 DruidDataSource");
         DruidDataSource dataSource = new DruidDataSource();
 
         // 配置数据库连接参数

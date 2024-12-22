@@ -27,7 +27,7 @@ public class DataBaseSinkRddDriverExample {
     private static int port = 9100;
 
     public static void main(String[] args) throws InterruptedException {
-        SparkConf conf = new SparkConf().setAppName("database-sink-1-stream").setMaster("local[2]");
+        SparkConf conf = new SparkConf().setAppName("database-sink-rdd-driver-stream").setMaster("local[2]");
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
