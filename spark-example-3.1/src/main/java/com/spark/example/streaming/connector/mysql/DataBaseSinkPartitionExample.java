@@ -14,9 +14,10 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.util.Iterator;
+import java.util.UUID;
 
 /**
- * 功能：与外部存储系统交互
+ * 功能：与外部存储系统交互 在 foreachPartition 中获取连接池
  * 作者：SmartSi
  * CSDN博客：https://smartsi.blog.csdn.net/
  * 公众号：大数据生态
@@ -49,15 +50,13 @@ public class DataBaseSinkPartitionExample {
                             LOG.info("[INFO] 输入记录：" + record);
                             // 2. 遍历 RDD 通过连接与外部存储系统交互
                             String[] params = record.split(",");
-                            String sql = "INSERT INTO tb_user (id, name, age, email) VALUES (?, ?, ?, ?)";
+                            String sql = "INSERT INTO tb_test (id, name) VALUES (?, ?)";
                             PreparedStatement stmt = null;
                             try {
                                 stmt = connection.prepareStatement(sql);
                                 // 设置参数并执行插入操作
                                 stmt.setInt(1, Integer.parseInt(params[0]));
-                                stmt.setString(2, params[1]);
-                                stmt.setInt(3, Integer.parseInt(params[2]));
-                                stmt.setString(4, params[3]);
+                                stmt.setString(2, UUID.randomUUID().toString().replace("-", ""));
                                 stmt.executeUpdate();
                                 LOG.info("[INFO] 通过连接与外部存储系统交互");
                             } catch (Exception e) {
@@ -72,6 +71,9 @@ public class DataBaseSinkPartitionExample {
                         if(connection != null) {
                             connection.close();
                             LOG.info("[INFO] 关闭连接");
+                        }
+                        if (dataSource != null) {
+                            dataSource.close();
                         }
                     }
                 });
