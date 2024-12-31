@@ -22,7 +22,7 @@ public class DruidConfig implements Serializable {
         DruidDataSource dataSource = new DruidDataSource();
 
         // 配置数据库连接参数
-        dataSource.setUrl("jdbc:mysql://localhost:3306/test?useSSL=false&serverTimezone=UTC");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/test?rewriteBatchedStatements=true&useSSL=false&serverTimezone=UTC");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
 
