@@ -36,7 +36,7 @@ public class TumbleWindowExample {
         JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
 
         // 将每行文本切分为单词
-        JavaPairDStream<String, Integer> wordCounts = lines.window(Durations.seconds(60)) // 1分钟的滚动窗口
+        JavaPairDStream<String, Integer> wordCounts = lines.window(Durations.seconds(60), Durations.seconds(60)) // 1分钟的滚动窗口
                 .flatMap(new FlatMapFunction<String, String>() {
                     @Override
                     public Iterator<String> call(String x) {
