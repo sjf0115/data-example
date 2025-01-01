@@ -31,31 +31,24 @@ public class ReduceByWindowExample {
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
         // 以端口 9100 作为输入源创建 DStream
-        JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
+        JavaReceiverInputDStream<String> numberStream = ssc.socketTextStream(hostName, port);
 
-        // 聚合函数
-        Function2<Integer, Integer, Integer> reduceFunction = new Function2<Integer, Integer, Integer>() {
-            @Override
-            public Integer call(Integer count1, Integer count2) {
-                return count1 + count2;
-            }
-        };
-
-        // 将每行文本切分为单词
-        JavaDStream<Integer> stream = lines
-                .flatMap(new FlatMapFunction<String, String>() {
-                    @Override
-                    public Iterator<String> call(String x) {
-                        return Arrays.asList(x.split("\\s+")).iterator();
-                    }
-                })
-                .map(word -> 1)
-                .reduceByWindow(new Function2<Integer, Integer, Integer>() {
-                    @Override
-                    public Integer call(Integer count1, Integer count2) {
-                        return count1 + count2;
-                    }
-                }, Durations.minutes(2), Durations.minutes(1));
+        // 数字流 每一分钟计算数字和
+        JavaDStream<Integer> stream = numberStream
+                .map(number -> Integer.parseInt(number))
+                .reduceByWindow(
+                        // reduce 聚合函数
+                        new Function2<Integer, Integer, Integer>() {
+                            @Override
+                            public Integer call(Integer v1, Integer v2) {
+                                return v1 + v2;
+                            }
+                        },
+                        // 窗口大小
+                        Durations.minutes(1),
+                        // 滑动间隔
+                        Durations.minutes(1)
+                );
 
         // 输出
         stream.print();
