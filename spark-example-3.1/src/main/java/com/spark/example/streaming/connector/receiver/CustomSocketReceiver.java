@@ -69,7 +69,7 @@ public class CustomSocketReceiver extends Receiver<String> {
         try {
             socket = new Socket(host, port);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-
+            // 在接收数据的线程中，需定期检查 isStopped() 方法，以便及时响应 Receiver 的停止
             while (!isStopped() && (line = reader.readLine()) != null) {
                 LOG.info("[INFO] 接收数据：" + line);
                 store(line);
