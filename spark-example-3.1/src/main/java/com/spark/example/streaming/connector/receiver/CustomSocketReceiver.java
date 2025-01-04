@@ -45,7 +45,7 @@ public class CustomSocketReceiver extends Receiver<String> {
             }
         }).start();*/
         new Thread(this::receive).start();
-        LOG.error("onStart 启动一个新的线程来接收数据");
+        LOG.info("onStart 启动一个新的线程来接收数据");
     }
 
     @Override
@@ -65,9 +65,7 @@ public class CustomSocketReceiver extends Receiver<String> {
 
     // 接收数据
     private void receive() {
-        Socket socket;
         String line;
-
         try {
             socket = new Socket(host, port);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
@@ -81,6 +79,7 @@ public class CustomSocketReceiver extends Receiver<String> {
                 restart("尝试再次重启 Receiver");
             }
         } catch(IOException e) {
+            LOG.error("接收数据失败", e);
             if (!isStopped()) {
                 restart("发生错误 尝试再次重启 Receiver");
             }
