@@ -2,15 +2,11 @@ package com.spark.example.streaming.window;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-
-import java.util.Arrays;
-import java.util.Iterator;
 
 /**
  * 功能：滚动窗口 reduceByWindow 算子
@@ -31,10 +27,10 @@ public class ReduceByWindowExample {
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
         // 以端口 9100 作为输入源创建 DStream
-        JavaReceiverInputDStream<String> numberStream = ssc.socketTextStream(hostName, port);
+        JavaReceiverInputDStream<String> dStream = ssc.socketTextStream(hostName, port);
 
         // 数字流 每一分钟计算数字和
-        JavaDStream<Integer> stream = numberStream
+        JavaDStream<Integer> stream = dStream
                 .map(number -> Integer.parseInt(number))
                 .reduceByWindow(
                         // reduce 聚合函数
