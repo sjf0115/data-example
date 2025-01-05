@@ -35,14 +35,6 @@ public class ReduceByKeyAndWindowExample {
         // 以端口 9100 作为输入源创建 DStream
         JavaReceiverInputDStream<String> lines = ssc.socketTextStream(hostName, port);
 
-        // 聚合函数
-        Function2<Integer, Integer, Integer> reduceFunction = new Function2<Integer, Integer, Integer>() {
-            @Override
-            public Integer call(Integer count1, Integer count2) {
-                return count1 + count2;
-            }
-        };
-
         // 将每行文本切分为单词
         JavaPairDStream<String, Integer> stream = lines
                 .flatMap(new FlatMapFunction<String, String>() {
@@ -57,12 +49,16 @@ public class ReduceByKeyAndWindowExample {
                         return new Tuple2<>(word, 1);
                     }
                 })
-                .reduceByKeyAndWindow(new Function2<Integer, Integer, Integer>() {
-                    @Override
-                    public Integer call(Integer count1, Integer count2) {
-                        return count1 + count2;
-                    }
-                }, Durations.minutes(2), Durations.minutes(1));
+                .reduceByKeyAndWindow(
+                        new Function2<Integer, Integer, Integer>() {
+                            @Override
+                            public Integer call(Integer v1, Integer v2) {
+                                return v1 + v2;
+                            }
+                        },
+                        Durations.minutes(1),
+                        Durations.minutes(1)
+                );
 
         // 输出
         stream.print();
