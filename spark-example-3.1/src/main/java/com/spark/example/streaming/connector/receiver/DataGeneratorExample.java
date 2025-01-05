@@ -1,6 +1,5 @@
 package com.spark.example.streaming.connector.receiver;
 
-import com.common.example.random.RandomGenerator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Durations;
@@ -20,8 +19,7 @@ public class DataGeneratorExample {
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sparkContext, Durations.seconds(10));
 
-        RandomGenerator<String> randomGenerator = RandomGenerator.stringGenerator(5);
-        JavaDStream<String> dStream = ssc.receiverStream(new DataGeneratorReceiver(randomGenerator, 1, 100L));
+        JavaDStream<String> dStream = ssc.receiverStream(new DataGeneratorReceiver(1, 10L));
         dStream.print();
 
         ssc.start();

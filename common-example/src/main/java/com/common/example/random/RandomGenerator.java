@@ -1,6 +1,8 @@
 package com.common.example.random;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -13,9 +15,11 @@ import java.util.Iterator;
  * 日期：2025/1/1 20:36
  */
 public abstract class RandomGenerator<T> implements Iterator<T>, Serializable {
+    private static final Logger LOG = LoggerFactory.getLogger(RandomGenerator.class);
     protected transient RandomDataGenerator random;
 
     public RandomGenerator() {
+        LOG.info("[INFO] RandomGenerator constructor ...");
         this.random = new RandomDataGenerator();
     }
 
@@ -81,7 +85,8 @@ public abstract class RandomGenerator<T> implements Iterator<T>, Serializable {
         return new RandomGenerator<String>() {
             @Override
             public String next() {
-                return random.nextHexString(len);
+                LOG.info("[INFO] stringGenerator next ...");
+                return this.random.nextHexString(len);
             }
         };
     }
