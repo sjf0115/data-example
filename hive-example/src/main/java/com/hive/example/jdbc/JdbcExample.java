@@ -1,4 +1,4 @@
-package com.hive.example;
+package com.hive.example.jdbc;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,8 +27,7 @@ public class JdbcExample {
                     System.out.println("RowIndex: " + rowIndex + ", ColumnIndex: " + i + ", ColumnValue: " + resultSet.getString(i));
                 }
             }
-        }
-        catch(Exception e)  {
+        } catch(Exception e)  {
             e.printStackTrace();
         }
     }

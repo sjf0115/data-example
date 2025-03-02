@@ -32,6 +32,7 @@
         <module>spark-example-2.2</module>
         <module>antlr-example</module>
         <module>sql-parse</module>
+        <module>seatunnel-example</module>
     </modules>
 
     <properties>
@@ -70,6 +71,7 @@
         <csv.version>3.8</csv.version>
         <au.csv.version>2.4</au.csv.version>
         <druid.version>1.2.20</druid.version>
+        <seatunnel.version>2.3.8</seatunnel.version>
     </properties>
 
     <dependencyManagement>
@@ -404,6 +406,13 @@
                 <groupId>redis.clients</groupId>
                 <artifactId>jedis</artifactId>
                 <version>${redis.version}</version>
+            </dependency>
+
+            <!-- SeaTunnel -->
+            <dependency>
+                <groupId>org.apache.seatunnel</groupId>
+                <artifactId>seatunnel-engine-client</artifactId>
+                <version>${seatunnel.version}</version>
             </dependency>
 
             <!-- RoaringBitmap -->
